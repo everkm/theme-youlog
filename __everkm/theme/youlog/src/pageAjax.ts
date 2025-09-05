@@ -34,31 +34,35 @@ async function loadPageContent(url: string): Promise<boolean> {
     const parser = new DOMParser();
     const doc = parser.parseFromString(response, "text/html");
 
-    const syncElement = (selector: string) => {
-      const currentElement = document.querySelector(selector);
-      const nextElement = doc.querySelector(selector);
-      if (currentElement && nextElement) {
-        currentElement.innerHTML = nextElement.innerHTML;
-      } else if (currentElement) {
-        currentElement.innerHTML = "";
-      } else {
-        console.error("sync element from ajax response", selector, "not found");
-        return false;
-      }
-      return true;
+    // 使用 data-ajax-element 选择器同步元素
+    const syncElementsByDataAttribute = () => {
+      // 获取当前页面中所有带有 data-ajax-element 属性的元素
+      const currentElements = document.querySelectorAll('[data-ajax-element]');
+      
+      currentElements.forEach((currentElement) => {
+        const elementId = currentElement.getAttribute('data-ajax-element');
+        if (!elementId) {
+          console.warn('元素缺少 data-ajax-element 值:', currentElement);
+          return;
+        }
+
+        // 在新页面中查找对应的元素
+        const nextElement = doc.querySelector(`[data-ajax-element="${elementId}"]`);
+        
+        if (nextElement) {
+          // 找到对应元素，同步内容
+          currentElement.innerHTML = nextElement.innerHTML;
+          // console.log(`成功同步元素: ${elementId}`);
+        } else {
+          // 在新页面中未找到对应元素，清空当前元素内容
+          currentElement.innerHTML = "";
+          // console.warn(`新页面中未找到元素: ${elementId}，已清空内容`);
+        }
+      });
     };
 
-    [
-      "#article-main",
-      "h1[data-article-title]",
-      "title",
-      "#page-indicator",
-      "#breadcrumb",
-      "#article-title",
-    ].forEach((selector) => {
-      // console.log("syncElement 2", selector);
-      syncElement(selector);
-    });
+    // 执行元素同步
+    syncElementsByDataAttribute();
 
     // 滚动到页面顶部
     requestAnimationFrame(() => {
@@ -87,6 +91,7 @@ function isOnlyHashChange(oldUrl: string, newUrl: string): boolean {
 }
 
 function dispatchPageLoaded(url: string) {
+  console.log("触发页面加载完成事件:", EVENT_PAGE_LOADED, { url });
   document.dispatchEvent(
     new CustomEvent(EVENT_PAGE_LOADED, {
       detail: { url },
@@ -94,7 +99,6 @@ function dispatchPageLoaded(url: string) {
       composed: true,
     })
   );
-  console.log("触发页面加载完成事件:", EVENT_PAGE_LOADED, { url });
 }
 
 // 处理页面导航跳转的函数
@@ -124,7 +128,9 @@ async function handleNavigation(url: string): Promise<void> {
       window.history.pushState(null, document.title, url);
 
       // 触发自定义事件，通知页面内容已更新
-      dispatchPageLoaded(url);
+      requestAnimationFrame(() => {
+        dispatchPageLoaded(url);
+      });
     } else {
       // 加载失败时直接跳转
       window.location.href = url;

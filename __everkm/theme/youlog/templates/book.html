@@ -37,7 +37,7 @@
 {% endmacro render_nav_items %}
 
 {% macro breadcrumb(navs) %}
-<div id="breadcrumb"
+<div id="breadcrumb" data-ajax-element="breadcrumb"
     class="text-text-tertiary dark:text-text-tertiary text-[0.95em] mx-auto flex items-center flex-wrap relative -top-6">
     {% if navs %}
     <a href="{{base_url()}}/"
@@ -122,7 +122,7 @@
                             class="text-lg font-semibold text-gray-900 dark:text-white truncate hidden-repeat-site-name">
                             {{ __config.site.name }}
                         </h1>
-                        <h1 data-article-title
+                        <h1 data-article-title-bar data-ajax-element="article-title-bar"
                             class="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer hidden">
                             {{ doc.title | default(value='无标题') }}
                         </h1>
@@ -173,18 +173,17 @@
 
                         {{ self::breadcrumb(navs=nav_path(from_file=summary_file, merge=__breadcrumbs)) }}
 
-                        <h1 id="article-title"
+                        <h1 id="article-title" data-ajax-element="article-title"
                             class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4">
                             {{ doc.title | default(value='无标题') }}
                         </h1>
 
-                        <div class="text-right mb-6 bg-neutral-50 rounded px-0.5 divide-x-2 doc-meta">
-                            {% if doc.meta.uno %}<span><a href="/{{ doc.meta.uno }}" 
-                                target="_blank">地址编号:
-                                {{ doc.meta.uno }}</a></span>{% endif %}
+                        <div data-ajax-element="doc-meta" class="text-right mb-6 bg-neutral-50 rounded px-0.5 divide-x-2 doc-meta">
+                            {% if doc.meta.uno %}<span><a href="/{{ doc.meta.uno }}" target="_blank">地址编号:
+                                    {{ doc.meta.uno }}</a></span>{% endif %}
                         </div>
 
-                        <article id="article-main"
+                        <article id="article-main" data-ajax-element="article-main"
                             class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0">
                             {{ doc.content_html | safe }}
                         </article>
@@ -195,7 +194,7 @@
 
                         <!-- 分页导航 -->
                         {% set page = nav_indicator(from_file=summary_file) %}
-                        <div id="page-indicator">
+                        <div id="page-indicator" data-ajax-element="page-indicator">
                             {% if page.next or page.prev %}
                             <div
                                 class="mt-10 pt-8 border-t border-border dark:border-border space-y-4 md:flex md:flex-row-reverse md:items-center md:space-y-0 md:gap-8">

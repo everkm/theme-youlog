@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block page_title %}{% endblock page_title %}{{ __config.site.name }}</title>
+  <title data-ajax-element="title">{% block page_title %}{% endblock page_title %}{{ __config.site.name }}</title>
   <meta name="description" content="{%block page_description%}{%endblock page_description%}" />
   <meta name="keywords" content="{%block page_keywords%}{%endblock page_keywords%}" />
   {% if __config.custom_css %}

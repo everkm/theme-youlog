@@ -3,7 +3,7 @@ import {debounce} from 'throttle-debounce'
 
 function watchAppHeader(): void {
   const appName = document.querySelector('h1[data-app-name]')
-  const articleTitle = document.querySelector('h1[data-article-title]')
+  const articleTitle = document.querySelector('h1[data-article-title-bar]')
   const targetElement = document.getElementById('article-title')
   let isWorking = true
 
