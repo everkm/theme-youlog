@@ -174,9 +174,15 @@
                         {{ self::breadcrumb(navs=nav_path(from_file=summary_file, merge=__breadcrumbs)) }}
 
                         <h1 id="article-title"
-                            class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-8">
+                            class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4">
                             {{ doc.title | default(value='无标题') }}
                         </h1>
+
+                        <div class="text-right mb-6 bg-neutral-50 rounded px-0.5 divide-x-2 doc-meta">
+                            {% if doc.meta.uno %}<span><a href="/{{ doc.meta.uno }}" 
+                                target="_blank">地址编号:
+                                {{ doc.meta.uno }}</a></span>{% endif %}
+                        </div>
 
                         <article id="article-main"
                             class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0">
@@ -278,7 +284,7 @@
                                     <!-- <span class="mx-2 text-text-quaternary dark:text-text-quaternary">|</span> -->
                                 </span>
                                 {% endif %}
-                               
+
                             </div>
 
 
@@ -286,7 +292,7 @@
                             <div
                                 class="text-text-tertiary dark:text-text-tertiary text-sm text-center flex flex-wrap justify-center items-center gap-4">
 
-                                
+
 
                                 {% if __config.copyright %}
                                 <span>
@@ -309,7 +315,7 @@
                                 </span>
                                 {% endif %}
 
-                              
+
 
 
 

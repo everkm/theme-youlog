@@ -38,3 +38,13 @@
   content: " ";
   @apply icon-[material-symbols--vertical-align-top-rounded] inline-block h-[0.7em] w-[0.7em];
 }
+
+.doc-meta {
+  & > span {
+    @apply text-sm text-text-secondary dark:text-text-secondary px-2 my-2 inline-block;
+  }
+
+  a {
+    @apply hover:!underline;
+  }
+}
