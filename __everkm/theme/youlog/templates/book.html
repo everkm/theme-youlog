@@ -178,8 +178,9 @@
                             {{ doc.title | default(value='无标题') }}
                         </h1>
 
-                        <div data-ajax-element="doc-meta" class="text-right mb-6 bg-neutral-50 rounded px-0.5 divide-x-2 doc-meta">
-                            {% if doc.meta.uno %}<span><a href="/{{ doc.meta.uno }}" target="_blank">地址编号:
+                        <div data-ajax-element="doc-meta" class="text-left mb-6 bg-neutral-50 rounded px-0.5 doc-meta">
+                            <span data-doc-update-at="{{ doc.update_at }}">更新于{{ doc.update_at | date(format="%Y-%m-%d") }}</span>
+                            {% if doc.meta.uno %}<span data-doc-meta-uno="{{ doc.meta.uno }}"><a href="/{{ doc.meta.uno }}" target="_blank">地址编号:
                                     {{ doc.meta.uno }}</a></span>{% endif %}
                         </div>
 
