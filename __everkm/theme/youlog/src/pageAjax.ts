@@ -67,7 +67,10 @@ async function loadPageContent(url: string): Promise<boolean> {
     // 滚动到页面顶部
     requestAnimationFrame(() => {
       setTimeout(() => {
-        document.getElementById("body-main")?.scrollTo(0, 0);
+        document.getElementById("body-main")?.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
       }, 30);
     });
 
