@@ -55,6 +55,15 @@ function watchAppHeader(): void {
     })
   })
 
+  // 获取 header 高度的函数
+  const getHeaderHeight = () => {
+    return parseInt(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--header-height")
+        .trim() || "0"
+    );
+  };
+
   // 监控 `#article-title` 元素的可见性，
   // 如果可见，则显示 appName 元素，
   // 否则切换 articleTitle 元素的显示
@@ -67,6 +76,9 @@ function watchAppHeader(): void {
     },
     {
       threshold: 1,
+      // 设置 rootMargin 来考虑 header 的高度
+      // 使用负的 top margin 来调整相交检测的边界
+      rootMargin: `-${getHeaderHeight()}px 0px 0px 0px`,
     },
   )
 
