@@ -56,6 +56,7 @@ jobs:
         make fe-install
 
     - name: build pages
+      if: startsWith(github.ref, 'refs/tags/pages@v')
       run: |
         cd __everkm && make dist
 
