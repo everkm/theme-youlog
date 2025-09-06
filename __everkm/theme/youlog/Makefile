@@ -1,3 +1,7 @@
+.PHONY: tag
+tag:
+	cd ../.. && $(MAKE) tag
+
 # 需要与 build.js 中的输出目录一致
 DIST_DIR=./dist
 
