@@ -26,8 +26,9 @@
 <ul>
     {% for item in items %}
     <li>
-        <a href="{{ item.url | default(value=base_url() ~ " /") | safe }}" {% if item.new_window | default(value=true)
-            %}target="_blank" {% endif %}>{{ item.title }}</a>
+        <a href="{{ item.url | default(value=base_url() ~ "/") | safe }}" 
+            {% if item.new_window | default(value=true) %}target="_blank" {% endif %}
+        >{{ item.title }}</a>
         {% if item.children %}
         {{ self::render_nav_items(items=item.children) }}
         {% endif %}
@@ -343,7 +344,7 @@
                                             d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                     <a href="https://youlog.theme.everkm.com" target="_blank"
-                                        title="Powered by everkm-publish(v{{ __everkm_publish_version }}) with theme youlog(v{{ __theme_version }})"
+                                        title="Powered by everkm-publish@v{{ __everkm_publish_version }} with theme youlog@v{{ __theme_version }}"
                                         class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors">
                                         {% if youlog_platform %}Theme{% else %}Youlog{% endif %}
                                     </a>
