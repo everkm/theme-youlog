@@ -7,6 +7,8 @@
   <title data-ajax-element="title">{% block page_title %}{% endblock page_title %}{{ __config.site.name }}</title>
   <meta name="description" content="{%block page_description%}{%endblock page_description%}" />
   <meta name="keywords" content="{%block page_keywords%}{%endblock page_keywords%}" />
+  <meta name="generator" content="everkm-publish@v{{ __everkm_publish_version }}" />
+  <meta name="theme_version" content="{{ __theme_version }}" />
   {% if __config.custom_css %}
   <link rel="stylesheet" href="{{ asset_base_url(url=__config.custom_css) }}">
   {% endif %}
