@@ -76,6 +76,9 @@
                 fixed h-dvh lg:sticky top-0 z-50
                 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full
                 flex flex-col">
+        
+        <!-- Site header -->
+        {% if __config.layout | get(key="aisde_no_header", default=false) == false %}
         <div class="flex h-14 items-center justify-between px-2 md:px-4 bg-gray-50 dark:bg-gray-900 z-10">
             <a data-logo href="{{base_url()}}/" class="flex items-center gap-2">
                 {% if __config.site.logo %}
@@ -96,6 +99,8 @@
                 </svg>
             </button>
         </div>
+        {% endif %}
+
         <!-- 导航菜单内容 - 使用嵌套ul结构 -->
         <nav id="sidebar-nav-tree"
             class="flex-1 markdown-body !py-0 px-4 !bg-transparent nav-tree invisible overflow-y-auto">
