@@ -4,18 +4,4 @@ author: dayu<dayu@dayu.me>
 repository: https://github.com/everkm/theme-youlog
 demo: https://youlog.theme.everkm.com/
 
-# map_url:
-#   - dir: /
-#     url: /{{slug}}.html
-    
-sitemap:
-  children:
-    - path: "index.html"
-      qs:
-        __tpl: book.html
-        summary: /_SUMMARY.md
-        path: /HOME.md
-    - path: "**"
-      qs:
-        __tpl: book.html
-        summary: /_SUMMARY.md
+default_template: book.html

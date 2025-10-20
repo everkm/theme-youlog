@@ -66,21 +66,3 @@ config:
     #       url: /blog/archive
 
 
-    
-
-# dir_tree:
-#   - name: 调料
-#     alias: tiaoliao
-
-
-# sitemap:
-#   children:
-#     - path: "index.html"
-#       qs:
-#         __tpl: book.html
-#         summary: /_SUMMARY.md
-#         path: /HOME.md
-#     - path: "**"
-#       qs:
-#         __tpl: book.html
-#         summary: /_SUMMARY.md
