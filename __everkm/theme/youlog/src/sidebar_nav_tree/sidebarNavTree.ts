@@ -472,5 +472,13 @@ export function initSidebarNavTree(): void {
       "sidebar-nav-tree"
     ) as HTMLElement;
     NavTreeManager.getInstance(container);
+
+    document.getElementById("breadcrumb")?.addEventListener("click", (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      console.log("click", target);
+      if (target.hasAttribute("data-nav-title")) {
+        console.log("click nav title", target.dataset.navTitle);
+      }
+    });
   });
 }

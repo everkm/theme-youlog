@@ -46,7 +46,7 @@
             <a class="text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light transition-colors inline-flex items-center"
                 href="{%if nav.url %}{{nav.url | safe}}{% else %}javascript:void(0){% endif %}">
         {% endif %}
-            {% if nav.is_first %}{{icons::home_icon()}}{% else %}{{nav.title}}{% endif -%}
+            {% if nav.is_first %}{{icons::home_icon()}}{% else %}<span data-nav-title>{{nav.title}}</span>{% endif -%}
         {% if not nav.is_last %}</a>{% endif %}
     {% endfor %}
 </div>
