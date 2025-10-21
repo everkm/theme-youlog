@@ -277,19 +277,22 @@ class NavTreeManager {
     let activeLink: HTMLElement | null = null;
     const matchingElements: HTMLElement[] = [];
 
-    links.forEach((link) => {
+    // 首先尝试路径匹配
+    for (const link of Array.from(links)) {
       const href = link.getAttribute("href");
       if (href) {
-        // 移除查询参数再转换为绝对路径
         const absoluteHref = removeQueryParams(toAbsoluteUrl(href));
-
-        // 检查是否匹配当前路径
-        console.log("currentPath", currentPath, absoluteHref);
         if (this.isMatchingPath(currentPath, absoluteHref)) {
           activeLink = this.findActiveLink(link, matchingElements);
+          break; // 找到匹配项后立即退出
         }
       }
-    });
+    }
+
+    // 如果路径匹配失败，尝试使用breadcrumb文本路径匹配
+    if (!activeLink) {
+      activeLink = this.matchByBreadcrumbPath(navTree, matchingElements);
+    }
 
     // 高亮活动链接
     this.highlightActiveLink(activeLink, matchingElements);
@@ -326,6 +329,81 @@ class NavTreeManager {
       return link;
     }
     return null;
+  }
+
+  // 通过breadcrumb文本路径匹配
+  private matchByBreadcrumbPath(
+    navTree: HTMLElement,
+    matchingElements: HTMLElement[]
+  ): HTMLElement | null {
+    const breadcrumbPath = this.getBreadcrumbPath();
+    if (!breadcrumbPath || breadcrumbPath.length === 0) {
+      return null;
+    }
+
+    console.log("尝试使用breadcrumb路径匹配:", breadcrumbPath);
+
+    // 查找所有链接
+    const links = navTree.querySelectorAll("a");
+    let activeLink: HTMLElement | null = null;
+
+    // 按路径前缀依次匹配，从最长路径开始
+    for (let pathLength = breadcrumbPath.length; pathLength > 0; pathLength--) {
+      const currentPath = breadcrumbPath.slice(0, pathLength);
+      console.log(`尝试匹配路径长度 ${pathLength}:`, currentPath);
+
+      // 查找匹配当前路径前缀的链接
+      for (const link of Array.from(links)) {
+        const linkText = link.textContent?.trim();
+        if (linkText === currentPath[currentPath.length - 1]) {
+          // 检查这个链接是否在正确的路径层级上
+          if (this.isLinkInCorrectPathLevel(link, currentPath)) {
+            activeLink = this.findActiveLink(link, matchingElements);
+            console.log(`找到匹配的链接: ${linkText}, 路径:`, currentPath);
+            break;
+          }
+        }
+      }
+
+      if (activeLink) {
+        break; // 找到匹配项后立即退出
+      }
+    }
+
+    return activeLink;
+  }
+
+  // 检查链接是否在正确的路径层级上
+  private isLinkInCorrectPathLevel(
+    link: HTMLElement,
+    targetPath: string[]
+  ): boolean {
+    const listItem = link.closest("li");
+    if (!listItem) {
+      return false;
+    }
+
+    // 获取链接在导航树中的深度
+    const depth = parseInt(listItem.getAttribute("data-depth") || "0");
+
+    // 检查深度是否与目标路径长度匹配（减1，因为深度从0开始）
+    return depth === targetPath.length - 1;
+  }
+
+  // 获取breadcrumb路径
+  public getBreadcrumbPath(): string[] {
+    const breadcrumb = document.getElementById("breadcrumb");
+    if (!breadcrumb) {
+      return [];
+    }
+
+    const navTitleElements = breadcrumb.querySelectorAll("[data-nav-title]");
+    return Array.from(navTitleElements)
+      .map((el) => {
+        const text = el.textContent?.trim();
+        return text || "";
+      })
+      .filter((text) => text.length > 0);
   }
 
   // 链接不匹配, 则收集所有前缀匹配，选取路径段最长者
@@ -463,6 +541,124 @@ class NavTreeManager {
   public refreshHighlight(): void {
     this.updateNavHighlight();
   }
+
+  // 按文本路径toggle节点
+  public toggleByTextPath(textPath: string[]): void {
+    if (!textPath || textPath.length === 0) {
+      console.warn("toggleByTextPath: 文本路径为空");
+      return;
+    }
+
+    console.log("按文本路径toggle:", textPath);
+
+    this.navTrees.forEach((tree) => {
+      try {
+        // 找到导航树中实际存在的最大深度
+        const maxDepth = this.getMaxDepthInNavTree(tree);
+        const effectivePath = textPath.slice(
+          0,
+          Math.min(textPath.length, maxDepth + 1)
+        );
+
+        console.log(`导航树最大深度: ${maxDepth}, 有效路径:`, effectivePath);
+
+        // 先展开所有祖先节点
+        this.expandAncestorsByTextPath(tree, effectivePath);
+
+        // 然后toggle最后一级节点
+        this.toggleLastLevelNodeByTextPath(tree, effectivePath);
+      } catch (error) {
+        console.error("toggleByTextPath 执行出错:", error);
+      }
+    });
+  }
+
+  // 获取导航树中的最大深度
+  private getMaxDepthInNavTree(navTree: HTMLElement): number {
+    const depthElements = navTree.querySelectorAll("[data-depth]");
+    let maxDepth = 0;
+
+    for (const element of Array.from(depthElements)) {
+      const depth = parseInt(element.getAttribute("data-depth") || "0");
+      maxDepth = Math.max(maxDepth, depth);
+    }
+
+    return maxDepth;
+  }
+
+  // 展开祖先节点
+  private expandAncestorsByTextPath(
+    navTree: HTMLElement,
+    textPath: string[]
+  ): void {
+    if (textPath.length <= 1) {
+      return;
+    }
+
+    // 展开除最后一级外的所有祖先节点
+    const ancestorPath = textPath.slice(0, -1);
+    const links = navTree.querySelectorAll("a");
+
+    for (let i = 0; i < ancestorPath.length; i++) {
+      const text = ancestorPath[i];
+      const targetDepth = i; // 目标深度
+
+      for (const link of Array.from(links)) {
+        const linkText = link.textContent?.trim();
+        if (linkText === text) {
+          const listItem = link.closest("li");
+          if (listItem) {
+            const depth = parseInt(listItem.getAttribute("data-depth") || "0");
+            // 检查深度是否匹配
+            if (depth === targetDepth) {
+              const nodeContent = listItem.querySelector(".node-content");
+              if (nodeContent) {
+                nodeContent.classList.add("expanded");
+              }
+              const subList = listItem.querySelector("ul, ol");
+              if (subList) {
+                subList.classList.remove("hidden");
+              }
+              break; // 找到匹配项后立即退出
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // toggle最后一级节点
+  private toggleLastLevelNodeByTextPath(
+    navTree: HTMLElement,
+    textPath: string[]
+  ): void {
+    const lastText = textPath[textPath.length - 1];
+    const targetDepth = textPath.length - 1; // 最后一级的深度
+    const links = navTree.querySelectorAll("a");
+
+    for (const link of Array.from(links)) {
+      const linkText = link.textContent?.trim();
+      if (linkText === lastText) {
+        const listItem = link.closest("li");
+        if (listItem) {
+          const depth = parseInt(listItem.getAttribute("data-depth") || "0");
+          // 检查深度是否匹配
+          if (depth === targetDepth) {
+            const nodeContent = listItem.querySelector(".node-content");
+            if (nodeContent && nodeContent.classList.contains("with-toggle")) {
+              // toggle展开/折叠状态
+              nodeContent.classList.toggle("expanded");
+              const subList = listItem.querySelector("ul, ol");
+              if (subList) {
+                subList.classList.toggle("hidden");
+              }
+            }
+            break; // 找到匹配项后立即退出
+          }
+        }
+      }
+    }
+  }
 }
 
 // 初始化导航树
@@ -473,12 +669,38 @@ export function initSidebarNavTree(): void {
     ) as HTMLElement;
     NavTreeManager.getInstance(container);
 
-    document.getElementById("breadcrumb")?.addEventListener("click", (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      console.log("click", target);
-      if (target.hasAttribute("data-nav-title")) {
-        console.log("click nav title", target.dataset.navTitle);
-      }
-    });
+    document
+      .getElementById("breadcrumb")
+      ?.addEventListener("click", (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        console.log("breadcrumb click", target);
+
+        if (target.hasAttribute("data-nav-title")) {
+          // 检查父节点是否是A标签
+          const parentA = target.closest("a");
+          if (!parentA) {
+            try {
+              // 父节点不是A标签，获取breadcrumb路径并调用toggle
+              const navTreeManager = NavTreeManager.getInstance(container);
+              const breadcrumbPath = navTreeManager.getBreadcrumbPath();
+
+              if (breadcrumbPath.length === 0) {
+                console.warn("breadcrumb路径为空");
+                return;
+              }
+
+              const clickedIndex = Array.from(
+                target.parentElement?.children || []
+              ).indexOf(target);
+              const pathToCurrent = breadcrumbPath.slice(0, clickedIndex + 1);
+
+              console.log("click nav title, path to current:", pathToCurrent);
+              navTreeManager.toggleByTextPath(pathToCurrent);
+            } catch (error) {
+              console.error("breadcrumb点击处理出错:", error);
+            }
+          }
+        }
+      });
   });
 }
