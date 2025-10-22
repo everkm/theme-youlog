@@ -657,10 +657,10 @@ export function initSidebarNavTree2(): void {
     BreadcrumbManager.setupClickHandler(navTreeManager);
 
     // 初始高亮更新
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       console.log("执行初始高亮更新");
       navTreeManager.refreshHighlight();
-    }, 100);
+    });
 
     // 监听页面加载事件，处理动态内容
     document.addEventListener(EVENT_PAGE_LOADED, () => {
@@ -672,6 +672,8 @@ export function initSidebarNavTree2(): void {
       // 更新高亮
       navTreeManager.refreshHighlight();
     });
+
+    container.classList.remove("invisible");
   });
 }
 
