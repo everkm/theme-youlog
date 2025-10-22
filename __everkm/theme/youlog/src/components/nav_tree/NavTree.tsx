@@ -1,5 +1,6 @@
 import { Component, For, Show, createMemo } from "solid-js";
 import { NavTreeState, NavItem } from "./NavTreeState";
+import "./NavTree.css";
 
 /**
  * 导航树组件属性接口
@@ -110,7 +111,7 @@ export const NavTree: Component<NavTreeProps> = (props) => {
   };
 
   return (
-    <nav class={`nav-tree ${props.class || ""}`}>
+    <nav class={`nav-tree select-none ${props.class || ""}`}>
       <ul>
         <For each={rootNodes()}>
           {(node) => (

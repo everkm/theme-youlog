@@ -2,7 +2,8 @@ import './main.css'
 import './theme.tsx'
 import './markdown.css'
 import './navigation/navigation.tsx'
-import {initSidebarNavTree} from './sidebar_nav_tree/sidebarNavTree'
+// import {initSidebarNavTree} from './sidebar_nav_tree/sidebarNavTree'
+import {initSidebarNavTree2} from './sidebar_nav_tree2/sidebarNavTree2'
 import {initToc} from './toc/toc'
 import './pageAjax'
 import {initDrawer} from './drawer'
@@ -17,7 +18,13 @@ import './VersionList.tsx'
 initToc()
 
 // 调用初始化侧边栏导航树函数
-initSidebarNavTree()
+// initSidebarNavTree()
+
+// 调用初始化通用导航树转换函数
+initSidebarNavTree2()
+
+
+
 
 // 调用初始化抽屉函数
 initDrawer('sidebar-nav')
