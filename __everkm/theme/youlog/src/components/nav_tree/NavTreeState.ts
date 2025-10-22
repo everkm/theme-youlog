@@ -27,6 +27,8 @@ export interface NavTreeStateData {
   expandedIds: Set<string>;
   /** 活动的节点ID集合 */
   activeIds: Set<string>;
+  /** 当前高亮的完整路径 */
+  currentHighlightPath: string[];
 }
 
 /**
@@ -126,6 +128,7 @@ export class NavTreeState {
   private initializeState(items: NavItem[]): NavTreeStateData {
     const expandedIds = new Set<string>();
     const activeIds = new Set<string>();
+    const currentHighlightPath: string[] = [];
 
     const tree = this.initializeItems(items);
 
@@ -133,6 +136,7 @@ export class NavTreeState {
       tree,
       expandedIds,
       activeIds,
+      currentHighlightPath,
     };
   }
 
@@ -282,6 +286,9 @@ export class NavTreeState {
       }
       return newSet;
     });
+
+    // 展开状态改变后，更新高亮显示
+    this.updateHighlightDisplay();
   }
 
   /**
@@ -297,6 +304,55 @@ export class NavTreeState {
       }
       return newSet;
     });
+  }
+
+  /**
+   * 获取当前高亮的完整路径
+   */
+  getCurrentHighlightPath(): string[] {
+    return this.state.currentHighlightPath;
+  }
+
+  /**
+   * 获取当前可见的高亮节点ID
+   * 根据展开状态返回路径中最后一个可见的节点
+   */
+  getCurrentVisibleHighlightNode(): string | null {
+    const { currentHighlightPath, expandedIds } = this.state;
+
+    if (currentHighlightPath.length === 0) {
+      return null;
+    }
+
+    // 从根到叶逐级检查：只有当父节点展开时，子节点才“可见”
+    let visibleIndex = 0;
+    for (let i = 1; i < currentHighlightPath.length; i++) {
+      const parentNodeId = currentHighlightPath[i - 1];
+      if (expandedIds.has(parentNodeId)) {
+        visibleIndex = i;
+      } else {
+        break;
+      }
+    }
+
+    return currentHighlightPath[visibleIndex] || null;
+  }
+
+  /**
+   * 更新高亮显示状态
+   * 根据当前展开状态更新活动节点集合
+   */
+  private updateHighlightDisplay(): void {
+    const visibleNodeId = this.getCurrentVisibleHighlightNode();
+    console.log(`updateHighlightDisplay:`, visibleNodeId);
+
+    // 清除所有活动状态
+    this.updateState("activeIds", new Set());
+
+    // 只设置当前可见的高亮节点为活动状态
+    if (visibleNodeId) {
+      this.setActive(visibleNodeId, true);
+    }
   }
 
   /**
@@ -349,6 +405,11 @@ export class NavTreeState {
     );
   }
 
+  private cleanActiveIds(): void {
+    this.updateState("activeIds", new Set());
+    this.updateState("currentHighlightPath", []);
+  }
+
   /**
    * 设置活动节点（由外部调用）
    * @param activeNodeId 活动节点ID
@@ -358,22 +419,21 @@ export class NavTreeState {
     const nodePath = this.getNodePath(activeNodeId);
     console.log(`节点路径:`, nodePath);
 
-    if (nodePath) {
-      // 清除所有活动状态
-      this.updateState("activeIds", new Set());
-      this.updateState("expandedIds", new Set());
+    // 清除高亮路径
+    this.cleanActiveIds();
 
-      // 设置活动状态
-      nodePath.forEach((nodeId) => {
-        console.log(`设置节点 ${nodeId} 为活动状态`);
-        this.setActive(nodeId, true);
-      });
+    if (nodePath) {
+      // 保存当前高亮的完整路径
+      this.updateState("currentHighlightPath", nodePath);
 
       // 展开包含活动项的路径（除了最后一个节点）
       nodePath.slice(0, -1).forEach((nodeId) => {
         console.log(`展开节点 ${nodeId}`);
         this.setExpanded(nodeId, true);
       });
+
+      // 更新高亮显示状态（只显示最后一个可见节点）
+      this.updateHighlightDisplay();
 
       // 滚动到活动链接
       if (this.config.scrollToActiveLink) {

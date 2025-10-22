@@ -165,24 +165,21 @@ class TreeStructureValidator {
       return `第${index}个li元素不能为空`;
     }
 
-    // 规则1: li下只能有一个标记 a/UL/OL
-    const linkCount = elementChildren.filter(
+    // 分类子元素
+    const linkElements = elementChildren.filter(
       (child) => child.tagName === "A"
-    ).length;
-    const listCount = elementChildren.filter(
-      (child) => child.tagName === "UL" || child.tagName === "OL"
-    ).length;
-    const otherElementCount = elementChildren.filter(
-      (child) =>
-        child.tagName !== "A" &&
-        child.tagName !== "UL" &&
-        child.tagName !== "OL"
-    ).length;
+    );
+    const listElements = elementChildren.filter((child) =>
+      ["UL", "OL"].includes(child.tagName)
+    );
+    const otherElements = elementChildren.filter(
+      (child) => !["A", "UL", "OL"].includes(child.tagName)
+    );
 
     console.log(`第${index}个li元素分析:`, {
-      linkCount,
-      listCount,
-      otherElementCount,
+      linkCount: linkElements.length,
+      listCount: listElements.length,
+      otherCount: otherElements.length,
       elementChildren: elementChildren.map((c) => c.tagName),
       childNodes: childNodes.map((n) =>
         n.nodeType === Node.TEXT_NODE
@@ -191,22 +188,39 @@ class TreeStructureValidator {
       ),
     });
 
-    // 检查是否有其他元素
-    if (otherElementCount > 0) {
+    // 基础验证
+    if (otherElements.length > 0) {
       return `第${index}个li元素包含不允许的元素，只能包含a、ul或ol`;
     }
-
-    // 检查元素数量
-    if (linkCount + listCount === 0) {
+    if (linkElements.length + listElements.length === 0) {
       return `第${index}个li元素必须包含a、ul或ol中的至少一个`;
     }
-
-    if (linkCount + listCount > 1) {
-      return `第${index}个li元素只能包含一个a、ul或ol元素`;
+    if (linkElements.length > 1) {
+      return `第${index}个li元素只能包含一个a元素`;
+    }
+    if (listElements.length > 1) {
+      return `第${index}个li元素只能包含一个ul或ol元素`;
     }
 
-    // 规则2: 当为OL/UL时，childNodes第一个必须是不为空的text_node
-    if (listCount === 1) {
+    const linkElement = linkElements[0];
+    const listElement = listElements[0];
+
+    // 文本节点验证
+    const textNodes = childNodes.filter(
+      (node) => node.nodeType === Node.TEXT_NODE
+    );
+    const hasNonEmptyText = textNodes.some(
+      (node) => node.textContent && node.textContent.trim() !== ""
+    );
+
+    // 规则1: 同时包含a和ul/ol时，文本节点必须为空
+    if (linkElement && listElement) {
+      if (hasNonEmptyText) {
+        return `第${index}个li元素同时包含a和ul/ol时，文本节点必须为空或只包含空白字符`;
+      }
+    }
+    // 规则2: 只有ul/ol时，第一个子节点必须是非空文本
+    else if (listElement && !linkElement) {
       const firstChildNode = childNodes[0];
       if (firstChildNode.nodeType !== Node.TEXT_NODE) {
         return `第${index}个li元素包含ul/ol时，第一个子节点必须是文本节点`;
@@ -214,16 +228,13 @@ class TreeStructureValidator {
       if (!firstChildNode.textContent?.trim()) {
         return `第${index}个li元素包含ul/ol时，第一个文本节点不能为空`;
       }
+    }
 
-      // 验证子列表结构
-      const subList = elementChildren.find(
-        (child) => child.tagName === "UL" || child.tagName === "OL"
-      );
-      if (subList) {
-        const subError = this.validateTreeStructure(subList as HTMLElement);
-        if (subError) {
-          return `第${index}个li元素的子列表验证失败: ${subError}`;
-        }
+    // 递归验证子列表
+    if (listElement) {
+      const subError = this.validateTreeStructure(listElement as HTMLElement);
+      if (subError) {
+        return `第${index}个li元素的子列表验证失败: ${subError}`;
       }
     }
 
@@ -278,52 +289,47 @@ class DOMTreeParser {
       return null;
     }
 
-    // 根据简化规则解析
+    // 分类子元素
     const linkElement = elementChildren.find(
       (child) => child.tagName === "A"
     ) as HTMLAnchorElement;
-    const listElement = elementChildren.find(
-      (child) => child.tagName === "UL" || child.tagName === "OL"
+    const listElement = elementChildren.find((child) =>
+      ["UL", "OL"].includes(child.tagName)
     ) as HTMLElement;
 
+    // 确定标题来源
     let title = "";
-    let url: string | undefined;
-    let new_window = false;
-
     if (linkElement) {
-      // 情况1: 只有a标签 - 叶子节点
+      // 优先使用a标签的文本作为标题
       title = linkElement.textContent?.trim() || "";
-      url = linkElement.href;
-      new_window = linkElement.target === "_blank";
     } else if (listElement) {
-      // 情况2: 只有ul/ol - 分支节点，标题来自第一个文本节点
+      // 没有a标签时，使用第一个文本节点
       const firstChildNode = childNodes[0];
       if (firstChildNode.nodeType === Node.TEXT_NODE) {
         title = firstChildNode.textContent?.trim() || "";
       }
-
-      // 解析子列表
-      const subItems = this.parseToNavItems(listElement);
-      return {
-        nodeId: "", // 将在NavTreeState中生成
-        title,
-        url: undefined,
-        new_window: false,
-        children: subItems.length > 0 ? subItems : undefined,
-      };
     }
 
     if (!title) {
       return null;
     }
 
-    return {
+    // 构建基础NavItem
+    const navItem: NavItem = {
       nodeId: "", // 将在NavTreeState中生成
       title,
-      url,
-      new_window,
+      url: linkElement?.href,
+      new_window: linkElement?.target === "_blank" || false,
       children: undefined,
     };
+
+    // 如果有子列表，解析并添加
+    if (listElement) {
+      const subItems = this.parseToNavItems(listElement);
+      navItem.children = subItems.length > 0 ? subItems : undefined;
+    }
+
+    return navItem;
   }
 }
 
