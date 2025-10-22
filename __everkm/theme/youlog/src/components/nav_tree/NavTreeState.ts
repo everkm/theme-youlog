@@ -456,7 +456,7 @@ export class NavTreeState {
         `[data-node-id="${activeNodeId}"]`
       );
       if (activeElement) {
-        activeElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
     }, this.config.scrollDelay);
   }
