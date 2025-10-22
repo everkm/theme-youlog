@@ -4,6 +4,113 @@ import { NavTree } from "../components/nav_tree/NavTree";
 import { render } from "solid-js/web";
 
 /**
+ * DOM工具类
+ */
+class DOMUtils {
+  /**
+   * 获取元素的文本内容（去除空白）
+   * @param element DOM元素
+   * @returns 清理后的文本内容
+   */
+  static getCleanTextContent(element: Element): string {
+    return element.textContent?.trim() || "";
+  }
+
+  /**
+   * 检查元素是否包含指定的CSS类
+   * @param element DOM元素
+   * @param className CSS类名
+   * @returns 是否包含该类
+   */
+  static hasClass(element: Element, className: string): boolean {
+    return element.classList.contains(className);
+  }
+
+  /**
+   * 安全地获取元素属性值
+   * @param element DOM元素
+   * @param attributeName 属性名
+   * @param defaultValue 默认值
+   * @returns 属性值或默认值
+   */
+  static getAttribute(
+    element: Element,
+    attributeName: string,
+    defaultValue: string = ""
+  ): string {
+    return element.getAttribute(attributeName) || defaultValue;
+  }
+}
+
+/**
+ * Breadcrumb管理器
+ * 负责处理breadcrumb相关的操作
+ */
+class BreadcrumbManager {
+  /**
+   * 获取breadcrumb路径
+   * @returns breadcrumb文本路径数组
+   */
+  static getBreadcrumbPath(): string[] {
+    const breadcrumb = document.getElementById("breadcrumb");
+    if (!breadcrumb) {
+      return [];
+    }
+
+    const navTitleElements = breadcrumb.querySelectorAll("[data-nav-title]");
+    return Array.from(navTitleElements)
+      .map((el) => DOMUtils.getCleanTextContent(el))
+      .filter((text) => text.length > 0);
+  }
+
+  /**
+   * 设置breadcrumb点击事件处理
+   * @param navTreeManager 导航树管理器实例
+   */
+  static setupClickHandler(navTreeManager: NavTreeManager): void {
+    const breadcrumb = document.getElementById("breadcrumb");
+    if (!breadcrumb) {
+      console.warn("找不到breadcrumb元素");
+      return;
+    }
+
+    breadcrumb.addEventListener("click", (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      console.log("breadcrumb点击，目标:", target);
+
+      if (!target.hasAttribute("data-nav-title")) {
+        console.log("breadcrumb点击，目标不是data-nav-title");
+      }
+      // 处理父节点是A标签，且href以javascript:开头的情况
+      const parentA = target.closest("a");
+      if (!(parentA && parentA.href.startsWith("javascript:"))) {
+        console.log("breadcrumb点击，父节点不是A标签或href以javascript:开头");
+        return;
+      }
+
+      try {
+        const breadcrumbPath = this.getBreadcrumbPath();
+
+        if (breadcrumbPath.length === 0) {
+          console.warn("breadcrumb路径为空");
+          return;
+        }
+
+        const clickedIndex = Array.from(
+          target.parentElement?.children || []
+        ).indexOf(target);
+        const pathToCurrent = breadcrumbPath.slice(0, clickedIndex + 1);
+
+        console.log("breadcrumb点击，路径到当前位置:", pathToCurrent);
+        navTreeManager.toggleByTextPath(pathToCurrent);
+      } catch (error) {
+        console.error("breadcrumb点击处理出错:", error);
+      }
+    });
+  }
+}
+
+/**
  * 树结构验证器
  * 验证ul/ol结构是否符合要求
  */
@@ -221,9 +328,186 @@ class DOMTreeParser {
 }
 
 /**
- * 树转换器
- * 负责将DOM树转换为NavTree组件
+ * 导航树管理器
+ * 负责导航树的初始化、事件处理和状态管理
  */
+class NavTreeManager {
+  private navTreeStates: Map<HTMLElement, NavTreeState> = new Map();
+  private static instance: NavTreeManager | null = null;
+
+  constructor() {
+    // 单例模式
+    if (NavTreeManager.instance) {
+      return NavTreeManager.instance;
+    }
+    NavTreeManager.instance = this;
+
+    this.setupEventListeners();
+    console.log("NavTreeManager 初始化完成, 监听事件:", EVENT_PAGE_LOADED);
+  }
+
+  /**
+   * 获取单例实例
+   * @returns NavTreeManager实例
+   */
+  public static getInstance(): NavTreeManager {
+    if (!NavTreeManager.instance) {
+      NavTreeManager.instance = new NavTreeManager();
+    }
+    return NavTreeManager.instance;
+  }
+
+  /**
+   * 注册导航树状态
+   * @param element 原始DOM元素
+   * @param navTreeState 导航树状态
+   */
+  public registerNavTreeState(
+    element: HTMLElement,
+    navTreeState: NavTreeState
+  ): void {
+    console.log("注册导航树状态:", element, navTreeState);
+    this.navTreeStates.set(element, navTreeState);
+    console.log(`当前注册的导航树状态数量: ${this.navTreeStates.size}`);
+  }
+
+  /**
+   * 设置事件监听器
+   */
+  private setupEventListeners(): void {
+    // 监听页面加载事件，更新导航高亮
+    document.addEventListener(EVENT_PAGE_LOADED, () => {
+      this.updateNavHighlight();
+    });
+
+    // 监听浏览器历史变化
+    window.addEventListener("popstate", () => {
+      this.updateNavHighlight();
+    });
+  }
+
+  /**
+   * 更新导航高亮
+   */
+  private updateNavHighlight(): void {
+    console.log(`开始更新导航高亮，当前路径: ${window.location.pathname}`);
+    console.log(`注册的导航树状态数量: ${this.navTreeStates.size}`);
+
+    if (this.navTreeStates.size === 0) {
+      console.warn("没有注册的导航树状态，跳过高亮更新");
+      return;
+    }
+
+    this.navTreeStates.forEach((navTreeState, element) => {
+      console.log(`处理导航树状态:`, element);
+      const activeNodeId = this.findActiveNode(navTreeState);
+      console.log(`找到的活动节点ID: ${activeNodeId}`);
+      if (activeNodeId) {
+        navTreeState.setActiveNode(activeNodeId);
+        console.log(`已设置活动节点: ${activeNodeId}`);
+      } else {
+        console.log("未找到匹配的活动节点");
+      }
+    });
+
+    console.log(`导航高亮更新完成，当前路径: ${window.location.pathname}`);
+  }
+
+  /**
+   * 查找活动节点
+   * @param navTreeState 导航树状态
+   * @returns 活动节点ID或null
+   */
+  private findActiveNode(navTreeState: NavTreeState): string | null {
+    const currentUrl = window.location.href;
+    console.log(`查找活动节点，当前路径: ${currentUrl}`);
+
+    // 首先尝试精确路径匹配
+    let activeNodeId = navTreeState.findActiveNode(
+      currentUrl,
+      (currentPath, targetPath) => {
+        const absTargetPath = new URL(targetPath, window.location.origin);
+        const absCurrentPath = new URL(currentPath, window.location.origin);
+        return (
+          absCurrentPath.pathname === absTargetPath.pathname &&
+          absCurrentPath.origin === absTargetPath.origin
+        );
+      }
+    );
+    console.log(`精确路径匹配结果: ${activeNodeId}`);
+
+    // 如果路径匹配失败，尝试使用breadcrumb文本路径匹配
+    if (!activeNodeId) {
+      activeNodeId = this.findActiveNodeByBreadcrumb(navTreeState);
+      console.log(`面包屑匹配结果: ${activeNodeId}`);
+    }
+
+    return activeNodeId;
+  }
+
+  /**
+   * 通过breadcrumb匹配查找活动节点
+   * @param navTreeState 导航树状态
+   * @returns 活动节点ID或null
+   */
+  private findActiveNodeByBreadcrumb(
+    navTreeState: NavTreeState
+  ): string | null {
+    const breadcrumbPath = BreadcrumbManager.getBreadcrumbPath();
+    if (!breadcrumbPath || breadcrumbPath.length === 0) {
+      return null;
+    }
+
+    console.log("尝试使用breadcrumb路径匹配:", breadcrumbPath);
+    console.log("导航树根节点:", navTreeState.getRootNodes());
+
+    // 使用NavTreeState的文本路径匹配方法
+    const matchedNode = navTreeState.findNodeByTextPath(breadcrumbPath);
+    if (matchedNode) {
+      console.log(`找到匹配的节点: ${matchedNode.title}`);
+      return matchedNode.nodeId;
+    }
+
+    console.log("未找到匹配的节点");
+    return null;
+  }
+
+  /**
+   * 手动触发高亮更新
+   */
+  public refreshHighlight(): void {
+    this.updateNavHighlight();
+  }
+
+  /**
+   * 按文本路径toggle节点
+   * @param textPath 文本路径数组
+   */
+  public toggleByTextPath(textPath: string[]): void {
+    if (!textPath || textPath.length === 0) {
+      console.warn("toggleByTextPath: 文本路径为空");
+      return;
+    }
+
+    console.log("按文本路径toggle:", textPath);
+
+    this.navTreeStates.forEach((navTreeState) => {
+      try {
+        navTreeState.toggleByTextPath(textPath);
+      } catch (error) {
+        console.error("toggleByTextPath 执行出错:", error);
+      }
+    });
+  }
+
+  /**
+   * 获取breadcrumb路径（公共方法）
+   * @returns breadcrumb路径数组
+   */
+  public getBreadcrumbPath(): string[] {
+    return BreadcrumbManager.getBreadcrumbPath();
+  }
+}
 class TreeConverter {
   static convertedElements = new Set<HTMLElement>();
 
@@ -267,6 +551,10 @@ class TreeConverter {
         scrollToActiveLink: true,
         scrollDelay: 100,
       });
+
+      // 注册到NavTreeManager
+      const navTreeManager = NavTreeManager.getInstance();
+      navTreeManager.registerNavTreeState(element, navTreeState);
 
       // 创建容器
       const container = document.createElement("div");
@@ -316,13 +604,18 @@ class TreeScanner {
   static scanContainer(container: HTMLElement): void {
     const lists = container.querySelectorAll(":scope > ul, :scope > ol");
     console.log("扫描容器内的树元素:", lists);
+    console.log(`找到 ${lists.length} 个列表元素`);
     let convertedCount = 0;
 
-    Array.from(lists).forEach((list) => {
+    Array.from(lists).forEach((list, index) => {
       const element = list as HTMLElement;
+      console.log(`处理第 ${index + 1} 个列表元素:`, element);
 
       if (TreeConverter.convertToNavTree(element)) {
         convertedCount++;
+        console.log(`成功转换第 ${index + 1} 个元素`);
+      } else {
+        console.log(`跳过第 ${index + 1} 个元素（不符合转换条件）`);
       }
     });
 
@@ -338,20 +631,50 @@ export function initSidebarNavTree2(): void {
   document.addEventListener("DOMContentLoaded", () => {
     console.log("初始化SidebarNavTree2...");
 
+    // 初始化导航树管理器
+    const navTreeManager = NavTreeManager.getInstance();
+
     // 初始扫描
     const container = document.getElementById(
       "sidebar-nav-tree"
     ) as HTMLElement;
-    if (container) {
-      TreeScanner.scanContainer(container);
+
+    if (!container) {
+      console.error("找不到导航树容器元素 #sidebar-nav-tree");
+      return;
     }
+
+    console.log("找到导航树容器:", container);
+    TreeScanner.scanContainer(container);
+
+    // 设置breadcrumb点击处理
+    BreadcrumbManager.setupClickHandler(navTreeManager);
+
+    // 初始高亮更新
+    setTimeout(() => {
+      console.log("执行初始高亮更新");
+      navTreeManager.refreshHighlight();
+    }, 100);
 
     // 监听页面加载事件，处理动态内容
     document.addEventListener(EVENT_PAGE_LOADED, () => {
       console.log("页面加载完成，重新扫描...");
+      // 重新扫描容器
+      if (container) {
+        TreeScanner.scanContainer(container);
+      }
+      // 更新高亮
+      navTreeManager.refreshHighlight();
     });
   });
 }
 
 // 导出工具类供外部使用
-export { TreeScanner, TreeConverter, TreeStructureValidator, DOMTreeParser };
+export {
+  TreeScanner,
+  TreeConverter,
+  TreeStructureValidator,
+  DOMTreeParser,
+  NavTreeManager,
+  BreadcrumbManager,
+};

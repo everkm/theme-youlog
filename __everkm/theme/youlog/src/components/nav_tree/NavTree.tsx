@@ -53,10 +53,11 @@ const TreeNode: Component<{
             isActive() ? "active" : ""
           }`}
           data-depth={props.depth}
+          data-node-id={props.nodeId}
           style={`--depth: ${props.depth}`}
         >
           <div
-            class={`node-content with-toggle ${isExpanded() ? "expanded" : ""}`}
+            class={`node-content mb-0.5 with-toggle ${isExpanded() ? "expanded" : ""}`}
             onClick={handleToggle}
           >
             <Show when={currentNode().url}>

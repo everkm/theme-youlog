@@ -304,22 +304,19 @@ export class NavTreeState {
    */
   private findActiveNodeRecursive(
     items: NavItem[],
-    currentPath: string
+    currentPath: string,
+    predicate?: PathMatchPredicateFn
   ): string | null {
     for (const item of items) {
       if (item.url) {
-        const absoluteHref = DOMUtils.removeQueryParams(
-          DOMUtils.toAbsoluteUrl(item.url)
-        );
-
-        // 精确匹配
-        if (PathMatcher.isExactMatch(currentPath, absoluteHref)) {
-          return item.nodeId;
-        }
-
-        // 前缀匹配
-        if (PathMatcher.isPrefixMatch(currentPath, absoluteHref)) {
-          return item.nodeId;
+        if (predicate) {
+          if (predicate(currentPath, item.url)) {
+            return item.nodeId;
+          }
+        } else {
+          if (item.url === currentPath) {
+            return item.nodeId;
+          }
         }
       }
 
@@ -341,56 +338,107 @@ export class NavTreeState {
   /**
    * 查找匹配当前路径的节点
    */
-  findActiveNode(currentPath: string): string | null {
-    return this.findActiveNodeRecursive(this.state.tree, currentPath);
+  findActiveNode(
+    currentPath: string,
+    predicate?: PathMatchPredicateFn
+  ): string | null {
+    return this.findActiveNodeRecursive(
+      this.state.tree,
+      currentPath,
+      predicate
+    );
   }
 
   /**
-   * 更新活动状态
+   * 设置活动节点（由外部调用）
+   * @param activeNodeId 活动节点ID
    */
-  updateActiveState(): void {
-    if (!this.config.autoExpandCurrentPath) return;
+  setActiveNode(activeNodeId: string): void {
+    console.log(`设置活动节点: ${activeNodeId}`);
+    const nodePath = this.getNodePath(activeNodeId);
+    console.log(`节点路径:`, nodePath);
 
-    const currentPath = DOMUtils.removeQueryParams(window.location.pathname);
-    const activeNodeId = this.findActiveNode(currentPath);
+    if (nodePath) {
+      // 清除所有活动状态
+      this.updateState("activeIds", new Set());
+      this.updateState("expandedIds", new Set());
 
-    if (activeNodeId) {
-      const nodePath = this.getNodePath(activeNodeId);
-      if (nodePath) {
-        // 清除所有活动状态
-        this.updateState("activeIds", new Set());
-        this.updateState("expandedIds", new Set());
+      // 设置活动状态
+      nodePath.forEach((nodeId) => {
+        console.log(`设置节点 ${nodeId} 为活动状态`);
+        this.setActive(nodeId, true);
+      });
 
-        // 设置活动状态
-        nodePath.forEach((nodeId) => {
-          this.setActive(nodeId, true);
-        });
+      // 展开包含活动项的路径（除了最后一个节点）
+      nodePath.slice(0, -1).forEach((nodeId) => {
+        console.log(`展开节点 ${nodeId}`);
+        this.setExpanded(nodeId, true);
+      });
 
-        // 展开包含活动项的路径（除了最后一个节点）
-        nodePath.slice(0, -1).forEach((nodeId) => {
-          this.setExpanded(nodeId, true);
-        });
+      // 滚动到活动链接
+      if (this.config.scrollToActiveLink) {
+        console.log(`滚动到活动链接: ${activeNodeId}`);
+        this.scrollToActiveLink(activeNodeId);
       }
+    } else {
+      console.warn(`未找到节点路径: ${activeNodeId}`);
     }
   }
 
   /**
-   * 递归查找匹配文本路径的节点
+   * 滚动到活动链接
+   * @param activeNodeId 活动节点ID
+   */
+  private scrollToActiveLink(activeNodeId: string): void {
+    setTimeout(() => {
+      // 查找对应的DOM元素
+      const activeElement = document.querySelector(
+        `[data-node-id="${activeNodeId}"]`
+      );
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, this.config.scrollDelay);
+  }
+
+  /**
+   * 递归查找匹配文本路径的节点（支持部分匹配）
    */
   private findNodeByTextPathRecursive(
     items: NavItem[],
     textPath: string[],
     currentPath: string[] = []
   ): NavItem | null {
+    let bestMatch: NavItem | null = null;
+    let bestMatchLength = 0;
+
     for (const item of items) {
       const newPath = [...currentPath, item.title];
+      console.log(
+        `检查路径: [${newPath.join(", ")}] vs [${textPath.join(", ")}]`
+      );
 
-      // 检查是否匹配
+      // 检查是否完全匹配
       if (
         newPath.length === textPath.length &&
         newPath.every((text, index) => text === textPath[index])
       ) {
+        console.log(`找到完全匹配的节点: ${item.title}`);
         return item;
+      }
+
+      // 检查是否部分匹配（当前路径是目标路径的前缀）
+      if (
+        newPath.length <= textPath.length &&
+        newPath.every((text, index) => text === textPath[index])
+      ) {
+        console.log(
+          `找到部分匹配的节点: ${item.title}，匹配长度: ${newPath.length}`
+        );
+        if (newPath.length > bestMatchLength) {
+          bestMatch = item;
+          bestMatchLength = newPath.length;
+        }
       }
 
       // 递归查找子节点
@@ -406,7 +454,23 @@ export class NavTreeState {
       }
     }
 
-    return null;
+    // 如果没有完全匹配，返回最佳的部分匹配
+    if (bestMatch) {
+      console.log(`返回最佳部分匹配: ${bestMatch.title}`);
+    }
+
+    return bestMatch;
+  }
+
+  /**
+   * 按文本路径查找节点
+   * @param textPath 文本路径数组
+   * @returns 匹配的节点或null
+   */
+  findNodeByTextPath(textPath: string[]): NavItem | null {
+    if (!textPath || textPath.length === 0) return null;
+
+    return this.findNodeByTextPathRecursive(this.state.tree, textPath);
   }
 
   /**
@@ -426,3 +490,8 @@ export class NavTreeState {
     }
   }
 }
+
+export type PathMatchPredicateFn = (
+  currentPath: string,
+  targetPath: string
+) => boolean;
