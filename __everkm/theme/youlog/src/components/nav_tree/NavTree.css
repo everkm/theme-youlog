@@ -72,12 +72,14 @@
     }
   }
 
-  li[data-depth] > .node-content {
-    padding-left: calc((var(--depth, 0) * 20px) + 1.7em);
+  /* 默认情况下，有折叠三角的节点左边距更大 */
+  li[data-depth] > .node-content.with-toggle {
+    padding-left: calc((var(--depth, 0) * 20px) + 1.3em);
   }
 
+  /* 没有折叠三角的节点，左边距较小 */
   li[data-depth] > .node-content:not(.with-toggle) {
-    padding-left: calc((var(--depth, 0) * 20px) + 1em);
+    padding-left: calc((var(--depth, 0) * 20px) + 0.5em);
   }
 
   .node-content:hover {
@@ -97,7 +99,7 @@
   .tree-node-branch > .with-toggle::before {
     content: "▶";
     position: absolute;
-    left: calc((var(--depth, 0) * 20px) + 1em);
+    left: calc((var(--depth, 0) * 20px) + 0.5em);
     width: 16px;
     height: 16px;
     display: flex;
@@ -114,7 +116,7 @@
   .tree-node-leaf > .with-toggle::before {
     content: "";
     position: absolute;
-    left: calc((var(--depth, 0) * 20px) + 1em);
+    left: calc((var(--depth, 0) * 20px) + 0.5em);
     width: 16px;
     height: 16px;
     display: flex;

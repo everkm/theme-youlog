@@ -1,4 +1,4 @@
-import { Component, For, Show, createMemo } from "solid-js";
+import { Component, For, Show, createMemo, createEffect } from "solid-js";
 import { NavTreeState, NavItem } from "./NavTreeState";
 import "./NavTree.css";
 
@@ -56,9 +56,7 @@ const TreeNode: Component<{
           style={`--depth: ${props.depth}`}
         >
           <div
-            class={`node-content ${hasChildren() ? "with-toggle" : ""} ${
-              isExpanded() ? "expanded" : ""
-            }`}
+            class={`node-content with-toggle ${isExpanded() ? "expanded" : ""}`}
             onClick={handleToggle}
           >
             <Show when={currentNode().url}>
@@ -104,6 +102,7 @@ const TreeNode: Component<{
  */
 export const NavTree: Component<NavTreeProps> = (props) => {
   const rootNodes = createMemo(() => props.state.getRootNodes());
+  let navElement: HTMLElement | undefined;
 
   const handleNodeClick = (nodeId: string, node: NavItem) => {
     console.log("Node clicked:", nodeId, node);
@@ -111,7 +110,7 @@ export const NavTree: Component<NavTreeProps> = (props) => {
   };
 
   return (
-    <nav class={`nav-tree select-none ${props.class || ""}`}>
+    <nav ref={navElement} class={`nav-tree select-none ${props.class || ""}`}>
       <ul>
         <For each={rootNodes()}>
           {(node) => (
