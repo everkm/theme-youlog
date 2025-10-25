@@ -172,6 +172,7 @@
                             {{ doc.title | default(value='无标题') }}
                         </h1>
 
+                        {% if not __post.meta.hide_meta %}
                         <div data-ajax-element="doc-meta" class="mb-6 doc-meta">
                             <span data-doc-update-at="{{ doc.update_at }}">更新于{{ doc.update_at | date(format="%Y-%m-%d")
                                 }}</span>
@@ -179,6 +180,7 @@
                                     href="/{{ doc.meta.uno }}" target="_blank">地址编号:
                                     {{ doc.meta.uno }}</a></span>{% endif %}
                         </div>
+                        {% endif %}
 
                         <article id="article-main" data-ajax-element="article-main"
                             class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0">
