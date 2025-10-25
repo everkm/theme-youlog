@@ -1,11 +1,4 @@
-{% macro navigate_next_icon() %}
-<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024"><path fill="currentColor" d="M338.752 104.704a64 64 0 0 0 0 90.496l316.8 316.8l-316.8 316.8a64 64 0 0 0 90.496 90.496l362.048-362.048a64 64 0 0 0 0-90.496L429.248 104.704a64 64 0 0 0-90.496 0"/></svg>
-{% endmacro navigate_next_icon %}
-
-{% macro navigate_prev_icon() %}
-<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024"><path fill="currentColor" d="M685.248 104.704a64 64 0 0 1 0 90.496L368.448 512l316.8 316.8a64 64 0 0 1-90.496 90.496L232.704 557.248a64 64 0 0 1 0-90.496l362.048-362.048a64 64 0 0 1 90.496 0"/></svg>
-{% endmacro navigate_prev_icon %}
-
+{%import "icons.html" as icons%}
 
 
 {% set items = posts(dir=dir, recursive=include_subfolders | default(value=true), exclude_tags=exclude_tags | default(value=[])) %}
@@ -33,13 +26,13 @@
     {% if page_no > 1 %}
     <div class="flex items-center space-x-1">
         {% if page_no == 2 %}
-        <a href="{{__page_path_base}}.html" class="flex items-center gap-0.5">
-            {{self::navigate_prev_icon()}}
+        <a href="{{__page_path_base}}.html" class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_prev_icon()}}
         </a>
         {% elif page_no > 2 %}
         <a href="{{__page_path_base}}.p{{page_no-1}}.html"
-            class="flex items-center gap-0.5">
-            {{self::navigate_prev_icon()}}
+            class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_prev_icon()}}
         </a>
         {% endif %}
     </div>
@@ -75,8 +68,8 @@
     {% if items | length > end %}
     <div class="flex items-center space-x-1">
         <a href="{{__page_path_base}}.p{{page_no+1}}.html"
-            class="flex items-center gap-0.5">
-            {{self::navigate_next_icon()}}
+            class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_next_icon()}}
         </a>
     </div>
     {% endif %}
