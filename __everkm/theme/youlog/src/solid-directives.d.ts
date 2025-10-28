@@ -16,13 +16,16 @@ declare module 'solid-js' {
         index: string;
         site: string;
         'only-button'?: string;
+        class?: string;
       };
       'yousha-comment': {
         community: string;
+        class?: string;
       };
       'youlog-version': {
         'version-list-url': string;
         version: string;
+        class?: string;
       };
     }
   }

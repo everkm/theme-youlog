@@ -1,6 +1,16 @@
-import { Component, For, Show } from 'solid-js';
-import { HomeIcon, ChevronRightIcon, MenuIcon, CloseIcon, NextArrowIcon, PrevArrowIcon, SettingsIcon, LightningIcon } from './icons';
-import { formatDate, getConfigValue } from './utils';
+import { renderToStringAsync } from "solid-js/web";
+import { Component, For, Show } from "solid-js";
+import {
+  HomeIcon,
+  ChevronRightIcon,
+  MenuIcon,
+  CloseIcon,
+  NextArrowIcon,
+  PrevArrowIcon,
+  SettingsIcon,
+  LightningIcon,
+} from "./icons";
+import { formatDate, getConfigValue } from "./utils";
 
 interface NavItem {
   title: string;
@@ -53,11 +63,19 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
                 class="text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light transition-colors inline-flex items-center"
                 href={nav.url || "javascript:void(0)"}
               >
-                {nav.is_first ? <HomeIcon /> : <span data-nav-title>{nav.title}</span>}
+                {nav.is_first ? (
+                  <HomeIcon />
+                ) : (
+                  <span data-nav-title>{nav.title}</span>
+                )}
               </a>
             ) : (
               <>
-                {nav.is_first ? <HomeIcon /> : <span data-nav-title>{nav.title}</span>}
+                {nav.is_first ? (
+                  <HomeIcon />
+                ) : (
+                  <span data-nav-title>{nav.title}</span>
+                )}
               </>
             )}
           </>
@@ -73,7 +91,7 @@ interface BookPageProps {
 
 const BookPage: Component<BookPageProps> = (props) => {
   const pageContext = () => props.props;
-  
+
   // 获取文档详情
   const doc = () => {
     const post = pageContext().post;
@@ -101,6 +119,16 @@ const BookPage: Component<BookPageProps> = (props) => {
   // 获取 base URL
   const baseUrl = () => everkm.base_url();
 
+  // 获取环境变量
+  const env = (name: string, defaultValue: string = "") => {
+    return everkm.env({ name, default: defaultValue });
+  };
+
+  // Youlog 相关环境变量
+  const youlogPlatform = () => env("YOULOG_PLATFORM");
+  const versionsUrl = () => env("YOULOG_VERSIONS_URL");
+  const youlogVersion = () => env("YOULOG_VERSION");
+
   return (
     <div class="flex h-dvh">
       {/* 导航侧边栏 */}
@@ -118,16 +146,22 @@ const BookPage: Component<BookPageProps> = (props) => {
               <Show
                 when={configValue("site.logo")}
                 fallback={
-                  <span class="text-lg font-medium">{configValue("site.name")}</span>
+                  <span class="text-lg font-medium">
+                    {configValue("site.name")}
+                  </span>
                 }
               >
                 <img
-                  src={everkm.asset_base_url({ url: configValue("site.logo") })}
-                  alt={configValue("site.name")}
+                  src={everkm.asset_base_url({
+                    url: String(configValue("site.logo")),
+                  })}
+                  alt={String(configValue("site.name"))}
                   class="h-7 w-auto"
                 />
                 <Show when={!configValue("layout.only_display_logo")}>
-                  <span class="text-lg font-medium">{configValue("site.name")}</span>
+                  <span class="text-lg font-medium">
+                    {configValue("site.name")}
+                  </span>
                 </Show>
               </Show>
             </a>
@@ -173,7 +207,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                   data-ajax-element="article-title-bar"
                   class="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer hidden"
                 >
-                  {doc()?.title || '无标题'}
+                  {doc()?.title || "无标题"}
                 </h1>
               </div>
             </div>
@@ -222,7 +256,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                   data-ajax-element="article-title"
                   class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4"
                 >
-                  {doc()?.title || '无标题'}
+                  {doc()?.title || "无标题"}
                 </h1>
 
                 <Show when={!doc()?.meta?.hide_meta}>
@@ -249,7 +283,9 @@ const BookPage: Component<BookPageProps> = (props) => {
                 </article>
 
                 <Show when={configValue("yousha")}>
-                  <yousha-comment community={configValue("yousha.community")}></yousha-comment>
+                  <yousha-comment
+                    community={configValue("yousha.community")}
+                  ></yousha-comment>
                 </Show>
 
                 {/* 分页导航 */}
@@ -294,33 +330,61 @@ const BookPage: Component<BookPageProps> = (props) => {
                         <>
                           <a
                             href={item.url}
-                            target={item.new_window !== false ? "_blank" : undefined}
+                            target={
+                              item.new_window !== false ? "_blank" : undefined
+                            }
                             class="hover:text-text-secondary hover:underline dark:hover:text-text-secondary transition-colors"
                           >
                             {item.title}
                           </a>
-                          {index() < (configValue("bottom_nav", []).length - 1) && (
-                            <span class="text-text-quaternary dark:text-text-quaternary">|</span>
+                          {index() <
+                            configValue("bottom_nav", []).length - 1 && (
+                            <span class="text-text-quaternary dark:text-text-quaternary">
+                              |
+                            </span>
                           )}
                         </>
                       )}
                     </For>
                   </div>
 
-                  {/* youlog platform - 环境变量需通过 SSR 传入 */}
+                  {/* youlog platform */}
                   <div class="text-text-tertiary dark:text-text-tertiary text-sm text-center flex flex-wrap justify-center items-center">
-                    {/* 需要在 PageContext 中添加环境变量或通过其他方式传递 */}
+                    <Show when={youlogPlatform()}>
+                      <span>
+                        <a
+                          href={youlogPlatform()}
+                          target="_blank"
+                          class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors"
+                        >
+                          Youlog
+                        </a>
+                        <span class="mx-2 text-text-quaternary dark:text-text-quaternary">
+                          |
+                        </span>
+                      </span>
+                    </Show>
+
+                    <Show when={youlogVersion()}>
+                      <span>
+                        <youlog-version
+                          class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors cursor-pointer"
+                          {...{ "version-list-url": versionsUrl() }}
+                          version={youlogVersion()}
+                        ></youlog-version>
+                      </span>
+                    </Show>
                   </div>
 
                   {/* copy right and beian */}
                   <div class="text-text-tertiary dark:text-text-tertiary text-sm text-center flex flex-wrap justify-center items-center gap-4">
                     <Show when={configValue("copyright")}>
                       <span>
-                        {configValue("copyright.from_year") 
-                          ? `©${configValue("copyright.from_year")}-${new Date().getFullYear()}` 
-                          : `©${new Date().getFullYear()}`
-                        }
-                        {' '}
+                        {configValue("copyright.from_year")
+                          ? `©${configValue(
+                              "copyright.from_year"
+                            )}-${new Date().getFullYear()}`
+                          : `©${new Date().getFullYear()}`}{" "}
                         <Show when={configValue("copyright.text")}>
                           <Show
                             when={configValue("copyright.link")}
@@ -338,7 +402,11 @@ const BookPage: Component<BookPageProps> = (props) => {
                       </span>
                     </Show>
 
-                    <Show when={configValue("beian") && configValue("beian").length > 0}>
+                    <Show
+                      when={
+                        configValue("beian") && configValue("beian").length > 0
+                      }
+                    >
                       <span>
                         <For each={configValue("beian", []) as any[]}>
                           {(beian: any, index) => (
@@ -350,8 +418,11 @@ const BookPage: Component<BookPageProps> = (props) => {
                               >
                                 {beian.text}
                               </a>
-                              {index() < configValue("beian", []).length - 1 && (
-                                <span class="mx-2 text-text-quaternary dark:text-text-quaternary">|</span>
+                              {index() <
+                                configValue("beian", []).length - 1 && (
+                                <span class="mx-2 text-text-quaternary dark:text-text-quaternary">
+                                  |
+                                </span>
                               )}
                             </>
                           )}
@@ -364,7 +435,9 @@ const BookPage: Component<BookPageProps> = (props) => {
                       <a
                         href="https://youlog.theme.everkm.com"
                         target="_blank"
-                        title={`Powered by everkm-publish@v${pageContext().everkm_publish_version} with theme youlog@v${pageContext().theme_version}`}
+                        title={`Powered by everkm-publish@v${
+                          pageContext().everkm_publish_version
+                        } with theme youlog@v${pageContext().theme_version}`}
                         class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors"
                       >
                         Youlog
@@ -386,14 +459,19 @@ const BookPage: Component<BookPageProps> = (props) => {
   );
 };
 
-/**
- * everkm_ssr 入口函数
- * @param component 要渲染的组件
- * @param props PageContext 上下文对象
- */
-export function everkm_ssr(component: Component, props: PageContext) {
-  return () => component({ props });
+async function everkmSSR(compName: string, props: any) {
+  await renderToStringAsync(() => {
+    switch (compName) {
+      case "book":
+        return <BookPage props={props} />;
+      default:
+        throw new Error(`Page ${compName} not found`);
+    }
+  });
 }
 
-export default BookPage;
+function ping() {
+  return "pong";
+}
 
+export { everkmSSR, ping };

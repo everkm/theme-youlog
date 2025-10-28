@@ -25,6 +25,7 @@ declare global {
     config(args?: ConfigArgs): any;
     has_config(args: { key: string }): boolean;
     media(args: { file: string }): string;
+    env(args: { name: string, default?: any }): string;
   }
 
   interface FetchPostsArgs {
