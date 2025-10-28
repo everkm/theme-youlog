@@ -87,6 +87,9 @@ importers:
       esbuild-plugin-postcss:
         specifier: ^0.2.1
         version: 0.2.1
+      esbuild-plugin-solid:
+        specifier: ^0.6.0
+        version: 0.6.0(esbuild@0.25.2)(solid-js@1.9.5)
       esbuild-style-plugin:
         specifier: ^1.6.3
         version: 1.6.3
@@ -879,8 +882,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001712:
-    resolution: {integrity: sha512-MBqPpGYYdQ7/hfKiet9SCI+nmN5/hp4ZzveOJubl5DTAMa5oggjAuoi0Z4onBpKPFI2ePGnQuQIzF3VxDjDJig==}
+  caniuse-lite@1.0.30001751:
+    resolution: {integrity: sha512-A0QJhug0Ly64Ii3eIqHu5X51ebln3k4yTUkY1j8drqpWHVreg/VLijN48cZ1bYPiqOQuqpkIKnzr/Ul8V+p6Cw==}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -975,6 +978,12 @@ packages:
 
   esbuild-plugin-postcss@0.2.1:
     resolution: {integrity: sha512-4l53JCzY3fxtyIqkffd5ATsh1B8tM6TCup428sQVCITGM8h69ubFLKLzCbLPrzBmD7HMnPd8c/TLG23Nf3O0qA==}
+
+  esbuild-plugin-solid@0.6.0:
+    resolution: {integrity: sha512-V1FvDALwLDX6K0XNYM9CMRAnMzA0+Ecu55qBUT9q/eAJh1KIDsTMFoOzMSgyHqbOfvrVfO3Mws3z7TW2GVnIZA==}
+    peerDependencies:
+      esbuild: '>=0.20'
+      solid-js: '>= 1.0'
 
   esbuild-style-plugin@1.6.3:
     resolution: {integrity: sha512-XPEKf4FjLjEVLv/dJH4UxDzXCrFHYpD93DBO8B+izdZARW5b7nNKQbnKv3J+7VDWJbgCU+hzfgIh2AuIZzlmXQ==}
@@ -2245,7 +2254,7 @@ snapshots:
   autoprefixer@10.4.21(postcss@8.5.3):
     dependencies:
       browserslist: 4.24.4
-      caniuse-lite: 1.0.30001712
+      caniuse-lite: 1.0.30001751
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -2281,14 +2290,14 @@ snapshots:
 
   browserslist@4.24.4:
     dependencies:
-      caniuse-lite: 1.0.30001712
+      caniuse-lite: 1.0.30001751
       electron-to-chromium: 1.5.135
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.4)
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001712: {}
+  caniuse-lite@1.0.30001751: {}
 
   chokidar@3.6.0:
     dependencies:
@@ -2372,6 +2381,16 @@ snapshots:
       less: 4.3.0
       postcss: 8.5.3
       postcss-modules: 4.3.1(postcss@8.5.3)
+
+  esbuild-plugin-solid@0.6.0(esbuild@0.25.2)(solid-js@1.9.5):
+    dependencies:
+      '@babel/core': 7.26.10
+      '@babel/preset-typescript': 7.27.0(@babel/core@7.26.10)
+      babel-preset-solid: 1.9.5(@babel/core@7.26.10)
+      esbuild: 0.25.2
+      solid-js: 1.9.5
+    transitivePeerDependencies:
+      - supports-color
 
   esbuild-style-plugin@1.6.3:
     dependencies:

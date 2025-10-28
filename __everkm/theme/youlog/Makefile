@@ -70,3 +70,4 @@ copy-types:
 
 ssr-build:
 	pnpm run build:ssr
+	cp dist/ssr/everkm-render.js templates/

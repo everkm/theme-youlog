@@ -459,8 +459,8 @@ const BookPage: Component<BookPageProps> = (props) => {
   );
 };
 
-async function everkmSSR(compName: string, props: any) {
-  await renderToStringAsync(() => {
+async function everkmRender(compName: string, props: any) {
+  return await renderToStringAsync(() => {
     switch (compName) {
       case "book":
         return <BookPage props={props} />;
@@ -474,4 +474,6 @@ function ping() {
   return "pong";
 }
 
-export { everkmSSR, ping };
+// 导出到全局变量，方便 QuickJS 访问
+export { everkmRender, ping };
+

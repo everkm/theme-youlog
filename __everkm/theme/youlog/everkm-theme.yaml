@@ -4,4 +4,4 @@ author: dayu<dayu@dayu.me>
 repository: https://github.com/everkm/theme-youlog
 demo: https://youlog.theme.everkm.com/
 
-default_template: book.html
+default_template: book

@@ -4,3 +4,4 @@ dist
 node_modules
 youlog.zip
 __everkm/youlog
+/__everkm/theme/youlog/templates/everkm-render.js
