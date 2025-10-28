@@ -133,7 +133,7 @@ const ssrEntryPoint = {
 const buildOptions = {
   target: "es2020",
   platform: "browser",
-  format: "esm",
+  format: "iife",
   entryPoints: Object.fromEntries(
     entryPoints.map((entry) => [entry.out, entry.in])
   ),
