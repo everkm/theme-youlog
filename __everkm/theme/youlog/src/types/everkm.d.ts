@@ -23,7 +23,7 @@ declare global {
     post_meta(args: FetchPostArgs): PostItem;
     post_detail(args: FetchPostArgs): PostItem;
     has_post(args: { path: string }): boolean;
-    nav_indicator(args: { from_file: string }): {
+    nav_indicator(args: { from_file: string, __page_path: string }): {
       prev?: NavIndicatorItem;
       next?: NavIndicatorItem;
     };

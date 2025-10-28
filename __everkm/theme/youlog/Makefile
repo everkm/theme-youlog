@@ -15,7 +15,7 @@ fe-build: fe-clean
 fe-clean:
 	rm -rf $(DIST_DIR)
 
-fe-dev:
+fe-dev: fe-clean
 	cd . && pnpm run dev
 
 bundle:
