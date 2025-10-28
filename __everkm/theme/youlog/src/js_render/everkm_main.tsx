@@ -107,7 +107,7 @@ const BookPage: Component<BookPageProps> = (props) => {
 
   // 获取导航指示器
   const pageNav = () => {
-    return everkm.nav_indicator({ from_file: summaryFile() });
+    return everkm.nav_indicator({ from_file: summaryFile(), __page_path: currentPagePath() as string });
   };
 
   // 获取配置项
@@ -117,7 +117,8 @@ const BookPage: Component<BookPageProps> = (props) => {
   };
 
   // 获取 base URL
-  const baseUrl = () => everkm.base_url();
+  const baseUrl = () => everkm.base_url({});
+  const currentPagePath = () => pageContext().page_path;
 
   // 获取环境变量
   const env = (name: string, defaultValue: string = "") => {
