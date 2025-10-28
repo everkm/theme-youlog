@@ -66,3 +66,7 @@ debug-install:
 
 copy-types:
 	cp -r /Users/dayu/Coder/everkm/everkm2/be/everkm-publish/types/* src/types
+
+
+ssr-build:
+	pnpm run build:ssr

@@ -129,8 +129,13 @@ const entryPoints = [
     in: 'src/plugins/in_search/index.ts',
     out: 'plugin-in-search',
   },
-  // 可以根据需要添加更多入口点
 ]
+
+// SSR 入口点配置
+const ssrEntryPoint = {
+  in: 'src/js_render/everkm_main.tsx',
+  out: 'everkm-ssr',
+}
 
 // 构建配置
 const buildOptions = {
@@ -210,6 +215,51 @@ function analyzeBundle(metafile) {
   console.log(`\n详细分析已保存到: ${analysisPath}`)
 }
 
+// SSR 构建配置（会在 buildSSR 中动态生成）
+function getSSRBuildOptions(babelPlugin) {
+  return {
+    entryPoints: {
+      [ssrEntryPoint.out]: ssrEntryPoint.in,
+    },
+    bundle: true,
+    outdir: `${distBaseDir}/ssr`,
+    metafile: true,
+    minify: true,
+    sourcemap: false,
+    // format: 'cjs', // CommonJS 格式，兼容性更好
+    // platform: 'browser', // 浏览器平台，ssr 时需要模拟浏览器环境
+    target: 'es2020', // 使用较新的 JS 标准
+    define: {
+      // 定义一些 SSR 需要的全局变量
+      'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
+      'global': 'globalThis',
+    },
+    loader: {
+      '.js': 'jsx',
+      '.jsx': 'jsx',
+      '.ts': 'tsx',
+      '.tsx': 'tsx',
+    },
+    jsx: 'preserve',
+    jsxImportSource: 'solid-js',
+    // 不设置 external，让所有依赖都打包进去
+    plugins: [
+      babelPlugin({
+        filter: /\.(jsx|tsx|ts)$/,
+        config: {
+          presets: [
+            ['@babel/preset-typescript', {isTSX: true, allExtensions: true}],
+            'babel-preset-solid',
+          ],
+          plugins: ['@babel/plugin-syntax-flow'],
+        },
+      }),
+    ],
+    // 注入一些必要的 polyfill
+    inject: [],
+  }
+}
+
 async function build() {
   // 动态导入babel插件
   const babelPluginModule = await import('esbuild-plugin-babel')
@@ -274,7 +324,37 @@ async function build() {
   }
 }
 
-build().catch((error) => {
+// SSR 构建函数
+async function buildSSR() {
+  const isSSR = process.argv.includes('--ssr') || process.env.SSR === 'true'
+  
+  if (!isSSR) {
+    console.log('Building regular bundle (not SSR)...')
+    await build()
+    return
+  }
+
+  console.log('Building SSR bundle...')
+  
+  try {
+    // 动态导入 babel 插件
+    const babelPluginModule = await import('esbuild-plugin-babel')
+    const babelPlugin = babelPluginModule.default
+    
+    // 获取 SSR 构建配置
+    const ssrOptions = getSSRBuildOptions(babelPlugin)
+    
+    const result = await esbuild.build(ssrOptions)
+    console.log('SSR build completed successfully!')
+    console.log('Output:', JSON.stringify(result.metafile?.outputs, null, 2))
+    process.exit(0)
+  } catch (error) {
+    console.error('SSR build failed:', error)
+    process.exit(1)
+  }
+}
+
+buildSSR().catch((error) => {
   console.error('Build failed:', error)
   process.exit(1)
 })
