@@ -63,3 +63,6 @@ debug-install:
 	rsync -av --delete $(DIST_DIR)/assets/ $(INSTALL_DIR)/assets/
 	rsync -av --delete templates/ $(INSTALL_DIR)/templates/
 	cp assets-manifest.json $(INSTALL_DIR)
+
+copy-types:
+	cp -r /Users/dayu/Coder/everkm/everkm2/be/everkm-publish/types/* src/types
