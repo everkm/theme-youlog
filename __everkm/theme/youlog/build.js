@@ -158,7 +158,7 @@ const buildOptions = {
     ),
   },
   plugins: [
-    ...(isDev ? [] : [manifestPlugin]),
+    manifestPlugin,
     solidPlugin({
       solid: {
         generate: "dom",
@@ -265,6 +265,13 @@ async function build() {
   if (isWatch) {
     // 开发模式：使用 context API 进行监听
     const ctx = await esbuild.context(buildOptions);
+    // 启动时先执行一次构建以生成 manifest
+    try {
+      await ctx.rebuild();
+      console.log("Initial build succeeded (manifest generated)");
+    } catch (error) {
+      console.error("Initial build failed:", error);
+    }
 
     // 使用 chokidar 监听额外的文件
     const watchPaths = [
