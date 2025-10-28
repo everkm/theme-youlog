@@ -39,6 +39,7 @@
     "@kobalte/core": "^0.13.10",
     "@solid-primitives/media": "^2.3.1",
     "algoliasearch": "^5.23.4",
+    "dayjs": "^1.11.18",
     "ky": "^1.8.1",
     "mark.js": "^8.11.1",
     "mitt": "^3.0.1",

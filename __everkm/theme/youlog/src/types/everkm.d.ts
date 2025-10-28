@@ -70,4 +70,6 @@ declare global {
     key?: string;
     default?: any;
   }
+
+  var everkm: Everkm;
 }
