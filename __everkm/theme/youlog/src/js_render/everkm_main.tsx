@@ -1,5 +1,6 @@
 import { renderToStringAsync } from "solid-js/web";
 import { Component, For, Show } from "solid-js";
+import RootLayout from "./layout";
 import {
   HomeIcon,
   ChevronRightIcon,
@@ -461,14 +462,19 @@ const BookPage: Component<BookPageProps> = (props) => {
 };
 
 async function everkmRender(compName: string, props: any) {
-  return await renderToStringAsync(() => {
+  const html = await renderToStringAsync(() => {
     switch (compName) {
       case "book":
-        return <BookPage props={props} />;
+        return (
+          <RootLayout context={props}>
+            <BookPage props={props} />
+          </RootLayout>
+        );
       default:
         throw new Error(`Page ${compName} not found`);
     }
   });
+  return `<!DOCTYPE html>${html}`;
 }
 
 function ping() {

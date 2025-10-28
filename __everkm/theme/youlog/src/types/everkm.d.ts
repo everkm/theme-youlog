@@ -1,13 +1,25 @@
+/// <reference path="./context.d.ts" />
 export {};
 
 declare global {
   interface Everkm {
+    assets(args: { type: 'js' | 'css'; section: string; cdn?: string }): string;
+    data(args: {
+      src: string;
+      post?: boolean;
+      cache_secs?: number;
+      bearer?: string;
+      format?: 'json' | 'yaml' | 'toml' | 'csv';
+      json_payload?: Record<string, any>;
+      csv_delimiter?: string;
+    }): any;
+    markdown_to_html(content: string): string;
     base_url(args?: { url?: string }): string;
-    asset_base_url(args?: { url?: string }): string;
-    posts(args?: FetchPostsArgs): PostItem[];
-    posts_tag_list(args?: FetchPostsArgs): Record<string, number>;
-    posts_category_list(args?: FetchPostsArgs): Record<string, number>;
-    posts_directory_list(args?: PostsDirectoryArgs): string[];
+    asset_base_url(args: { url?: string }): string;
+    posts(args: FetchPostsArgs): PostItem[];
+    posts_tag_list(args: FetchPostsArgs): Record<string, number>;
+    posts_category_list(args: FetchPostsArgs): Record<string, number>;
+    posts_directory_list(args: PostsDirectoryArgs): string[];
     post_meta(args: FetchPostArgs): PostItem;
     post_detail(args: FetchPostArgs): PostItem;
     has_post(args: { path: string }): boolean;
@@ -21,11 +33,11 @@ declare global {
       width: number;
       height: number;
     };
-    page_query(args?: PageQueryArgs): string;
-    config(args?: ConfigArgs): any;
+    page_query(args: PageQueryArgs): any;
+    config(args: ConfigArgs): any;
     has_config(args: { key: string }): boolean;
     media(args: { file: string }): string;
-    env(args: { name: string, default?: any }): string;
+    env(args: { name: string, default?: any }): any;
   }
 
   interface FetchPostsArgs {
