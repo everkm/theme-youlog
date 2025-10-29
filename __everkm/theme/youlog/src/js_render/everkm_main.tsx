@@ -20,20 +20,20 @@ interface NavItem {
   children?: NavItem[];
 }
 
-const NavTree: Component<{ items: NavItem[] }> = (props) => {
+const NavTree: Component<{ items: NavItem[]; requestId: string }> = (props) => {
   return (
     <ul>
       <For each={props.items}>
         {(item) => (
           <li>
             <a
-              href={item.url || everkm.base_url({ url: "/" })}
+              href={item.url || everkm.base_url(props.requestId, { url: "/" })}
               target={item.new_window !== false ? "_blank" : undefined}
             >
               {item.title}
             </a>
             <Show when={item.children}>
-              <NavTree items={item.children!} />
+              <NavTree items={item.children!} requestId={props.requestId} />
             </Show>
           </li>
         )}
@@ -92,12 +92,15 @@ interface BookPageProps {
 
 const BookPage: Component<BookPageProps> = (props) => {
   const pageContext = () => props.props;
+  const requestId = () => pageContext().request_id;
 
   // 获取文档详情
   const doc = () => {
     const post = pageContext().post;
     if (!post) return null;
-    return everkm.post_detail({ path: post.path });
+    return everkm.post_detail(requestId(), {
+      path: post.path,
+    });
   };
 
   // 获取 summary 文件路径
@@ -110,14 +113,13 @@ const BookPage: Component<BookPageProps> = (props) => {
   const navDoc = () => {
     const path = summaryFile();
     if (!path) return null;
-    return everkm.post_detail({ path });
+    return everkm.post_detail(requestId(), { path });
   };
 
   // 获取导航指示器
   const pageNav = () => {
-    return everkm.nav_indicator({
+    return everkm.nav_indicator(requestId(), {
       from_file: summaryFile(),
-      __page_path: currentPagePath() as string,
     });
   };
 
@@ -128,12 +130,11 @@ const BookPage: Component<BookPageProps> = (props) => {
   };
 
   // 获取 base URL
-  const baseUrl = () => everkm.base_url({});
-  const currentPagePath = () => pageContext().page_path;
+  const baseUrl = () => everkm.base_url(requestId(), {});
 
   // 获取环境变量
   const env = (name: string, defaultValue: string = "") => {
-    return everkm.env({ name, default: defaultValue });
+    return everkm.env(requestId(), { name, default: defaultValue });
   };
 
   // Youlog 相关环境变量
@@ -164,7 +165,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                 }
               >
                 <img
-                  src={everkm.asset_base_url({
+                  src={everkm.asset_base_url(requestId(), {
                     url: String(configValue("site.logo")),
                   })}
                   alt={String(configValue("site.name"))}
@@ -240,7 +241,10 @@ const BookPage: Component<BookPageProps> = (props) => {
 
               <Show when={configValue("header_nav")}>
                 <nav class="hidden md:block invisible" id="header-nav">
-                  <NavTree items={configValue("header_nav", [])} />
+                  <NavTree
+                    items={configValue("header_nav", [])}
+                    requestId={requestId()}
+                  />
                 </nav>
               </Show>
 
@@ -484,13 +488,22 @@ async function everkmRender(compName: string, props: any) {
     }
   });
   // 在 SSR 阶段直接注入 CSS 与 JS
-  const cssYoulog = everkm.assets({ type: "css", section: "youlog" }) || "";
+  const cssYoulog =
+    everkm.assets(props.request_id, { type: "css", section: "youlog" }) || "";
   const cssSearch =
-    everkm.assets({ type: "css", section: "plugin-in-search" }) || "";
-  const jsYoulog = everkm.assets({ type: "js", section: "youlog" }) || "";
+    everkm.assets(props.request_id, {
+      type: "css",
+      section: "plugin-in-search",
+    }) || "";
+  const jsYoulog =
+    everkm.assets(props.request_id, { type: "js", section: "youlog" }) || "";
   const jsSearch =
-    everkm.assets({ type: "js", section: "plugin-in-search" }) || "";
+    everkm.assets(props.request_id, {
+      type: "js",
+      section: "plugin-in-search",
+    }) || "";
   const alpine = `<script src="${everkm.asset_base_url(
+    props.request_id,
     {}
   )}/assets/alpinejs@3.14.9.js" defer></script>`;
 

@@ -5,8 +5,8 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
 ) => {
   const ctx = () => props.context;
   const cfg = () => ctx().config || {};
-  const baseUrl = () => everkm.base_url({});
-  const assetBase = () => everkm.asset_base_url({});
+  const baseUrl = () => everkm.base_url(ctx().request_id, {});
+  const assetBase = () => everkm.asset_base_url(ctx().request_id, {});
   const lang = () => ctx().lang || "";
   const siteName = () => (cfg().site?.name as string) || "";
   const postTitle = () => (ctx().post?.title as string) || "";
@@ -35,7 +35,9 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
         <Show when={!!customCss()}>
           <link
             rel="stylesheet"
-            href={everkm.asset_base_url({ url: customCss()! })}
+            href={everkm.asset_base_url(ctx().request_id, {
+              url: customCss()!,
+            })}
           />
         </Show>
         <Show when={!!themeColor()}>

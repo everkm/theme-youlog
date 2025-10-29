@@ -2,6 +2,7 @@ export {};
 
 declare global {
   interface PageContext {
+    request_id: string;
     config: Record<string, any>;
     host: string | null;
     env_is_preview: boolean;
