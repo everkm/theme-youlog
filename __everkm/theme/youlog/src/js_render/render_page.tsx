@@ -474,7 +474,7 @@ const BookPage: Component<BookPageProps> = (props) => {
   );
 };
 
-async function everkmRender(compName: string, props: any) {
+async function renderPage(compName: string, props: any) {
   const html = await renderToStringAsync(() => {
     switch (compName) {
       case "book":
@@ -515,9 +515,4 @@ async function everkmRender(compName: string, props: any) {
   return `<!DOCTYPE html>${withJs}`;
 }
 
-function ping() {
-  return "pong";
-}
-
-// 导出到全局变量，方便 QuickJS 访问
-export { everkmRender, ping };
+export { renderPage };

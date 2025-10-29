@@ -125,7 +125,7 @@ const entryPoints = [
 
 // SSR 入口点配置
 const ssrEntryPoint = {
-  in: "src/js_render/everkm_main.tsx",
+  in: "src/js_render/index.tsx",
   out: "everkm-render",
 };
 
