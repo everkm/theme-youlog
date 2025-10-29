@@ -73,14 +73,29 @@ const DcardList: Component<DcardListProps> = (props) => {
 
           {/* 跳转分页 */}
           <div
-            x-data={`{ currentPage: ${pageNo}, totalPages: ${pageCount}, baseUrl: '${pagePathBase}', pageQuery: '${
-              ctx.env_is_preview ? "" : ""
-            }', goToPage() { const page = parseInt(this.currentPage); if (page >= 1 && page <= this.totalPages) { let url; if (page === 1) { url = this.baseUrl + '.html'; } else { url = this.baseUrl + '.p' + page + '.html'; } window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } })); } } }`}
+            x-data={`{
+              currentPage: ${pageNo},
+              totalPages: ${pageCount},
+              baseUrl: '${pagePathBase}',
+              pageQuery: '${ctx.env_is_preview ? "" : ""}',
+              goToPage() {
+                const page = parseInt(this.currentPage);
+                if (page >= 1 && page <= this.totalPages) {
+                  let url;
+                  if (page === 1) {
+                    url = this.baseUrl + '.html';
+                  } else {
+                    url = this.baseUrl + '.p' + page + '.html';
+                  }
+                  window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } }));
+                }
+              }
+            }`}
             x-init={`currentPage = ${pageNo}`}
           >
             <select
               x-model="currentPage"
-              onChange={() => {}}
+              x-on:change="goToPage()"
               class="text-gray-600 text-sm rounded pl-1 py-1 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {/* 渲染选项列表 */}
