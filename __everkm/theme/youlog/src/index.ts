@@ -40,8 +40,9 @@ function init() {
   initKeywordHighlighter("#article-main");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  requestAnimationFrame(() => {
+// document.addEventListener("DOMContentLoaded", () => {
+//   setTimeout(() => {
     init();
-  });
-});
+//     console.log("init");
+//   }, 1000);
+// });

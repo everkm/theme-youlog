@@ -106,9 +106,19 @@ const BookPage: Component<BookPageProps> = (props) => {
     return qs?.summary || "/_SUMMARY.md";
   };
 
+  // 获取导航文档（用于首屏渲染导航 HTML）
+  const navDoc = () => {
+    const path = summaryFile();
+    if (!path) return null;
+    return everkm.post_detail({ path });
+  };
+
   // 获取导航指示器
   const pageNav = () => {
-    return everkm.nav_indicator({ from_file: summaryFile(), __page_path: currentPagePath() as string });
+    return everkm.nav_indicator({
+      from_file: summaryFile(),
+      __page_path: currentPagePath() as string,
+    });
   };
 
   // 获取配置项
@@ -180,9 +190,8 @@ const BookPage: Component<BookPageProps> = (props) => {
         <nav
           id="sidebar-nav-tree"
           class="flex-1 markdown-body !py-0 px-4 !bg-transparent nav-tree invisible overflow-y-auto"
-        >
-          {/* 导航树内容在客户端渲染时由 sidebarNavTree2 处理 */}
-        </nav>
+          innerHTML={navDoc()?.content_html || ""}
+        ></nav>
       </aside>
 
       {/* 右侧内容区 */}
@@ -476,13 +485,19 @@ async function everkmRender(compName: string, props: any) {
   });
   // 在 SSR 阶段直接注入 CSS 与 JS
   const cssYoulog = everkm.assets({ type: "css", section: "youlog" }) || "";
-  const cssSearch = everkm.assets({ type: "css", section: "plugin-in-search" }) || "";
+  const cssSearch =
+    everkm.assets({ type: "css", section: "plugin-in-search" }) || "";
   const jsYoulog = everkm.assets({ type: "js", section: "youlog" }) || "";
-  const jsSearch = everkm.assets({ type: "js", section: "plugin-in-search" }) || "";
-  const alpine = `<script src="${everkm.asset_base_url({})}/assets/alpinejs@3.14.9.js" defer></script>`;
+  const jsSearch =
+    everkm.assets({ type: "js", section: "plugin-in-search" }) || "";
+  const alpine = `<script src="${everkm.asset_base_url(
+    {}
+  )}/assets/alpinejs@3.14.9.js" defer></script>`;
 
-
-  const withCss = html.replace(/<\/head>/i, `${cssYoulog}${cssSearch}${alpine}</head>`);
+  const withCss = html.replace(
+    /<\/head>/i,
+    `${cssYoulog}${cssSearch}${alpine}</head>`
+  );
   const withJs = withCss.replace(/<\/body>/i, `${jsYoulog}${jsSearch}</body>`);
   return `<!DOCTYPE html>${withJs}`;
 }
@@ -493,4 +508,3 @@ function ping() {
 
 // 导出到全局变量，方便 QuickJS 访问
 export { everkmRender, ping };
-
