@@ -1,12 +1,15 @@
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 /**
  * 格式化日期
  * @param timestamp 时间戳（秒）
  * @param format 格式化字符串，默认 'YYYY-MM-DD'
  */
-export function formatDate(timestamp: number | undefined, format: string = 'YYYY-MM-DD'): string {
-  if (!timestamp) return '';
+export function formatDate(
+  timestamp: number | undefined,
+  format: string = "YYYY-MM-DD"
+): string {
+  if (!timestamp) return "";
   return dayjs.unix(timestamp).format(format);
 }
 
@@ -16,8 +19,12 @@ export function formatDate(timestamp: number | undefined, format: string = 'YYYY
  * @param path 配置路径，使用点分隔
  * @param defaultValue 默认值
  */
-export function getConfigValue(config: Record<string, any>, path: string, defaultValue: any = undefined) {
-  const keys = path.split('.');
+export function getConfigValue(
+  config: Record<string, any>,
+  path: string,
+  defaultValue: any = undefined
+) {
+  const keys = path.split(".");
   let value = config as any;
   for (const key of keys) {
     value = value?.[key];
@@ -25,4 +32,3 @@ export function getConfigValue(config: Record<string, any>, path: string, defaul
   }
   return value;
 }
-
