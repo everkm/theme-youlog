@@ -91,56 +91,58 @@ interface BookPageProps {
 }
 
 const BookPage: Component<BookPageProps> = (props) => {
-  const pageContext = () => props.props;
-  const requestId = () => pageContext().request_id;
+  const pageContext = props.props;
+  const requestId = pageContext.request_id;
 
   // 获取文档详情
-  const doc = () => {
-    const post = pageContext().post;
+  const doc = (() => {
+    const post = pageContext.post;
     if (!post) return null;
-    return everkm.post_detail(requestId(), {
+    return everkm.post_detail(requestId, {
       path: post.path,
     });
-  };
+  })();
 
   // 获取 summary 文件路径
-  const summaryFile = () => {
-    const qs = pageContext().qs;
+  const summaryFile = (() => {
+    const qs = pageContext.qs;
     return qs?.summary || "/_SUMMARY.md";
-  };
+  })();
 
   // 获取导航文档（用于首屏渲染导航 HTML）
-  const navDoc = () => {
-    const path = summaryFile();
+  const navDoc = (() => {
+    const path = summaryFile;
     if (!path) return null;
-    return everkm.post_detail(requestId(), { path });
-  };
+    return everkm.post_detail(requestId, { path });
+  })();
 
   // 获取导航指示器
-  const pageNav = () => {
-    return everkm.nav_indicator(requestId(), {
-      from_file: summaryFile(),
-    });
-  };
+  const pageNav = everkm.nav_indicator(requestId, {
+    from_file: summaryFile,
+  });
 
   // 获取配置项
-  const config = () => pageContext().config;
+  const config = pageContext.config;
   const configValue = (path: string, defaultValue: any = undefined) => {
-    return getConfigValue(config(), path, defaultValue);
+    return getConfigValue(config, path, defaultValue);
   };
 
   // 获取 base URL
-  const baseUrl = () => everkm.base_url(requestId(), {});
-
-  // 获取环境变量
-  const env = (name: string, defaultValue: string = "") => {
-    return everkm.env(requestId(), { name, default: defaultValue });
-  };
+  const baseUrl = everkm.base_url(requestId, {});
 
   // Youlog 相关环境变量
-  const youlogPlatform = () => env("YOULOG_PLATFORM");
-  const versionsUrl = () => env("YOULOG_VERSIONS_URL");
-  const youlogVersion = () => env("YOULOG_VERSION");
+  const youlogPlatform = everkm.env(requestId, {
+    name: "YOULOG_PLATFORM",
+    default: "",
+  });
+  const versionsUrl = everkm.env(requestId, {
+    name: "YOULOG_VERSIONS_URL",
+    default: "",
+  });
+  const youlogVersion = everkm.env(requestId, {
+    name: "YOULOG_VERSION",
+    default: "",
+  });
 
   return (
     <div class="flex h-dvh">
@@ -155,7 +157,7 @@ const BookPage: Component<BookPageProps> = (props) => {
         {/* Site header */}
         <Show when={!configValue("layout.aisde_no_header", false)}>
           <div class="flex h-14 items-center justify-between px-2 md:px-4 bg-gray-50 dark:bg-gray-900 z-10">
-            <a data-logo href={`${baseUrl()}/`} class="flex items-center gap-2">
+            <a data-logo href={`${baseUrl}/`} class="flex items-center gap-2">
               <Show
                 when={configValue("site.logo")}
                 fallback={
@@ -165,7 +167,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                 }
               >
                 <img
-                  src={everkm.asset_base_url(requestId(), {
+                  src={everkm.asset_base_url(requestId, {
                     url: String(configValue("site.logo")),
                   })}
                   alt={String(configValue("site.name"))}
@@ -191,7 +193,7 @@ const BookPage: Component<BookPageProps> = (props) => {
         <nav
           id="sidebar-nav-tree"
           class="flex-1 markdown-body !py-0 px-4 !bg-transparent nav-tree invisible overflow-y-auto"
-          innerHTML={navDoc()?.content_html || ""}
+          innerHTML={navDoc?.content_html || ""}
         ></nav>
       </aside>
 
@@ -219,7 +221,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                   data-ajax-element="article-title-bar"
                   class="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer hidden"
                 >
-                  {doc()?.title || "无标题"}
+                  {doc?.title || "无标题"}
                 </h1>
               </div>
             </div>
@@ -243,7 +245,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                 <nav class="hidden md:block invisible" id="header-nav">
                   <NavTree
                     items={configValue("header_nav", [])}
-                    requestId={requestId()}
+                    requestId={requestId}
                   />
                 </nav>
               </Show>
@@ -264,25 +266,25 @@ const BookPage: Component<BookPageProps> = (props) => {
             <div class="flex flex-col lg:flex-row">
               {/* 左侧：正文内容 */}
               <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 leading-relaxed relative">
-                <Breadcrumb navs={pageContext().breadcrumbs || []} />
+                <Breadcrumb navs={pageContext.breadcrumbs || []} />
 
                 <h1
                   id="article-title"
                   data-ajax-element="article-title"
                   class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4"
                 >
-                  {doc()?.title || "无标题"}
+                  {doc?.title || "无标题"}
                 </h1>
 
-                <Show when={!doc()?.meta?.hide_meta}>
+                <Show when={!doc?.meta?.hide_meta}>
                   <div data-ajax-element="doc-meta" class="mb-6 doc-meta">
-                    <span data-doc-update-at={doc()?.update_at?.toString()}>
-                      更新于{formatDate(doc()?.update_at)}
+                    <span data-doc-update-at={doc?.update_at?.toString()}>
+                      更新于{formatDate(doc?.update_at)}
                     </span>
-                    <Show when={doc()?.meta?.uno}>
-                      <span data-doc-meta-uno={doc()?.meta?.uno}>
-                        <a href={`/${doc()?.meta?.uno}`} target="_blank">
-                          地址编号: {doc()?.meta?.uno}
+                    <Show when={doc?.meta?.uno}>
+                      <span data-doc-meta-uno={doc?.meta?.uno}>
+                        <a href={`/${doc?.meta?.uno}`} target="_blank">
+                          地址编号: {doc?.meta?.uno}
                         </a>
                       </span>
                     </Show>
@@ -294,7 +296,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                   data-ajax-element="article-main"
                   class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0"
                 >
-                  <div innerHTML={doc()?.content_html || ""} />
+                  <div innerHTML={doc?.content_html || ""} />
                 </article>
 
                 <Show when={configValue("yousha")}>
@@ -305,29 +307,29 @@ const BookPage: Component<BookPageProps> = (props) => {
 
                 {/* 分页导航 */}
                 <div id="page-indicator" data-ajax-element="page-indicator">
-                  <Show when={pageNav().next || pageNav().prev}>
+                  <Show when={pageNav.next || pageNav.prev}>
                     <div class="mt-10 pt-8 border-t border-border dark:border-border space-y-4 md:flex md:flex-row-reverse md:items-center md:space-y-0 md:gap-8">
-                      <Show when={pageNav().next}>
-                        <a class="flex-1 block" href={pageNav().next?.link}>
+                      <Show when={pageNav.next}>
+                        <a class="flex-1 block" href={pageNav.next?.link}>
                           <div class="border border-border dark:border-border rounded p-4 flex flex-col items-end hover:border-brand-primary dark:hover:border-brand-primary-light transition-colors">
                             <div class="flex text-text-tertiary dark:text-text-tertiary mb-2 items-center flex-row-reverse">
                               <NextArrowIcon class="inline-block" />
                             </div>
                             <span class="text-lg font-medium text-text-primary dark:text-text-primary">
-                              {pageNav().next?.title}
+                              {pageNav.next?.title}
                             </span>
                           </div>
                         </a>
                       </Show>
 
-                      <Show when={pageNav().prev}>
-                        <a class="flex-1 block" href={pageNav().prev?.link}>
+                      <Show when={pageNav.prev}>
+                        <a class="flex-1 block" href={pageNav.prev?.link}>
                           <div class="border border-border dark:border-border rounded p-4 flex flex-col items-start hover:border-brand-primary dark:hover:border-brand-primary-light transition-colors">
                             <div class="flex text-text-tertiary dark:text-text-tertiary mb-2 items-center">
                               <PrevArrowIcon class="inline-block" />
                             </div>
                             <span class="text-lg font-medium text-text-primary dark:text-text-primary">
-                              {pageNav().prev?.title}
+                              {pageNav.prev?.title}
                             </span>
                           </div>
                         </a>
@@ -365,10 +367,10 @@ const BookPage: Component<BookPageProps> = (props) => {
 
                   {/* youlog platform */}
                   <div class="text-text-tertiary dark:text-text-tertiary text-sm text-center flex flex-wrap justify-center items-center">
-                    <Show when={youlogPlatform()}>
+                    <Show when={youlogPlatform}>
                       <span>
                         <a
-                          href={youlogPlatform()}
+                          href={youlogPlatform}
                           target="_blank"
                           class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors"
                         >
@@ -380,12 +382,12 @@ const BookPage: Component<BookPageProps> = (props) => {
                       </span>
                     </Show>
 
-                    <Show when={youlogVersion()}>
+                    <Show when={youlogVersion}>
                       <span>
                         <youlog-version
                           class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors cursor-pointer"
-                          {...{ "version-list-url": versionsUrl() }}
-                          version={youlogVersion()}
+                          {...{ "version-list-url": versionsUrl }}
+                          version={youlogVersion}
                         ></youlog-version>
                       </span>
                     </Show>
@@ -450,9 +452,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                       <a
                         href="https://youlog.theme.everkm.com"
                         target="_blank"
-                        title={`Powered by everkm-publish@v${
-                          pageContext().everkm_publish_version
-                        } with theme youlog@v${pageContext().theme_version}`}
+                        title={`Powered by everkm-publish@v${pageContext.everkm_publish_version} with theme youlog@v${pageContext.theme_version}`}
                         class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors"
                       >
                         Youlog
