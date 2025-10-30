@@ -41,8 +41,8 @@ declare global {
       requestId: string,
       args?: PostsDirectoryArgs
     ): string[];
-    post_meta(requestId: string, args: FetchPostArgs): PostItem;
-    post_detail(requestId: string, args: FetchPostArgs): PostItem;
+    post_meta(requestId: string, args: FetchPostArgs): PostItem | null;
+    post_detail(requestId: string, args: FetchPostArgs): PostItem | null;
     has_post(requestId: string, args: { path: string }): boolean;
     nav_indicator(
       requestId: string,
@@ -82,9 +82,11 @@ declare global {
   }
 
   interface FetchPostArgs {
-    path: string;
+    id?: string;
+    path?: string;
     lazy_img?: boolean;
     exclude_tags?: string;
+    allow_missing?: boolean;
   }
 
   interface NavIndicatorItem {

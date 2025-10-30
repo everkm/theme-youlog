@@ -12,6 +12,7 @@ import {
   LightningIcon,
 } from "./icons";
 import { formatDate, getConfigValue } from "./utils";
+import PrevNextLinks from "./PrevNextLinks";
 
 interface NavItem {
   title: string;
@@ -297,6 +298,10 @@ const BookPage: Component<BookPageProps> = (props) => {
                   class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0"
                 >
                   <div innerHTML={doc?.content_html || ""} />
+                  <PrevNextLinks
+                    requestId={requestId}
+                    qs={pageContext.qs || {}}
+                  />
                 </article>
 
                 <Show when={configValue("yousha")}>
@@ -305,7 +310,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                   ></yousha-comment>
                 </Show>
 
-                {/* 分页导航 */}
+                {/* 分页导航（基于目录的上一页/下一页）*/}
                 <div id="page-indicator" data-ajax-element="page-indicator">
                   <Show when={pageNav.next || pageNav.prev}>
                     <div class="mt-10 pt-8 border-t border-border dark:border-border space-y-4 md:flex md:flex-row-reverse md:items-center md:space-y-0 md:gap-8">
