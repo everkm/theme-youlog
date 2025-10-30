@@ -1,5 +1,5 @@
 import { Component, For, Show } from "solid-js";
-import { PrevArrowIcon, NextArrowIcon } from "../icons";
+import { PrevArrowIcon, NextArrowIcon, NavigateNextIcon, NavigatePrevIcon } from "../icons";
 import { formatDate } from "../utils";
 
 interface DcardListProps {
@@ -46,8 +46,8 @@ const DcardList: Component<DcardListProps> = (props) => {
               <Show when={doc.weight > 0}>
                 <span class="!text-red-500 mark-top"></span>
               </Show>
-              <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number">
-                {formatDate(doc.update_at, "YYYY-MM-DD HH:mm")}
+              <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number flex items-center gap-2">
+                <span>{formatDate(doc.update_at, "YYYY-MM-DD HH:mm")}</span>
                 <Show when={doc.date !== doc.update_at}>
                   <em class="text-gray-500 text-[90%]">updated</em>
                 </Show>
@@ -65,7 +65,7 @@ const DcardList: Component<DcardListProps> = (props) => {
                 href={pageUrl(pageNo - 1)}
                 class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors"
               >
-                <PrevArrowIcon />
+                <NavigatePrevIcon />
               </a>
             </div>
           </Show>
@@ -115,7 +115,7 @@ const DcardList: Component<DcardListProps> = (props) => {
                 href={pageUrl(pageNo + 1)}
                 class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors"
               >
-                <NextArrowIcon />
+                <NavigateNextIcon />
               </a>
             </div>
           </Show>
