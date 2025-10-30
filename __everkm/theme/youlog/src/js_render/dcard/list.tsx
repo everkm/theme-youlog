@@ -1,5 +1,10 @@
 import { Component, For, Show } from "solid-js";
-import { PrevArrowIcon, NextArrowIcon, NavigateNextIcon, NavigatePrevIcon } from "../icons";
+import {
+  PrevArrowIcon,
+  NextArrowIcon,
+  NavigateNextIcon,
+  NavigatePrevIcon,
+} from "../icons";
 import { formatDate } from "../utils";
 
 interface DcardListProps {
@@ -20,12 +25,21 @@ const DcardList: Component<DcardListProps> = (props) => {
   })();
   const pageSize = props.page_size && props.page_size > 0 ? props.page_size : 6;
 
-  const { items, total } = everkm.posts(requestId, {
+  // 共享查询条件
+  const baseArgs = {
     dir: props.dir,
     recursive: props.include_subfolders ?? true,
     exclude_tags: props.exclude_tags,
-    offset: (pageNo - 1) * pageSize,
-    limit: pageSize,
+  } as const;
+
+  // 当前页偏移量
+  const currentOffset = (pageNo - 1) * pageSize;
+
+  // 为了便于获取“最后一条”的 next，分页时多取一条
+  const { items, total } = everkm.posts(requestId, {
+    ...baseArgs,
+    offset: currentOffset,
+    limit: pageSize + 1,
   });
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -34,13 +48,43 @@ const DcardList: Component<DcardListProps> = (props) => {
   const pageUrl = (page: number) =>
     page <= 1 ? `${pagePathBase}.html` : `${pagePathBase}.p${page}.html`;
 
+  // 计算指定 offset 位置的文章 ID；优先用当前已取数据，未命中再取 1 条
+  const getPostIdAtOffset = (offset: number): string => {
+    if (offset < 0 || offset >= total) return "";
+    if (offset >= currentOffset && offset < currentOffset + items.length) {
+      return items[offset - currentOffset]?.id ?? "";
+    }
+    const { items: one } = everkm.posts(requestId, {
+      ...baseArgs,
+      offset,
+      limit: 1,
+    });
+    return one?.[0]?.id ?? "";
+  };
+
+  // 构建某一条目的链接，包含 prev/next 查询参数
+  const buildItemHref = (doc: PostItem, localIndex: number): string => {
+    const targetOffset = currentOffset + localIndex;
+    const prevId = getPostIdAtOffset(targetOffset - 1);
+    const nextId = getPostIdAtOffset(targetOffset + 1);
+
+    const params: string[] = [];
+    if (prevId) params.push(`prev=${encodeURIComponent(prevId)}`);
+    if (nextId) params.push(`next=${encodeURIComponent(nextId)}`);
+    if (params.length === 0) return doc.url_path;
+
+    const sep = doc.url_path.includes("?") ? "&" : "?";
+    return `${doc.url_path}${sep}${params.join("&")}`;
+  };
+
   return (
     <>
       <ol>
-        <For each={items}>
-          {(doc) => (
+        {/* 渲染仅前 pageSize 条，多取的一条用于计算最后一条的 next */}
+        <For each={items.slice(0, pageSize)}>
+          {(doc, i) => (
             <li>
-              <a href={doc.url_path} target="_blank">
+              <a href={buildItemHref(doc, i())} target="_blank">
                 {doc.title}
               </a>
               <Show when={doc.weight > 0}>
