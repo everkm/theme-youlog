@@ -1,0 +1,8 @@
+{% set data = posts(dir=dir, recursive=recursive) %}
+<ul>
+    {% for doc in data.items %}
+    <li>
+        <a href="{{ doc.url_path | safe }}">{{doc.title}}</a>
+    </li>
+    {% endfor %}
+</ul>
