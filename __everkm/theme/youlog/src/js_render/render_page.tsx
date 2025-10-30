@@ -52,7 +52,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
     <div
       id="breadcrumb"
       data-ajax-element="breadcrumb"
-      class="text-text-tertiary dark:text-text-tertiary text-[0.95em] mx-auto flex items-center flex-wrap relative -top-6"
+      class="text-text-tertiary dark:text-text-tertiary text-[0.95em] mx-auto flex items-center flex-wrap relative -top-5"
     >
       <For each={props.navs}>
         {(nav) => (
@@ -272,25 +272,29 @@ const BookPage: Component<BookPageProps> = (props) => {
                 <h1
                   id="article-title"
                   data-ajax-element="article-title"
-                  class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4"
+                  class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
                 >
                   {doc?.title || "无标题"}
                 </h1>
 
-                <Show when={!doc?.meta?.hide_meta}>
-                  <div data-ajax-element="doc-meta" class="mb-6 doc-meta">
-                    <span data-doc-update-at={doc?.update_at?.toString()}>
-                      更新于{formatDate(doc?.update_at)}
-                    </span>
-                    <Show when={doc?.meta?.uno}>
-                      <span data-doc-meta-uno={doc?.meta?.uno}>
-                        <a href={`/${doc?.meta?.uno}`} target="_blank">
-                          地址编号: {doc?.meta?.uno}
-                        </a>
+                <div data-ajax-element="doc-meta" class="">
+                  <Show when={!doc?.meta?.hide_meta}>
+                    <div class="doc-meta">
+                      <span data-doc-update-at={doc?.update_at?.toString()}>
+                        更新于{formatDate(doc?.update_at)}
                       </span>
-                    </Show>
-                  </div>
-                </Show>
+                      <Show when={doc?.meta?.uno}>
+                        <span data-doc-meta-uno={doc?.meta?.uno}>
+                          <a href={`/${doc?.meta?.uno}`} target="_blank">
+                            地址编号: {doc?.meta?.uno}
+                          </a>
+                        </span>
+                      </Show>
+                    </div>
+                    {/* 下边距填充 */}
+                    <div class="h-2 w-full"></div>
+                  </Show>
+                </div>
 
                 <article
                   id="article-main"
