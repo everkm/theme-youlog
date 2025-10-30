@@ -1,15 +1,16 @@
 {%import "icons.html" as icons%}
 
 
-{% set items = posts(dir=dir, recursive=include_subfolders | default(value=true), exclude_tags=exclude_tags | default(value=[])) %}
 {% set page_no =__qs.page | default(value=1) | int %}
 {% set page_size = page_size | default(value=6) %}
-{% set start = (page_no - 1) * page_size %}
-{% set end = start + page_size %}
-{% set page_count = items | length / page_size %}
+{% set offset = (page_no - 1) * page_size %}
+{% set data = posts(dir=dir, recursive=include_subfolders | default(value=true), exclude_tags=exclude_tags | default(value=[]), offset=offset, limit=page_size) %}
+{% set items = data.items %}
+{% set total = data.total %}
+{% set page_count = total / page_size %}
 {% set page_count = page_count | round(method="ceil") %}
 <ol>
-    {% for doc in items | slice(start=start, end=end) %}
+    {% for doc in items %}
     <li>
         <a href="{{ doc.url_path | safe }}" target="_blank">{{doc.title}}</a>
         {%if doc.weight > 0%}<span class="!text-red-500 mark-top"></span>{%endif%}
@@ -65,7 +66,7 @@
         </select>
     </div>
 
-    {% if items | length > end %}
+    {% if page_no * page_size < total %}
     <div class="flex items-center space-x-1">
         <a href="{{__page_path_base}}.p{{page_no+1}}.html"
             class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
