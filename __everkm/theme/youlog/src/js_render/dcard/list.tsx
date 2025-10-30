@@ -20,16 +20,15 @@ const DcardList: Component<DcardListProps> = (props) => {
   })();
   const pageSize = props.page_size && props.page_size > 0 ? props.page_size : 6;
 
-  const items =
-    everkm.posts(requestId, {
-      dir: props.dir,
-      recursive: props.include_subfolders ?? true,
-      exclude_tags: props.exclude_tags,
-    }) || [];
+  const { items, total } = everkm.posts(requestId, {
+    dir: props.dir,
+    recursive: props.include_subfolders ?? true,
+    exclude_tags: props.exclude_tags,
+    offset: (pageNo - 1) * pageSize,
+    limit: pageSize,
+  });
 
-  const start = (pageNo - 1) * pageSize;
-  const end = start + pageSize;
-  const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const pagePathBase = ctx.page_path_base;
 
   const pageUrl = (page: number) =>
@@ -38,7 +37,7 @@ const DcardList: Component<DcardListProps> = (props) => {
   return (
     <>
       <ol>
-        <For each={items.slice(start, end)}>
+        <For each={items}>
           {(doc) => (
             <li>
               <a href={doc.url_path} target="_blank">
@@ -110,7 +109,7 @@ const DcardList: Component<DcardListProps> = (props) => {
             </select>
           </div>
 
-          <Show when={items.length > end}>
+          <Show when={total > pageSize * pageNo}>
             <div class="flex items-center space-x-1">
               <a
                 href={pageUrl(pageNo + 1)}
