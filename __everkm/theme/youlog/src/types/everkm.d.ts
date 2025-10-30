@@ -3,8 +3,8 @@ export {};
 
 declare global {
   interface Everkm {
-    assets(requestId: string, args?: { type: 'js' | 'css'; section: string; cdn?: string }): string;
-    data(requestId: string, args?: {
+    assets(requestId: string, args: { type: 'js' | 'css'; section: string; cdn?: string }): string;
+    data(requestId: string, args: {
       src: string;
       post?: boolean;
       cache_secs?: number;
@@ -15,11 +15,11 @@ declare global {
     }): any;
     markdown_to_html(content: string): string;
     base_url(requestId: string, args?: { url?: string }): string;
-    asset_base_url(requestId: string, args: { url?: string }): string;
-    posts(requestId: string, args: FetchPostsArgs): PostItem[];
-    posts_tag_list(requestId: string, args: FetchPostsArgs): Record<string, number>;
-    posts_category_list(requestId: string, args: FetchPostsArgs): Record<string, number>;
-    posts_directory_list(requestId: string, args: PostsDirectoryArgs): string[];
+    asset_base_url(requestId: string, args?: { url?: string }): string;
+    posts(requestId: string, args?: FetchPostsArgs): PostItem[];
+    posts_tag_list(requestId: string, args?: FetchPostsArgs): Record<string, number>;
+    posts_category_list(requestId: string, args?: FetchPostsArgs): Record<string, number>;
+    posts_directory_list(requestId: string, args?: PostsDirectoryArgs): string[];
     post_meta(requestId: string, args: FetchPostArgs): PostItem;
     post_detail(requestId: string, args: FetchPostArgs): PostItem;
     has_post(requestId: string, args: { path: string }): boolean;
@@ -80,7 +80,7 @@ declare global {
   }
 
   interface ConfigArgs {
-    key?: string;
+    key: string;
     default?: any;
   }
 

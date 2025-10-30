@@ -128,7 +128,7 @@ const BookPage: Component<BookPageProps> = (props) => {
   };
 
   // 获取 base URL
-  const baseUrl = everkm.base_url(requestId, {});
+  const baseUrl = everkm.base_url(requestId);
 
   // Youlog 相关环境变量
   const youlogPlatform = everkm.env(requestId, {
@@ -503,8 +503,7 @@ async function renderPage(compName: string, props: any) {
       section: "plugin-in-search",
     }) || "";
   const alpine = `<script src="${everkm.asset_base_url(
-    props.request_id,
-    {}
+    props.request_id
   )}/assets/alpinejs@3.14.9.js" defer></script>`;
 
   const withCss = html.replace(
