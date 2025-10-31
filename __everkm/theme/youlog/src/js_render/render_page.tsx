@@ -280,8 +280,8 @@ const BookPage: Component<BookPageProps> = (props) => {
                 <div data-ajax-element="doc-meta" class="">
                   <Show when={!doc?.meta?.hide_meta}>
                     <div class="doc-meta">
-                      <span data-doc-update-at={doc?.update_at?.toString()}>
-                        更新于{formatDate(doc?.update_at)}
+                      <span data-doc-update-at={doc?.updated_at?.toString()}>
+                        更新于{formatDate(doc?.updated_at)}
                       </span>
                       <Show when={doc?.meta?.uno}>
                         <span data-doc-meta-uno={doc?.meta?.uno}>

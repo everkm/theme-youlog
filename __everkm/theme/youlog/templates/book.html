@@ -174,7 +174,7 @@
 
                         {% if not __post.meta.hide_meta %}
                         <div data-ajax-element="doc-meta" class="mb-6 doc-meta">
-                            <span data-doc-update-at="{{ doc.update_at }}">更新于{{ doc.update_at | date(format="%Y-%m-%d")
+                            <span data-doc-update-at="{{ doc.updated_at }}">更新于{{ doc.updated_at | date(format="%Y-%m-%d")
                                 }}</span>
                             {% if doc.meta.uno %}<span data-doc-meta-uno="{{ doc.meta.uno }}"><a
                                     href="/{{ doc.meta.uno }}" target="_blank">地址编号:

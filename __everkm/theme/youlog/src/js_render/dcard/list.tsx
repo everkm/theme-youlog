@@ -71,8 +71,8 @@ const DcardList: Component<DcardListProps> = (props) => {
                 <span class="!text-red-500 mark-top"></span>
               </Show>
               <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number flex items-center gap-2">
-                <span>{formatDate(doc.update_at, "YYYY-MM-DD HH:mm")}</span>
-                <Show when={doc.date !== doc.update_at}>
+                <span>{formatDate(doc.updated_at, "YYYY-MM-DD HH:mm")}</span>
+                <Show when={doc.date !== doc.updated_at}>
                   <em class="text-gray-500 text-[90%]">updated</em>
                 </Show>
               </div>
