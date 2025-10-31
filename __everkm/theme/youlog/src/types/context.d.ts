@@ -35,6 +35,8 @@ declare global {
     weight: number;
     template?: string | null;
     content_html?: string | null;
+    prev_id?: string | null;
+    next_id?: string | null;
   }
 
   interface BreadcrumbResolved {
