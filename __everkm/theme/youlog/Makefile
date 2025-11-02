@@ -28,6 +28,8 @@ bundle:
 
 	# 构建
 	$(MAKE) fe-build
+	$(MAKE) ssr-build
+	
 	cp -r templates $(DIST_DIR)
 	cp assets-manifest.json $(DIST_DIR)
 	cp everkm-theme.yaml $(DIST_DIR)
