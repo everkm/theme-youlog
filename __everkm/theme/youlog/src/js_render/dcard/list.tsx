@@ -44,8 +44,17 @@ const DcardList: Component<DcardListProps> = (props) => {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const pagePathBase = ctx.page_path_base;
 
-  const pageUrl = (page: number) =>
-    page <= 1 ? `${pagePathBase}.html` : `${pagePathBase}.p${page}.html`;
+  const pageUrl = (page: number) => {
+    let qs = everkm.page_query(requestId, {
+      page: "",
+    });
+    let url =
+      page <= 1 ? `${pagePathBase}.html` : `${pagePathBase}.p${page}.html`;
+    if (qs) {
+      url += `?${qs}`;
+    }
+    return url;
+  };
 
   // 构建某一条目的链接，包含 prev/next 查询参数
   const buildItemHref = (doc: PostItem): string => {
