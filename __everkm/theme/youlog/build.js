@@ -229,7 +229,7 @@ function getSSRBuildOptions() {
       [ssrEntryPoint.out]: ssrEntryPoint.in,
     },
     bundle: true,
-    outfile: `${distBaseDir}/ssr/${ssrEntryPoint.out}.js`,
+    outfile: `${distBaseDir}/../templates/${ssrEntryPoint.out}.js`,
     metafile: true,
     minify: false,
     sourcemap: false,
