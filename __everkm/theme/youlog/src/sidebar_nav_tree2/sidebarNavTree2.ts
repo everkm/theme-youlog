@@ -89,6 +89,7 @@ class BreadcrumbManager {
       }
 
       try {
+        // 先获取breadcrumb路径
         const breadcrumbPath = this.getBreadcrumbPath();
 
         if (breadcrumbPath.length === 0) {
@@ -96,9 +97,33 @@ class BreadcrumbManager {
           return;
         }
 
-        const clickedIndex = Array.from(
-          target.parentElement?.children || []
-        ).indexOf(target);
+        // 找到被点击的 [data-nav-title] 元素并获取其文本
+        const clickedNavTitle = target.hasAttribute("data-nav-title")
+          ? target
+          : (target.closest("[data-nav-title]") as HTMLElement | null);
+
+        if (!clickedNavTitle) {
+          console.log("breadcrumb点击，找不到data-nav-title元素");
+          return;
+        }
+
+        const clickedText = DOMUtils.getCleanTextContent(clickedNavTitle);
+
+        if (!clickedText) {
+          console.warn("breadcrumb点击，无法获取文本内容");
+          return;
+        }
+
+        // 在breadcrumb路径中查找匹配的文本，找到索引
+        const clickedIndex = breadcrumbPath.findIndex(
+          (text) => text === clickedText
+        );
+
+        if (clickedIndex === -1) {
+          console.warn(`breadcrumb点击，找不到匹配的文本 "${clickedText}"`);
+          return;
+        }
+
         const pathToCurrent = breadcrumbPath.slice(0, clickedIndex + 1);
 
         console.log("breadcrumb点击，路径到当前位置:", pathToCurrent);
