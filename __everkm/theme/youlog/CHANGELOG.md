@@ -4,3 +4,9 @@
 
 ## v0.3.3 (2025-11-08)
 - 修复 Breadcrumbs 点击获取路径问题
+
+## v0.3.4 (2025-11-10)
+- 优化 meta 信息展示
+- dcard/list 更新
+    1. 去除 updated 标记
+    2. 支持 `hide_prev_next` 上下页导航
