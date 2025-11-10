@@ -1,18 +1,14 @@
 import { Component, For, Show } from "solid-js";
-import {
-  PrevArrowIcon,
-  NextArrowIcon,
-  NavigateNextIcon,
-  NavigatePrevIcon,
-} from "../icons";
+import { NavigateNextIcon, NavigatePrevIcon } from "../icons";
 import { formatDate } from "../utils";
 
 interface DcardListProps {
   page_context: PageContext;
   dir?: string;
-  include_subfolders?: boolean;
+  recursive?: boolean;
   exclude_tags?: string[];
   page_size?: number;
+  hide_prev_next?: boolean;
 }
 
 const DcardList: Component<DcardListProps> = (props) => {
@@ -28,7 +24,7 @@ const DcardList: Component<DcardListProps> = (props) => {
   // 共享查询条件
   const baseArgs = {
     dir: props.dir,
-    recursive: props.include_subfolders ?? true,
+    recursive: props.recursive ?? true,
     exclude_tags: props.exclude_tags,
   } as const;
 
@@ -58,9 +54,12 @@ const DcardList: Component<DcardListProps> = (props) => {
 
   // 构建某一条目的链接，包含 prev/next 查询参数
   const buildItemHref = (doc: PostItem): string => {
+    if (props.hide_prev_next) return doc.url_path;
+
     const params: string[] = [];
     if (doc.prev_id) params.push(`prev=${encodeURIComponent(doc.prev_id)}`);
     if (doc.next_id) params.push(`next=${encodeURIComponent(doc.next_id)}`);
+
     if (params.length === 0) return doc.url_path;
 
     const sep = doc.url_path.includes("?") ? "&" : "?";
@@ -81,9 +80,6 @@ const DcardList: Component<DcardListProps> = (props) => {
               </Show>
               <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number flex items-center gap-2">
                 <span>{formatDate(doc.updated_at, "YYYY-MM-DD HH:mm")}</span>
-                <Show when={doc.date !== doc.updated_at}>
-                  <em class="text-gray-500 text-[90%]">updated</em>
-                </Show>
               </div>
             </li>
           )}

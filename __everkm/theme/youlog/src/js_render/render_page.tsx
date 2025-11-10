@@ -277,9 +277,9 @@ const BookPage: Component<BookPageProps> = (props) => {
                   {doc?.title || "无标题"}
                 </h1>
 
-                <div data-ajax-element="doc-meta" class="">
+                <div data-ajax-element="doc-meta">
                   <Show when={!doc?.meta?.hide_meta}>
-                    <div class="doc-meta">
+                    <div class="text-sm flex items-center justify-start gap-4 text-gray-500 dark:text-gray-400 ">
                       <span data-doc-update-at={doc?.updated_at?.toString()}>
                         更新于{formatDate(doc?.updated_at)}
                       </span>
@@ -292,7 +292,7 @@ const BookPage: Component<BookPageProps> = (props) => {
                       </Show>
                     </div>
                     {/* 下边距填充 */}
-                    <div class="h-2 w-full"></div>
+                    <div class="h-8 w-full"></div>
                   </Show>
                 </div>
 
