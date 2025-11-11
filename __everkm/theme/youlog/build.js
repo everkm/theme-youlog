@@ -9,9 +9,13 @@ import tailwindcssNesting from "tailwindcss/nesting/index.js";
 import { writeFileSync, mkdirSync } from "fs";
 import chokidar from "chokidar";
 
+// ==================== 配置和工具函数 ====================
+
 // 检查是否处于开发模式
-const isWatch = process.argv.includes("--watch");
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = process.argv.includes("--dev");
+const isWatch = process.argv.includes("--watch") || isDev;
+const isDevMode = isDev || process.env.NODE_ENV !== "production";
+const isSSR = process.argv.includes("--ssr") || process.env.SSR === "true";
 
 let basePrefix = trimSlash(
   process.env.BASE_PREFIX ? `${process.env.BASE_PREFIX}` : ""
@@ -21,7 +25,7 @@ const distBaseDir = trimSlash(`./dist/${basePrefix}`);
 const distDir = `${distBaseDir}/assets`;
 console.log(
   `Building with esbuild in ${
-    isDev ? "watch" : "production"
+    isDevMode ? "development" : "production"
   } mode, distDir: ${distDir}`
 );
 
@@ -59,7 +63,7 @@ const manifestPlugin = {
           for (const [entryName, originalName] of Object.entries(
             entryPointsMap
           )) {
-            if (isDev) {
+            if (isDevMode) {
               if (
                 filename === originalName + ".js" ||
                 filename === originalName + ".css"
@@ -129,59 +133,100 @@ const ssrEntryPoint = {
   out: "everkm-render",
 };
 
-// 构建配置
-const buildOptions = {
-  target: "es2020",
-  platform: "browser",
-  format: "iife",
-  entryPoints: Object.fromEntries(
-    entryPoints.map((entry) => [entry.out, entry.in])
-  ),
-  bundle: true,
-  outdir: distDir,
-  entryNames: isDev ? "[name]" : "[name].[hash]",
-  assetNames: isDev ? "[name]" : "[name].[hash]",
-  metafile: true,
-  minify: !isDev,
-  sourcemap: false,
-  loader: {
-    ".js": "jsx",
-    ".jsx": "jsx",
-    ".ts": "tsx",
-    ".tsx": "tsx",
-  },
-  jsx: "preserve",
-  jsxImportSource: "solid-js",
-  define: {
-    "process.env.NODE_ENV": JSON.stringify(
-      isDev ? "development" : "production"
+// 客户端构建配置
+function getClientBuildOptions() {
+  return {
+    target: "es2020",
+    platform: "browser",
+    format: "iife",
+    entryPoints: Object.fromEntries(
+      entryPoints.map((entry) => [entry.out, entry.in])
     ),
-  },
-  plugins: [
-    manifestPlugin,
-    solidPlugin({
-      solid: {
-        generate: "dom",
-        hydratable: true,
-      },
-    }),
-    stylePlugin({
-      postcss: {
-        plugins: [
-          postcssImport,
-          tailwindcssNesting,
-          tailwindcss({
-            config: path.resolve(process.cwd(), "tailwind.config.js"),
-          }),
-          autoprefixer,
-        ],
-      },
-      cssModules: false,
-      extract: true,
-      output: isDev ? `${distDir}/[name].css` : `${distDir}/[name].[hash].css`,
-    }),
-  ],
-};
+    bundle: true,
+    outdir: distDir,
+    entryNames: isDevMode ? "[name]" : "[name].[hash]",
+    assetNames: isDevMode ? "[name]" : "[name].[hash]",
+    metafile: true,
+    minify: !isDevMode,
+    sourcemap: false,
+    loader: {
+      ".js": "jsx",
+      ".jsx": "jsx",
+      ".ts": "tsx",
+      ".tsx": "tsx",
+    },
+    jsx: "preserve",
+    jsxImportSource: "solid-js",
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(
+        isDevMode ? "development" : "production"
+      ),
+    },
+    plugins: [
+      manifestPlugin,
+      solidPlugin({
+        solid: {
+          generate: "dom",
+          hydratable: true,
+        },
+      }),
+      stylePlugin({
+        postcss: {
+          plugins: [
+            postcssImport,
+            tailwindcssNesting,
+            tailwindcss({
+              config: path.resolve(process.cwd(), "tailwind.config.js"),
+            }),
+            autoprefixer,
+          ],
+        },
+        cssModules: false,
+        extract: true,
+        output: isDevMode ? `${distDir}/[name].css` : `${distDir}/[name].[hash].css`,
+      }),
+    ],
+  };
+}
+
+// SSR 构建配置
+function getSSRBuildOptions() {
+  return {
+    entryPoints: {
+      [ssrEntryPoint.out]: ssrEntryPoint.in,
+    },
+    bundle: true,
+    outfile: `${distBaseDir}/../templates/${ssrEntryPoint.out}.js`,
+    metafile: true,
+    minify: false,
+    sourcemap: false,
+    format: "esm",
+    platform: "node",
+    target: "es2020",
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(
+        isDevMode ? "development" : "production"
+      ),
+      global: "globalThis",
+    },
+    loader: {
+      ".js": "jsx",
+      ".jsx": "jsx",
+      ".ts": "tsx",
+      ".tsx": "tsx",
+    },
+    jsx: "preserve",
+    jsxImportSource: "solid-js",
+    plugins: [
+      solidPlugin({
+        solid: {
+          generate: "ssr",
+          hydratable: false,
+        },
+      }),
+    ],
+  };
+}
 
 // 添加分析构建产物的函数
 function analyzeBundle(metafile) {
@@ -222,128 +267,193 @@ function analyzeBundle(metafile) {
   console.log(`\n详细分析已保存到: ${analysisPath}`);
 }
 
-// SSR 构建配置
-function getSSRBuildOptions() {
-  return {
-    entryPoints: {
-      [ssrEntryPoint.out]: ssrEntryPoint.in,
-    },
-    bundle: true,
-    outfile: `${distBaseDir}/../templates/${ssrEntryPoint.out}.js`,
-    metafile: true,
-    minify: false,
-    sourcemap: false,
-    format: "esm",
-    platform: "node",
-    target: "es2020",
-    define: {
-      "process.env.NODE_ENV": JSON.stringify(
-        isDev ? "development" : "production"
-      ),
-      global: "globalThis",
-    },
-    loader: {
-      ".js": "jsx",
-      ".jsx": "jsx",
-      ".ts": "tsx",
-      ".tsx": "tsx",
-    },
-    jsx: "preserve",
-    jsxImportSource: "solid-js",
-    plugins: [
-      solidPlugin({
-        solid: {
-          generate: "ssr",
-          hydratable: false,
-        },
-      }),
-    ],
-  };
+// ==================== Watch 模式工具函数 ====================
+
+// 监听文件变化的路径
+const WATCH_PATHS = [
+  "src/**/*.{js,jsx,ts,tsx}",
+  "src/**/*.{css,scss}",
+];
+
+// 设置文件监听
+function setupFileWatcher(onChange) {
+  console.log("Watching for changes in:");
+  WATCH_PATHS.forEach((watchPath) => console.log(`- ${watchPath}`));
+
+  const watcher = chokidar.watch(WATCH_PATHS, {
+    persistent: true,
+    ignoreInitial: true,
+  });
+
+  watcher.on("all", async (event, filePath) => {
+    console.log(`File ${filePath} changed (${event}), rebuilding...`);
+    await onChange(event, filePath);
+  });
+
+  return watcher;
 }
 
-async function build() {
+// ==================== 客户端 Bundle 构建 ====================
+
+/**
+ * 构建客户端 bundle（普通 bundle）
+ */
+async function buildClientBundle() {
+  const buildOptions = getClientBuildOptions();
+
   if (isWatch) {
-    // 开发模式：使用 context API 进行监听
+    // Watch 模式
     const ctx = await esbuild.context(buildOptions);
-    // 启动时先执行一次构建以生成 manifest
+    
+    // 初始构建
     try {
       await ctx.rebuild();
-      console.log("Initial build succeeded (manifest generated)");
+      console.log("Client bundle: Initial build succeeded (manifest generated)");
     } catch (error) {
-      console.error("Initial build failed:", error);
+      console.error("Client bundle: Initial build failed:", error);
     }
 
-    // 使用 chokidar 监听额外的文件
-    const watchPaths = [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "src/**/*.{css,scss}",
-      "templates/**/*.{html,md}",
-      "tailwind.config.js",
-    ];
-
-    console.log("Watching for changes in:");
-    watchPaths.forEach((watchPath) => console.log(`- ${watchPath}`));
-
-    // 添加 chokidar 监听
-    const watcher = chokidar.watch(watchPaths, {
-      persistent: true,
-      ignoreInitial: true,
-    });
-
-    watcher.on("all", async (event, filePath) => {
-      console.log(`File ${filePath} changed (${event}), rebuilding...`);
+    // 设置文件监听
+    // 注意：只使用 chokidar 监听，不启动 esbuild watch，避免重复触发
+    setupFileWatcher(async () => {
       try {
-        // 触发重新构建
         await ctx.rebuild();
-        console.log("Rebuild succeeded");
+        console.log("Client bundle: Rebuild succeeded");
       } catch (error) {
-        console.error("Rebuild failed:", error);
+        console.error("Client bundle: Rebuild failed:", error);
       }
     });
 
-    // 让 esbuild 也保持监听状态
-    await ctx.watch();
-    console.log("esbuild watching for changes...");
+    // 不启动 esbuild watch，因为已经使用 chokidar 手动触发 rebuild
+    // 这样可以避免重复触发导致 manifest 被写入两次
+    console.log("Client bundle: Watching for changes (using chokidar)...");
+    
+    return ctx;
   } else {
     // 生产模式：一次性构建
     const result = await esbuild.build(buildOptions);
     // analyzeBundle(result.metafile)
-    console.log("Build completed successfully!");
-    process.exit(0);
+    console.log("Client bundle: Build completed successfully!");
+    return null;
   }
 }
 
-// SSR 构建函数
-async function buildSSR() {
-  const isSSR = process.argv.includes("--ssr") || process.env.SSR === "true";
+// ==================== SSR Bundle 构建 ====================
 
-  if (!isSSR) {
-    console.log("Building regular bundle (not SSR)...");
-    await build();
-    return;
-  }
+/**
+ * 构建 SSR bundle
+ */
+async function buildSSRBundle() {
+  // 确保输出目录存在
+  const ssrDir = path.dirname(`${distBaseDir}/../templates/${ssrEntryPoint.out}.js`);
+  mkdirSync(ssrDir, { recursive: true });
 
-  console.log("Building SSR bundle...");
+  const ssrOptions = getSSRBuildOptions();
 
-  try {
-    // 确保输出目录存在
-    const ssrDir = path.dirname(`${distBaseDir}/ssr/${ssrEntryPoint.out}.js`);
-    mkdirSync(ssrDir, { recursive: true });
+  if (isWatch) {
+    // Watch 模式
+    const ssrCtx = await esbuild.context(ssrOptions);
 
-    // 获取 SSR 构建配置
-    const ssrOptions = getSSRBuildOptions();
+    // 初始构建
+    try {
+      await ssrCtx.rebuild();
+      console.log("SSR bundle: Initial build succeeded");
+      console.log("SSR Output:", ssrOptions.outfile);
+    } catch (error) {
+      console.error("SSR bundle: Initial build failed:", error);
+    }
 
+    // 设置文件监听
+    // 注意：只使用 chokidar 监听，不启动 esbuild watch，避免重复触发
+    setupFileWatcher(async () => {
+      try {
+        await ssrCtx.rebuild();
+        console.log("SSR bundle: Rebuild succeeded");
+      } catch (error) {
+        console.error("SSR bundle: Rebuild failed:", error);
+      }
+    });
+
+    // 不启动 esbuild watch，因为已经使用 chokidar 手动触发 rebuild
+    // 这样可以避免重复触发
+    console.log("SSR bundle: Watching for changes (using chokidar)...");
+    
+    return ssrCtx;
+  } else {
+    // 生产模式：一次性构建
     const result = await esbuild.build(ssrOptions);
-    console.log("SSR build completed successfully!");
-    console.log("Output:", ssrOptions.outfile);
-    process.exit(0);
+    console.log("SSR bundle: Build completed successfully!");
+    console.log("SSR Output:", ssrOptions.outfile);
+    return null;
+  }
+}
+
+// ==================== 主函数 ====================
+
+/**
+ * 主构建函数
+ */
+async function main() {
+  try {
+    if (isSSR) {
+      // SSR 模式：同时构建客户端和 SSR bundle
+      console.log("Building SSR bundle...");
+      
+      if (isWatch) {
+        // Watch 模式：同时监听两个构建
+        const clientCtx = await esbuild.context(getClientBuildOptions());
+        const ssrCtx = await esbuild.context(getSSRBuildOptions());
+
+        // 初始构建
+        try {
+          await Promise.all([clientCtx.rebuild(), ssrCtx.rebuild()]);
+          console.log("Initial build succeeded (both client and SSR)");
+          console.log("SSR Output:", getSSRBuildOptions().outfile);
+        } catch (error) {
+          console.error("Initial build failed:", error);
+        }
+
+        // 设置文件监听（同时触发两个构建）
+        // 注意：只使用 chokidar 监听，不启动 esbuild watch，避免重复触发
+        setupFileWatcher(async () => {
+          try {
+            await Promise.all([clientCtx.rebuild(), ssrCtx.rebuild()]);
+            console.log("Rebuild succeeded (both client and SSR)");
+          } catch (error) {
+            console.error("Rebuild failed:", error);
+          }
+        });
+
+        // 不启动 esbuild watch，因为已经使用 chokidar 手动触发 rebuild
+        // 这样可以避免重复触发导致 manifest 被写入两次
+        console.log("Watching for changes (using chokidar)...");
+      } else {
+        // 生产模式：一次性构建
+        await Promise.all([
+          esbuild.build(getClientBuildOptions()),
+          esbuild.build(getSSRBuildOptions())
+        ]);
+        console.log("Build completed successfully (both client and SSR)!");
+        console.log("SSR Output:", getSSRBuildOptions().outfile);
+        process.exit(0);
+      }
+    } else {
+      // 普通模式：只构建客户端 bundle
+      console.log("Building client bundle (not SSR)...");
+      await buildClientBundle();
+      
+      if (!isWatch) {
+        process.exit(0);
+      }
+    }
   } catch (error) {
-    console.error("SSR build failed:", error);
+    console.error("Build failed:", error);
     process.exit(1);
   }
 }
 
-buildSSR().catch((error) => {
+// 启动构建
+main().catch((error) => {
   console.error("Build failed:", error);
   process.exit(1);
 });

@@ -14,6 +14,7 @@ fe-build: fe-clean
 
 fe-clean:
 	rm -rf $(DIST_DIR)
+	rm -f templates/everkm-render.js
 
 fe-dev: fe-clean
 	cd . && pnpm run dev
@@ -27,7 +28,7 @@ bundle:
 	fi
 
 	# 构建
-	$(MAKE) fe-build
+	# $(MAKE) fe-build #已经自动构建了
 	$(MAKE) ssr-build
 	
 	cp -r templates $(DIST_DIR)
@@ -70,5 +71,7 @@ copy-types:
 	cp -r /Users/dayu/Coder/everkm/everkm2/be/everkm-publish/types/* src/types
 
 
-ssr-build:
+ssr-build: fe-clean
 	pnpm run build:ssr
+ssr-dev: fe-clean
+	pnpm run dev:ssr

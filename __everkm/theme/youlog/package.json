@@ -5,9 +5,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js",
-    "build:ssr": "SSR=true node build.js",
+    "build": "NODE_ENV=production node build.js",
     "dev": "node build.js --watch",
+    "build:ssr": "SSR=true NODE_ENV=production node build.js",
+    "dev:ssr": "SSR=true node build.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
