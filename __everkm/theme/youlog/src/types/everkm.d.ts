@@ -74,6 +74,7 @@ declare global {
     categories?: string[];
     draft?: boolean;
     recursive?: boolean;
+    include_myself?: boolean;
   }
 
   interface PostsDirectoryArgs extends FetchPostsArgs {

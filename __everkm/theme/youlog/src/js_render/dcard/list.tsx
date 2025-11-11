@@ -9,6 +9,7 @@ interface DcardListProps {
   exclude_tags?: string[];
   page_size?: number;
   hide_prev_next?: boolean;
+  include_myself?: boolean;
 }
 
 const DcardList: Component<DcardListProps> = (props) => {
@@ -26,6 +27,7 @@ const DcardList: Component<DcardListProps> = (props) => {
     dir: props.dir,
     recursive: props.recursive ?? true,
     exclude_tags: props.exclude_tags,
+    include_myself: props.include_myself,
   } as const;
 
   // 当前页偏移量

@@ -15,6 +15,7 @@ const DcardItems: Component<DcardItemsProps> = (props) => {
     tags: props.tags,
     exclude_tags: props.exclude_tags,
     categories: props.categories,
+    include_myself: props.include_myself,
     limit: props.limit && props.limit > 0 ? Math.floor(props.limit) : undefined,
   };
   console.log(params);
@@ -25,6 +26,7 @@ const DcardItems: Component<DcardItemsProps> = (props) => {
     tags: props.tags,
     exclude_tags: props.exclude_tags,
     categories: props.categories,
+    include_myself: props.include_myself,
     limit: props.limit && props.limit > 0 ? Math.floor(props.limit) : undefined,
   });
 
