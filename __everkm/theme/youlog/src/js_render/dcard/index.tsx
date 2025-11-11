@@ -7,7 +7,7 @@ async function renderDcard(name: string, props: any) {
     switch (name) {
       case "list2":
         return <DcardList {...props} />;
-      case "items2":
+      case "items":
         return <DcardItems {...props} />;
       default:
         throw new Error(`Dcard ${name} not found`);
