@@ -479,6 +479,12 @@ const BookPage: Component<BookPageProps> = (props) => {
           </div>
         </div>
       </div>
+
+      {/* yousha-comment */}
+      <Show when={configValue("yousha")}>
+        <script src="https://share.yousha.top/embed/yousha-comment.js" type="module"></script>
+        {/* <script src="https://app-dev.dayu.me/assets/js/yousha-comment.js" type="module"></script> */}
+      </Show>
     </div>
   );
 };
