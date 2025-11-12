@@ -308,12 +308,6 @@ const BookPage: Component<BookPageProps> = (props) => {
                   />
                 </article>
 
-                <Show when={configValue("yousha")}>
-                  <yousha-comment
-                    community={configValue("yousha.community")}
-                  ></yousha-comment>
-                </Show>
-
                 {/* 分页导航（基于目录的上一页/下一页）*/}
                 <div id="page-indicator" data-ajax-element="page-indicator">
                   <Show when={pageNav.next || pageNav.prev}>
@@ -346,6 +340,15 @@ const BookPage: Component<BookPageProps> = (props) => {
                     </div>
                   </Show>
                 </div>
+
+                {/* yousha-comment */}
+                <Show when={configValue("yousha")}>
+                  <div class="mt-10 pt-8">
+                    <yousha-comment
+                      community={configValue("yousha.community")}
+                    ></yousha-comment>
+                  </div>
+                </Show>
 
                 {/* bottom */}
                 <div class="mt-10 pt-8 flex flex-col items-center justify-center gap-2">
@@ -482,7 +485,10 @@ const BookPage: Component<BookPageProps> = (props) => {
 
       {/* yousha-comment */}
       <Show when={configValue("yousha")}>
-        <script src="https://share.yousha.top/embed/yousha-comment.js" type="module"></script>
+        <script
+          src="https://share.yousha.top/embed/yousha-comment.js"
+          type="module"
+        ></script>
         {/* <script src="https://app-dev.dayu.me/assets/js/yousha-comment.js" type="module"></script> */}
       </Show>
     </div>
