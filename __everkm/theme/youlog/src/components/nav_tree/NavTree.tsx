@@ -23,6 +23,7 @@ const TreeNode: Component<{
   depth: number;
   state: NavTreeState;
   onNodeClick?: (nodeId: string, node: NavItem) => void;
+  hasSiblingWithChildren?: boolean;
 }> = (props) => {
   const node = createMemo(() => props.state.getNode(props.nodeId));
   const hasChildren = createMemo(() => {
@@ -49,45 +50,68 @@ const TreeNode: Component<{
     <Show when={node()}>
       {(currentNode) => (
         <li
-          class={`tree-node-${isLeaf() ? "leaf" : "branch"} ${
-            isActive() ? "active" : ""
-          }`}
+          class={isLeaf() ? "tree-node-leaf" : "tree-node-branch"}
+          classList={{
+            active: isActive(),
+          }}
           data-depth={props.depth}
           data-node-id={props.nodeId}
           style={`--depth: ${props.depth}`}
         >
           <div
-            class={`node-content mb-0.5 with-toggle ${isExpanded() ? "expanded" : ""}`}
+            class="node-content mb-0.5"
+            classList={{
+              "with-toggle": props.hasSiblingWithChildren ?? false,
+              expanded: isExpanded(),
+            }}
             onClick={handleToggle}
           >
             <Show when={currentNode().url}>
               <a
                 href={currentNode().url}
                 target={currentNode().new_window ? "_blank" : undefined}
-                class={isActive() ? "active-link" : ""}
+                classList={{
+                  "active-link": isActive(),
+                }}
                 onClick={handleNodeClick}
               >
                 {currentNode().title}
               </a>
             </Show>
             <Show when={!currentNode().url}>
-              <span class={isActive() ? "active-link" : ""}>
+              <span
+                classList={{
+                  "active-link": isActive(),
+                }}
+              >
                 {currentNode().title}
               </span>
             </Show>
           </div>
 
           <Show when={hasChildren()}>
-            <ul class={isExpanded() ? "" : "hidden"}>
+            <ul
+              classList={{
+                hidden: !isExpanded(),
+              }}
+            >
               <For each={currentNode().children}>
-                {(child) => (
-                  <TreeNode
-                    nodeId={child.nodeId}
-                    depth={props.depth + 1}
-                    state={props.state}
-                    onNodeClick={props.onNodeClick}
-                  />
-                )}
+                {(child) => {
+                  // 检查这一层的所有兄弟节点是否至少有一个有子节点
+                  const siblings = currentNode().children || [];
+                  const hasSiblingWithChildren = siblings.some(
+                    (sibling) => sibling.children && sibling.children.length > 0
+                  );
+                  return (
+                    <TreeNode
+                      nodeId={child.nodeId}
+                      depth={props.depth + 1}
+                      state={props.state}
+                      onNodeClick={props.onNodeClick}
+                      hasSiblingWithChildren={hasSiblingWithChildren}
+                    />
+                  );
+                }}
               </For>
             </ul>
           </Show>
@@ -111,17 +135,28 @@ export const NavTree: Component<NavTreeProps> = (props) => {
   };
 
   return (
-    <nav ref={navElement} class={`nav-tree select-none ${props.class || ""}`}>
+    <nav
+      ref={navElement}
+      class={`nav-tree select-none${props.class ? ` ${props.class}` : ""}`}
+    >
       <ul>
         <For each={rootNodes()}>
-          {(node) => (
-            <TreeNode
-              nodeId={node.nodeId}
-              depth={0}
-              state={props.state}
-              onNodeClick={handleNodeClick}
-            />
-          )}
+          {(node) => {
+            // 检查根节点层是否至少有一个有子节点
+            const rootNodesList = rootNodes();
+            const hasSiblingWithChildren = rootNodesList.some(
+              (sibling) => sibling.children && sibling.children.length > 0
+            );
+            return (
+              <TreeNode
+                nodeId={node.nodeId}
+                depth={0}
+                state={props.state}
+                onNodeClick={handleNodeClick}
+                hasSiblingWithChildren={hasSiblingWithChildren}
+              />
+            );
+          }}
         </For>
       </ul>
     </nav>

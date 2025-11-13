@@ -81,7 +81,7 @@
 
   /* 没有折叠三角的节点，左边距较小 */
   li[data-depth] > .node-content:not(.with-toggle) {
-    padding-left: calc((var(--depth, 0) * 1.25rem) + 0.5em);
+    padding-left: calc((var(--depth, 0) * 1.25rem) + 1.2em);
   }
 
   .node-content:hover {
