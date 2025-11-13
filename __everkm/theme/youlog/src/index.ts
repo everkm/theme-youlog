@@ -16,6 +16,7 @@ import { initPageQrcode } from "./js_render/components/page_qrcode/renderPageQrc
 import "./yousha";
 import "./VersionList.tsx";
 import { initYoulogPrint } from "js_render/components/print_page/youlogPrint";
+import { initTheme } from "./theme";
 
 function init() {
   // 调用初始化TOC函数
@@ -46,11 +47,8 @@ function init() {
   initPageQrcode();
 
   initYoulogPrint();
+
+  initTheme();
 }
 
-// document.addEventListener("DOMContentLoaded", () => {
-//   setTimeout(() => {
 init();
-//     console.log("init");
-//   }, 1000);
-// });

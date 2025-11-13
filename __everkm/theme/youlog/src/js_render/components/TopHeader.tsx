@@ -61,7 +61,7 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
           </Show>
 
           <button
-            onClick={() => (window as any).openThemeSetting()}
+            data-el="open-theme-setting"
             class="p-1.5 text-text-secondary dark:text-text-secondary rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <SettingsIcon class="w-5 h-5" />

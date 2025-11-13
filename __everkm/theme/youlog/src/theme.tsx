@@ -7,6 +7,7 @@ import {
 } from "solid-js";
 import { Portal, render } from "solid-js/web";
 import { debounce } from "throttle-debounce";
+import youlogRegister from "youlogRegister";
 
 const DEFAULT_FONT_SIZE = 16;
 const DEFAULT_LINE_HEIGHT = 1.7;
@@ -349,7 +350,8 @@ let settingsRoot: HTMLDivElement | null = null;
 let settingsComponent: any = null;
 
 // 暴露给全局的主题设置函数
-const themeSetting = () => {
+const openThemeSetting = () => {
+  console.log("openThemeSetting");
   if (!settingsRoot) {
     settingsRoot = document.createElement("div");
     document.body.appendChild(settingsRoot);
@@ -371,12 +373,28 @@ const themeSetting = () => {
 };
 
 function initTheme() {
-  (window as any).openThemeSetting = themeSetting;
-  (window as any).toggleDarkMode = toggleDarkMode;
+  console.log("initTheme");
+
+  youlogRegister({
+    openThemeSetting: openThemeSetting,
+    toggleDarkMode: toggleDarkMode,
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const openThemeSettingButton = document.querySelector<HTMLButtonElement>(
+      "[data-el='open-theme-setting']"
+    );
+    if (openThemeSettingButton) {
+      openThemeSettingButton.addEventListener("click", () => {
+        console.log("click openThemeSettingButton");
+        openThemeSetting();
+      });
+    }
+  });
 
   document.addEventListener("DOMContentLoaded", () => {
     resumeReaderSettings();
   });
 }
 
-initTheme();
+export { initTheme };
