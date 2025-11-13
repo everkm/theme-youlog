@@ -191,15 +191,31 @@ class TreeStructureValidator {
     }
 
     // 分类子元素
-    const linkElements = elementChildren.filter(
-      (child) => child.tagName === "A"
-    );
+    const linkElements = elementChildren.filter((child) => {
+      // 直接的 A 标签
+      if (child.tagName === "A") {
+        return true;
+      }
+      // P 标签内包含 A 标签的情况
+      if (child.tagName === "P") {
+        return child.querySelector("A") !== null;
+      }
+      return false;
+    });
     const listElements = elementChildren.filter((child) =>
       ["UL", "OL"].includes(child.tagName)
     );
-    const otherElements = elementChildren.filter(
-      (child) => !["A", "UL", "OL"].includes(child.tagName)
-    );
+    const otherElements = elementChildren.filter((child) => {
+      // 排除 A、UL、OL
+      if (["A", "UL", "OL"].includes(child.tagName)) {
+        return false;
+      }
+      // 排除包含 A 标签的 P 标签
+      if (child.tagName === "P" && child.querySelector("A") !== null) {
+        return false;
+      }
+      return true;
+    });
 
     console.log(`第${index}个li元素分析:`, {
       linkCount: linkElements.length,
@@ -315,9 +331,21 @@ class DOMTreeParser {
     }
 
     // 分类子元素
-    const linkElement = elementChildren.find(
-      (child) => child.tagName === "A"
-    ) as HTMLAnchorElement;
+    // 查找直接的 A 标签或 P 标签内的 A 标签
+    let linkElement: HTMLAnchorElement | null = null;
+    for (const child of elementChildren) {
+      if (child.tagName === "A") {
+        linkElement = child as HTMLAnchorElement;
+        break;
+      } else if (child.tagName === "P") {
+        const aInP = child.querySelector("A");
+        if (aInP) {
+          linkElement = aInP as HTMLAnchorElement;
+          break;
+        }
+      }
+    }
+    
     const listElement = elementChildren.find((child) =>
       ["UL", "OL"].includes(child.tagName)
     ) as HTMLElement;
