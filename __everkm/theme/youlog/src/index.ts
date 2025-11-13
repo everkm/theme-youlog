@@ -14,6 +14,7 @@ import initKeywordHighlighter from "./modules/keywordHighlighter";
 import { initPageQrcode } from "./js_render/components/page_qrcode/renderPageQrcode";
 import "./yousha";
 import "./VersionList.tsx";
+import { initYoulogPrint } from "js_render/components/print_page/youlogPrint";
 
 function init() {
   // 调用初始化TOC函数
@@ -42,6 +43,8 @@ function init() {
 
   // 初始化页面二维码
   initPageQrcode();
+
+  initYoulogPrint();
 }
 
 // document.addEventListener("DOMContentLoaded", () => {

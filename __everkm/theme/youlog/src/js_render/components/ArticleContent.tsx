@@ -6,6 +6,7 @@ import PageNavigation from "./PageNavigation";
 import YoushaComment from "./YoushaComment";
 import Footer from "./Footer";
 import PageQrcode from "./page_qrcode/PageQrcode";
+import PrintPage from "./print_page/PrintePage";
 
 interface ArticleContentProps {
   requestId: string;
@@ -30,9 +31,12 @@ const DocMeta: Component<DocMetaProps> = (props) => {
     <div data-ajax-element="doc-meta">
       <Show when={!props.doc?.meta?.hide_meta}>
         <div class="text-sm flex items-center justify-start gap-4 text-gray-500 dark:text-gray-400 ">
+          {/* 更新时间  */}
           <span data-doc-update-at={props.doc?.updated_at?.toString()}>
             更新于{formatDate(props.doc?.updated_at)}
           </span>
+
+          {/* 地址编号 */}
           <Show when={props.doc?.meta?.uno}>
             <span data-doc-meta-uno={props.doc?.meta?.uno}>
               <a href={`/${props.doc?.meta?.uno}`} target="_blank">
@@ -40,6 +44,9 @@ const DocMeta: Component<DocMetaProps> = (props) => {
               </a>
             </span>
           </Show>
+
+          {/* 打印本页面 */}
+          <PrintPage />
         </div>
         {/* 下边距填充 */}
         <div class="h-8 w-full"></div>
