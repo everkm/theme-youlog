@@ -9,7 +9,7 @@ function getShortPageUrl() {
   if (match) {
     const hexId = match[1]; // 12位十六进制字符
     const pageSuffix = match[2] || ""; // 可选的分页后缀，如 .p1
-    const shortPath = `/view-${hexId}${pageSuffix}.html`;
+    const shortPath = `/v-${hexId}${pageSuffix}.html`;
     url = new URL(shortPath, window.location.origin);
   }
 
