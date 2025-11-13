@@ -2,6 +2,10 @@ import { EVENT_PAGE_LOADED } from "../pageAjax";
 import { NavTreeState, NavItem } from "../components/nav_tree/NavTreeState";
 import { NavTree } from "../components/nav_tree/NavTree";
 import { render } from "solid-js/web";
+import {
+  MarkdownTreeParser,
+  DEFAULT_MARKDOWN_RULE,
+} from "./markdownTreeParser";
 
 /**
  * DOM工具类
@@ -137,7 +141,8 @@ class BreadcrumbManager {
 
 /**
  * 树结构验证器
- * 验证ul/ol结构是否符合要求
+ * 验证 ul/ol 结构是否符合要求
+ * 使用规则配置化的方式，便于维护和扩展
  */
 class TreeStructureValidator {
   /**
@@ -147,20 +152,27 @@ class TreeStructureValidator {
    */
   static validateTreeStructure(element: HTMLElement): string {
     // 必须是ul或ol元素
-    if (element.tagName !== "UL" && element.tagName !== "OL") {
-      return `元素必须是ul或ol，当前是${element.tagName}`;
+    if (!DEFAULT_MARKDOWN_RULE.rootTags.includes(element.tagName)) {
+      return `元素必须是${DEFAULT_MARKDOWN_RULE.rootTags
+        .join("或")
+        .toLowerCase()}，当前是${element.tagName}`;
+    }
+
+    // 检查是否有子元素
+    if (element.children.length === 0) {
+      return "列表元素不能为空";
     }
 
     // 检查所有直接子元素是否都是li
     const children = Array.from(element.children);
-    if (children.length === 0) {
-      return "列表元素不能为空";
-    }
-
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      if (child.tagName !== "LI") {
-        return `第${i + 1}个子元素必须是li，当前是${child.tagName}`;
+      if (child.tagName !== DEFAULT_MARKDOWN_RULE.itemTag) {
+        return `第${
+          i + 1
+        }个子元素必须是${DEFAULT_MARKDOWN_RULE.itemTag.toLowerCase()}，当前是${
+          child.tagName
+        }`;
       }
 
       // 递归验证每个li的子结构
@@ -193,34 +205,38 @@ class TreeStructureValidator {
     // 分类子元素
     const linkElements = elementChildren.filter((child) => {
       // 直接的 A 标签
-      if (child.tagName === "A") {
+      if (child.tagName === DEFAULT_MARKDOWN_RULE.linkTag) {
         return true;
       }
       // P 标签内包含 A 标签的情况
-      if (child.tagName === "P") {
-        return child.querySelector("A") !== null;
+      if (child.tagName === DEFAULT_MARKDOWN_RULE.paragraphTag) {
+        return child.querySelector(DEFAULT_MARKDOWN_RULE.linkTag) !== null;
       }
       return false;
     });
     const listElements = elementChildren.filter((child) =>
-      ["UL", "OL"].includes(child.tagName)
+      DEFAULT_MARKDOWN_RULE.listTags.includes(child.tagName)
     );
     const otherElements = elementChildren.filter((child) => {
       // 排除 A、UL、OL
-      if (["A", "UL", "OL"].includes(child.tagName)) {
+      if (
+        [
+          DEFAULT_MARKDOWN_RULE.linkTag,
+          ...DEFAULT_MARKDOWN_RULE.listTags,
+        ].includes(child.tagName)
+      ) {
         return false;
       }
       // 排除 P 标签（无论是否包含 A 标签，或者后面有子列表）
-      if (child.tagName === "P") {
+      if (child.tagName === DEFAULT_MARKDOWN_RULE.paragraphTag) {
         // P 标签内包含 A 标签，允许
-        if (child.querySelector("A") !== null) {
+        if (child.querySelector(DEFAULT_MARKDOWN_RULE.linkTag) !== null) {
           return false;
         }
         // P 标签后面有子列表（UL 或 OL），也允许
-        // 检查是否有后续的 UL 或 OL 兄弟元素
         let nextSibling = child.nextElementSibling;
         while (nextSibling) {
-          if (["UL", "OL"].includes(nextSibling.tagName)) {
+          if (DEFAULT_MARKDOWN_RULE.listTags.includes(nextSibling.tagName)) {
             return false; // 有子列表，允许这个 P 标签
           }
           nextSibling = nextSibling.nextElementSibling;
@@ -231,30 +247,29 @@ class TreeStructureValidator {
       return true;
     });
 
-    console.log(`第${index}个li元素分析:`, {
-      linkCount: linkElements.length,
-      listCount: listElements.length,
-      otherCount: otherElements.length,
-      elementChildren: elementChildren.map((c) => c.tagName),
-      childNodes: childNodes.map((n) =>
-        n.nodeType === Node.TEXT_NODE
-          ? `TEXT: "${n.textContent?.trim()}"`
-          : n.nodeName
-      ),
-    });
-
     // 基础验证
     if (otherElements.length > 0) {
-      return `第${index}个li元素包含不允许的元素，只能包含a、p、ul或ol`;
+      const allowedTags = [
+        DEFAULT_MARKDOWN_RULE.linkTag.toLowerCase(),
+        DEFAULT_MARKDOWN_RULE.paragraphTag.toLowerCase(),
+        ...DEFAULT_MARKDOWN_RULE.listTags.map((tag) => tag.toLowerCase()),
+      ].join("、");
+      return `第${index}个li元素包含不允许的元素，只能包含${allowedTags}`;
     }
     if (linkElements.length + listElements.length === 0) {
-      return `第${index}个li元素必须包含a、ul或ol中的至少一个`;
+      const requiredTags = [
+        DEFAULT_MARKDOWN_RULE.linkTag.toLowerCase(),
+        ...DEFAULT_MARKDOWN_RULE.listTags.map((tag) => tag.toLowerCase()),
+      ].join("、");
+      return `第${index}个li元素必须包含${requiredTags}中的至少一个`;
     }
     if (linkElements.length > 1) {
-      return `第${index}个li元素只能包含一个a元素`;
+      return `第${index}个li元素只能包含一个${DEFAULT_MARKDOWN_RULE.linkTag.toLowerCase()}元素`;
     }
     if (listElements.length > 1) {
-      return `第${index}个li元素只能包含一个ul或ol元素`;
+      return `第${index}个li元素只能包含一个${DEFAULT_MARKDOWN_RULE.listTags
+        .map((tag) => tag.toLowerCase())
+        .join("或")}元素`;
     }
 
     const linkElement = linkElements[0];
@@ -271,7 +286,10 @@ class TreeStructureValidator {
     // 规则1: 同时包含a和ul/ol时，文本节点必须为空
     if (linkElement && listElement) {
       if (hasNonEmptyText) {
-        return `第${index}个li元素同时包含a和ul/ol时，文本节点必须为空或只包含空白字符`;
+        const listTagsStr = DEFAULT_MARKDOWN_RULE.listTags
+          .map((tag) => tag.toLowerCase())
+          .join("或");
+        return `第${index}个li元素同时包含${DEFAULT_MARKDOWN_RULE.linkTag.toLowerCase()}和${listTagsStr}时，文本节点必须为空或只包含空白字符`;
       }
     }
     // 规则2: 只有ul/ol时，第一个子节点必须是非空文本或P标签
@@ -279,15 +297,22 @@ class TreeStructureValidator {
       const firstChildNode = childNodes[0];
       // 检查第一个子节点是否是P标签
       const firstElement = elementChildren[0];
-      if (firstElement && firstElement.tagName === "P") {
+      const listTagsStr = DEFAULT_MARKDOWN_RULE.listTags
+        .map((tag) => tag.toLowerCase())
+        .join("或");
+      const paragraphTagStr = DEFAULT_MARKDOWN_RULE.paragraphTag.toLowerCase();
+      if (
+        firstElement &&
+        firstElement.tagName === DEFAULT_MARKDOWN_RULE.paragraphTag
+      ) {
         // P标签内应该有文本内容
         if (!firstElement.textContent?.trim()) {
-          return `第${index}个li元素的P标签不能为空`;
+          return `第${index}个li元素的${paragraphTagStr}标签不能为空`;
         }
       } else if (firstChildNode.nodeType !== Node.TEXT_NODE) {
-        return `第${index}个li元素包含ul/ol时，第一个子节点必须是文本节点或P标签`;
+        return `第${index}个li元素包含${listTagsStr}时，第一个子节点必须是文本节点或${paragraphTagStr}标签`;
       } else if (!firstChildNode.textContent?.trim()) {
-        return `第${index}个li元素包含ul/ol时，第一个文本节点不能为空`;
+        return `第${index}个li元素包含${listTagsStr}时，第一个文本节点不能为空`;
       }
     }
 
@@ -309,108 +334,6 @@ class TreeStructureValidator {
    */
   static isValidTreeStructure(element: HTMLElement): boolean {
     return this.validateTreeStructure(element) === "";
-  }
-}
-
-/**
- * DOM树解析器
- * 将DOM结构解析为NavItem树
- */
-class DOMTreeParser {
-  /**
-   * 解析ul/ol元素为NavItem树
-   * @param element ul/ol元素
-   * @returns NavItem数组
-   */
-  static parseToNavItems(element: HTMLElement): NavItem[] {
-    const items: NavItem[] = [];
-
-    Array.from(element.children).forEach((child) => {
-      if (child.tagName === "LI") {
-        const navItem = this.parseLiElement(child as HTMLLIElement);
-        if (navItem) {
-          items.push(navItem);
-        }
-      }
-    });
-
-    return items;
-  }
-
-  /**
-   * 解析li元素为NavItem
-   * @param liElement li元素
-   * @returns NavItem或null
-   */
-  private static parseLiElement(liElement: HTMLLIElement): NavItem | null {
-    const childNodes = Array.from(liElement.childNodes);
-    const elementChildren = Array.from(liElement.children);
-
-    if (childNodes.length === 0) {
-      return null;
-    }
-
-    // 分类子元素
-    // 查找直接的 A 标签或 P 标签内的 A 标签
-    let linkElement: HTMLAnchorElement | null = null;
-    for (const child of elementChildren) {
-      if (child.tagName === "A") {
-        linkElement = child as HTMLAnchorElement;
-        break;
-      } else if (child.tagName === "P") {
-        const aInP = child.querySelector("A");
-        if (aInP) {
-          linkElement = aInP as HTMLAnchorElement;
-          break;
-        }
-      }
-    }
-    
-    const listElement = elementChildren.find((child) =>
-      ["UL", "OL"].includes(child.tagName)
-    ) as HTMLElement;
-
-    // 确定标题来源
-    let title = "";
-    if (linkElement) {
-      // 优先使用a标签的文本作为标题
-      title = linkElement.textContent?.trim() || "";
-    } else if (listElement) {
-      // 没有a标签时，查找标题
-      // 1. 先检查是否有 P 标签（可能包含文本）
-      const pElement = elementChildren.find((child) => child.tagName === "P");
-      if (pElement) {
-        title = pElement.textContent?.trim() || "";
-      }
-      // 2. 如果没有 P 标签，使用第一个文本节点
-      if (!title) {
-        const firstChildNode = childNodes[0];
-        if (firstChildNode.nodeType === Node.TEXT_NODE) {
-          title = firstChildNode.textContent?.trim() || "";
-        }
-      }
-    }
-
-    if (!title) {
-      return null;
-    }
-
-    // 构建基础NavItem
-    const navItem: NavItem = {
-      nodeId: "", // 将在NavTreeState中生成
-      title,
-      url: linkElement?.href,
-      new_window: linkElement?.target === "_blank" || false,
-      children: undefined,
-    };
-
-    // 如果有子列表，解析并添加
-    if (listElement) {
-      const subItems = this.parseToNavItems(listElement);
-      navItem.children = subItems.length > 0 ? subItems : undefined;
-    }
-
-    return navItem;
   }
 }
 
@@ -597,6 +520,7 @@ class NavTreeManager {
 }
 class TreeConverter {
   static convertedElements = new Set<HTMLElement>();
+  private static parser = new MarkdownTreeParser();
 
   /**
    * 转换元素为NavTree
@@ -624,7 +548,7 @@ class TreeConverter {
 
     try {
       // 解析为NavItem树
-      const navItems = DOMTreeParser.parseToNavItems(element);
+      const navItems = TreeConverter.parser.parse(element);
 
       if (navItems.length === 0) {
         console.log("解析结果为空，跳过转换:", element);
@@ -763,7 +687,9 @@ export {
   TreeScanner,
   TreeConverter,
   TreeStructureValidator,
-  DOMTreeParser,
   NavTreeManager,
   BreadcrumbManager,
 };
+
+// 导出解析器
+export { MarkdownTreeParser } from "./markdownTreeParser";

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   TreeStructureValidator,
-  DOMTreeParser,
   TreeConverter,
   TreeScanner,
 } from "./sidebarNavTree2";
+import { MarkdownTreeParser } from "./markdownTreeParser";
 
 describe("TreeStructureValidator", () => {
   let container: HTMLDivElement;
@@ -245,12 +245,14 @@ describe("TreeStructureValidator", () => {
   });
 });
 
-describe("DOMTreeParser", () => {
+describe("MarkdownTreeParser", () => {
   let container: HTMLDivElement;
+  let parser: MarkdownTreeParser;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
+    parser = new MarkdownTreeParser();
   });
 
   afterEach(() => {
@@ -267,7 +269,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items).toHaveLength(2);
       expect(items[0].title).toBe("页面1");
@@ -289,7 +291,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items).toHaveLength(1);
       expect(items[0].title).toBe("知识库");
@@ -310,7 +312,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items).toHaveLength(2);
       expect(items[0].title).toBe("页面1");
@@ -331,7 +333,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items).toHaveLength(1);
       expect(items[0].title).toBe("页面1");
@@ -358,7 +360,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items).toHaveLength(3);
       expect(items[0].title).toBe("直接链接");
@@ -385,7 +387,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
       
       expect(items).toHaveLength(2);
       expect(items[0].title).toBe("页面1");
@@ -407,7 +409,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items[0].new_window).toBe(true);
     });
@@ -420,7 +422,7 @@ describe("DOMTreeParser", () => {
       `;
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
-      const items = DOMTreeParser.parseToNavItems(ul);
+      const items = parser.parse(ul);
 
       expect(items[0].new_window).toBe(true);
     });

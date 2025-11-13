@@ -61,14 +61,14 @@ class TreeStructureValidator {
 }
 ```
 
-### DOMTreeParser
+### MarkdownTreeParser
 
-负责将 DOM 结构解析为 `NavItem` 树。
+负责将 markdown 转换的 HTML 结构解析为 `NavItem` 树。
 
 ```typescript
-class DOMTreeParser {
-  static parseToNavItems(element: HTMLElement): NavItem[]
-  private static parseLiElement(liElement: HTMLLIElement): NavItem | null
+class MarkdownTreeParser {
+  parse(element: HTMLElement): NavItem[]
+  static quickValidate(element: HTMLElement): boolean
 }
 ```
 
