@@ -11,6 +11,7 @@ import { initSidebarResizer } from "./resizer";
 import { initLazyImg } from "./lazyImage";
 import { initAppHeader } from "./appHeader";
 import initKeywordHighlighter from "./modules/keywordHighlighter";
+import { initPageQrcode } from "./js_render/components/page_qrcode/renderPageQrcode";
 import "./yousha";
 import "./VersionList.tsx";
 
@@ -38,11 +39,14 @@ function init() {
 
   // 初始化关键词高亮
   initKeywordHighlighter("#article-main");
+
+  // 初始化页面二维码
+  initPageQrcode();
 }
 
 // document.addEventListener("DOMContentLoaded", () => {
 //   setTimeout(() => {
-    init();
+init();
 //     console.log("init");
 //   }, 1000);
 // });

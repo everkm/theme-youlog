@@ -5,6 +5,7 @@ import PrevNextLinks from "../PrevNextLinks";
 import PageNavigation from "./PageNavigation";
 import YoushaComment from "./YoushaComment";
 import Footer from "./Footer";
+import PageQrcode from "./page_qrcode/PageQrcode";
 
 interface ArticleContentProps {
   requestId: string;
@@ -73,6 +74,8 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           qs={props.pageContext.qs || {}}
         />
       </article>
+
+      <PageQrcode />
 
       {/* 分页导航（基于目录的上一页/下一页）*/}
       <PageNavigation pageNav={props.pageNav} />
