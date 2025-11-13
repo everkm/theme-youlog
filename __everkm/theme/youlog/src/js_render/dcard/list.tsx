@@ -90,16 +90,26 @@ const DcardList: Component<DcardListProps> = (props) => {
 
       <Show when={pageCount > 1}>
         <div class="space-x-6 flex !mt-10 text-normal items-center justify-center">
-          <Show when={pageNo > 1}>
-            <div class="flex items-center space-x-1">
+          <div class="flex items-center space-x-1">
+            <Show
+              when={pageNo > 1}
+              fallback={
+                <span
+                  class="flex items-center gap-0.5 p-1.5 rounded-md opacity-30 cursor-not-allowed"
+                  aria-disabled="true"
+                >
+                  <NavigatePrevIcon />
+                </span>
+              }
+            >
               <a
                 href={pageUrl(pageNo - 1)}
                 class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors"
               >
                 <NavigatePrevIcon />
               </a>
-            </div>
-          </Show>
+            </Show>
+          </div>
 
           {/* 跳转分页 */}
           <div
@@ -140,16 +150,26 @@ const DcardList: Component<DcardListProps> = (props) => {
             </select>
           </div>
 
-          <Show when={total > pageSize * pageNo}>
-            <div class="flex items-center space-x-1">
+          <div class="flex items-center space-x-1">
+            <Show
+              when={total > pageSize * pageNo}
+              fallback={
+                <span
+                  class="flex items-center gap-0.5 p-1.5 rounded-md opacity-30 cursor-not-allowed"
+                  aria-disabled="true"
+                >
+                  <NavigateNextIcon />
+                </span>
+              }
+            >
               <a
                 href={pageUrl(pageNo + 1)}
                 class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors"
               >
                 <NavigateNextIcon />
               </a>
-            </div>
-          </Show>
+            </Show>
+          </div>
         </div>
       </Show>
     </>
