@@ -46,7 +46,7 @@ const DocMeta: Component<DocMetaProps> = (props) => {
           </Show>
 
           {/* 打印本页面 */}
-          <PrintPage className="print:hidden" />
+          <PrintPage className="hidden md:block print:hidden" />
         </div>
         {/* 下边距填充 */}
         <div class="h-8 w-full print:hidden"></div>

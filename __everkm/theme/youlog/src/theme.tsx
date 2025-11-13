@@ -4,13 +4,14 @@ import {
   onCleanup,
   Show,
   createEffect,
+  batch,
 } from "solid-js";
 import { Portal, render } from "solid-js/web";
 import { debounce } from "throttle-debounce";
 import youlogRegister from "youlogRegister";
 
 const DEFAULT_FONT_SIZE = 16;
-const DEFAULT_LINE_HEIGHT = 1.7;
+const DEFAULT_LINE_HEIGHT = 1.6;
 
 /**
  * 切换暗黑模式
@@ -188,6 +189,11 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
   const [tempFontSize, setTempFontSize] = createSignal(fontSize());
   const [tempLineHeight, setTempLineHeight] = createSignal(lineHeight());
 
+  createEffect(() => {
+    setTempFontSize(fontSize());
+    setTempLineHeight(lineHeight());
+  });
+
   const applySettings = (key: string, value: string | number) => {
     const root = document.documentElement;
     root.style.setProperty(
@@ -216,9 +222,13 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
     manageReadabilityStyle(false);
 
     // 重置状态但不清除CSS变量
-    setFontFamily(fontOptions[0].value);
-    setFontSize(DEFAULT_FONT_SIZE);
-    setLineHeight(DEFAULT_LINE_HEIGHT);
+    requestAnimationFrame(() => {
+      batch(() => {
+        setFontFamily(fontOptions[0].value);
+        setFontSize(DEFAULT_FONT_SIZE);
+        setLineHeight(DEFAULT_LINE_HEIGHT);
+      });
+    });
 
     // 重置整个页面的样式
     const root = document.documentElement;
