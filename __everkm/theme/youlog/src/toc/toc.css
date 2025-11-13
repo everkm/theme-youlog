@@ -85,7 +85,7 @@
 
 /* 移动端TOC指示器样式 */
 .mobile-toc-indicator {
-  @apply bg-surface-muted dark:bg-surface mb-4 rounded shadow-sm transition-all duration-300;
+  @apply bg-surface-muted dark:bg-surface mb-4 rounded shadow-sm transition-all duration-300 print:hidden;
   width: 100%;
 }
 

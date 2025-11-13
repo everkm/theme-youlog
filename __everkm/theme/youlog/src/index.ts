@@ -1,4 +1,5 @@
 import "./main.css";
+import "./print.css";
 import "./theme.tsx";
 import "./markdown.css";
 import "./navigation/navigation.tsx";

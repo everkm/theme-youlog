@@ -17,40 +17,7 @@ function youlogPrint() {
     header: currentUrl,
     headerStyle: "font-weight: normal; color: #666; font-size: 12px; font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;",
     targetStyles: ["*"],
-    style: `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        #page-main, #page-main * {
-          visibility: visible;
-        }
-        #page-main {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-        }
-        .no-print {
-          display: none !important;
-        }
-        #doc-meta .flex {
-          flex-wrap: wrap !important;
-          gap: 1rem !important;
-        }
-        #doc-meta .flex > * {
-          white-space: nowrap !important;
-          flex-shrink: 0 !important;
-        }
-        #doc-meta .flex > * + * {
-          margin-left: 1rem !important;
-        }
-        #doc-meta .flex * {
-          white-space: nowrap !important;
-        }
-    
-      }
-    `,
+    style: ``,
   });
 }
 
