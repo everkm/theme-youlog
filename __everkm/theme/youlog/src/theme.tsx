@@ -71,10 +71,15 @@ function resumeReaderSettings(): void {
   const lineHeight =
     Number(localStorage.getItem("reader-line-height")) || DEFAULT_LINE_HEIGHT;
 
-  // 应用设置
+  // 应用设置到CSS变量
   root.style.setProperty("--reader-font-family", fontFamily);
   root.style.setProperty("--reader-font-size", `${fontSize}px`);
   root.style.setProperty("--reader-line-height", lineHeight.toString());
+
+  // 直接将样式应用到整个页面（html元素）
+  root.style.fontFamily = fontFamily;
+  root.style.fontSize = `${fontSize}px`;
+  root.style.lineHeight = lineHeight.toString();
 
   // 检查并应用阅读样式
   const wasApplied = localStorage.getItem("reader-style-applied") === "true";
@@ -193,6 +198,15 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
     );
     localStorage.setItem(`reader-${key}`, value.toString());
 
+    // 直接将样式应用到整个页面（html元素）
+    if (key === "font-size") {
+      root.style.fontSize = `${value}px`;
+    } else if (key === "font-family") {
+      root.style.fontFamily = value as string;
+    } else if (key === "line-height") {
+      root.style.lineHeight = value.toString();
+    }
+
     // 应用阅读样式
     manageReadabilityStyle(true);
   };
@@ -205,6 +219,12 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
     setFontFamily(fontOptions[0].value);
     setFontSize(DEFAULT_FONT_SIZE);
     setLineHeight(DEFAULT_LINE_HEIGHT);
+
+    // 重置整个页面的样式
+    const root = document.documentElement;
+    root.style.fontFamily = "";
+    root.style.fontSize = "";
+    root.style.lineHeight = "";
 
     // 清除storage
     localStorage.removeItem("reader-font-family");
