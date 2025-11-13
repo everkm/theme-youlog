@@ -29,6 +29,9 @@ importers:
       ky:
         specifier: ^1.8.1
         version: 1.8.1
+      lean-qr:
+        specifier: ^2.6.0
+        version: 2.6.0
       mark.js:
         specifier: ^8.11.1
         version: 8.11.1
@@ -38,6 +41,9 @@ importers:
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
+      print-js:
+        specifier: ^1.6.0
+        version: 1.6.0
       scroll-into-view-if-needed:
         specifier: ^3.1.0
         version: 3.1.0
@@ -1136,6 +1142,10 @@ packages:
     resolution: {integrity: sha512-7Bp3TpsE+L+TARSnnDpk3xg8Idi8RwSLdj6CMbNWoOARIrGrbuLGusV0dYwbZOm4bB3jHNxSw8Wk/ByDqJEnDw==}
     engines: {node: '>=18'}
 
+  lean-qr@2.6.0:
+    resolution: {integrity: sha512-Cc+G3vm65jsuYmBdK2HEsdGSeOFO0qSlusCI9zLN1U18VyB/TXABc14wv27GJCNpYnJflizByTt7rzSOa+4M8Q==}
+    hasBin: true
+
   less@4.3.0:
     resolution: {integrity: sha512-X9RyH9fvemArzfdP8Pi3irr7lor2Ok4rOttDXBhlwDg+wKQsXOXgHWduAJE1EsF7JJx0w0bcO6BC6tCKKYnXKA==}
     engines: {node: '>=14'}
@@ -1363,6 +1373,9 @@ packages:
   postcss@8.5.3:
     resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
     engines: {node: ^10 || ^12 || >=14}
+
+  print-js@1.6.0:
+    resolution: {integrity: sha512-BfnOIzSKbqGRtO4o0rnj/K3681BSd2QUrsIZy/+WdCIugjIswjmx3lDEZpXB2ruGf9d4b3YNINri81+J0FsBWg==}
 
   prr@1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
@@ -2572,6 +2585,8 @@ snapshots:
 
   ky@1.8.1: {}
 
+  lean-qr@2.6.0: {}
+
   less@4.3.0:
     dependencies:
       copy-anything: 2.0.6
@@ -2782,6 +2797,8 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  print-js@1.6.0: {}
 
   prr@1.0.1:
     optional: true
