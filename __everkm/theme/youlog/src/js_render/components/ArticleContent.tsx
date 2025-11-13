@@ -28,25 +28,25 @@ interface DocMetaProps {
 
 const DocMeta: Component<DocMetaProps> = (props) => {
   return (
-    <div data-ajax-element="doc-meta">
+    <div id="doc-meta" data-ajax-element="doc-meta">
       <Show when={!props.doc?.meta?.hide_meta}>
-        <div class="text-sm flex items-center justify-start gap-4 text-gray-500 dark:text-gray-400 ">
+        <div class="text-sm flex items-center gap-4 text-gray-500 dark:text-gray-400">
           {/* 更新时间  */}
-          <span data-doc-update-at={props.doc?.updated_at?.toString()}>
+          <div class="" data-doc-update-at={props.doc?.updated_at?.toString()}>
             更新于{formatDate(props.doc?.updated_at)}
-          </span>
+          </div>
 
           {/* 地址编号 */}
           <Show when={props.doc?.meta?.uno}>
-            <span data-doc-meta-uno={props.doc?.meta?.uno}>
+            <div class="" data-doc-meta-uno={props.doc?.meta?.uno}>
               <a href={`/${props.doc?.meta?.uno}`} target="_blank">
                 地址编号: {props.doc?.meta?.uno}
               </a>
-            </span>
+            </div>
           </Show>
 
           {/* 打印本页面 */}
-          <PrintPage />
+          <PrintPage className="" />
         </div>
         {/* 下边距填充 */}
         <div class="h-8 w-full"></div>

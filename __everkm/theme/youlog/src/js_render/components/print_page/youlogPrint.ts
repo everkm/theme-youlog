@@ -31,6 +31,24 @@ function youlogPrint() {
           top: 0;
           width: 100%;
         }
+        .no-print {
+          display: none !important;
+        }
+        #doc-meta .flex {
+          flex-wrap: wrap !important;
+          gap: 1rem !important;
+        }
+        #doc-meta .flex > * {
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+        }
+        #doc-meta .flex > * + * {
+          margin-left: 1rem !important;
+        }
+        #doc-meta .flex * {
+          white-space: nowrap !important;
+        }
+    
       }
     `,
   });

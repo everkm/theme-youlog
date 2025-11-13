@@ -1,10 +1,14 @@
 import { Component } from "solid-js";
 
-const PrintPage: Component = () => {
+interface PrintPageProps {
+  className?: string;
+}
+
+const PrintPage: Component<PrintPageProps> = (props) => {
   return (
     <a
       href="javascript:youlog.print()"
-      class="text-sm text-gray-600"
+      class={`${props.className}`}
       onclick={() => window.print()}
     >
       打印
