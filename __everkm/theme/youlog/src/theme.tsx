@@ -350,10 +350,14 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
                     toggleDarkMode();
                     props.onClose();
                   }}
-                  class="flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2.5 text-white transition-all hover:from-blue-600 hover:to-purple-600 dark:from-purple-500 dark:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-600"
+                  class={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 transition-colors ${
+                    isDark()
+                      ? "border-gray-200 bg-white text-gray-900 hover:bg-gray-50"
+                      : "border-gray-700 bg-gray-900 text-white hover:bg-gray-800"
+                  }`}
                 >
-                  <Show when={isDark()} fallback={<SunIcon />}>
-                    <MoonIcon />
+                  <Show when={isDark()} fallback={<MoonIcon />}>
+                    <SunIcon />
                   </Show>
                   <span>{isDark() ? "切换到亮色模式" : "切换到暗色模式"}</span>
                 </button>
