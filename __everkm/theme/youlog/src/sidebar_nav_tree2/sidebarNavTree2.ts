@@ -210,9 +210,23 @@ class TreeStructureValidator {
       if (["A", "UL", "OL"].includes(child.tagName)) {
         return false;
       }
-      // 排除包含 A 标签的 P 标签
-      if (child.tagName === "P" && child.querySelector("A") !== null) {
-        return false;
+      // 排除 P 标签（无论是否包含 A 标签，或者后面有子列表）
+      if (child.tagName === "P") {
+        // P 标签内包含 A 标签，允许
+        if (child.querySelector("A") !== null) {
+          return false;
+        }
+        // P 标签后面有子列表（UL 或 OL），也允许
+        // 检查是否有后续的 UL 或 OL 兄弟元素
+        let nextSibling = child.nextElementSibling;
+        while (nextSibling) {
+          if (["UL", "OL"].includes(nextSibling.tagName)) {
+            return false; // 有子列表，允许这个 P 标签
+          }
+          nextSibling = nextSibling.nextElementSibling;
+        }
+        // P 标签内没有 A 标签，且后面也没有子列表，不允许
+        return true;
       }
       return true;
     });
@@ -231,7 +245,7 @@ class TreeStructureValidator {
 
     // 基础验证
     if (otherElements.length > 0) {
-      return `第${index}个li元素包含不允许的元素，只能包含a、ul或ol`;
+      return `第${index}个li元素包含不允许的元素，只能包含a、p、ul或ol`;
     }
     if (linkElements.length + listElements.length === 0) {
       return `第${index}个li元素必须包含a、ul或ol中的至少一个`;
@@ -260,13 +274,19 @@ class TreeStructureValidator {
         return `第${index}个li元素同时包含a和ul/ol时，文本节点必须为空或只包含空白字符`;
       }
     }
-    // 规则2: 只有ul/ol时，第一个子节点必须是非空文本
+    // 规则2: 只有ul/ol时，第一个子节点必须是非空文本或P标签
     else if (listElement && !linkElement) {
       const firstChildNode = childNodes[0];
-      if (firstChildNode.nodeType !== Node.TEXT_NODE) {
-        return `第${index}个li元素包含ul/ol时，第一个子节点必须是文本节点`;
-      }
-      if (!firstChildNode.textContent?.trim()) {
+      // 检查第一个子节点是否是P标签
+      const firstElement = elementChildren[0];
+      if (firstElement && firstElement.tagName === "P") {
+        // P标签内应该有文本内容
+        if (!firstElement.textContent?.trim()) {
+          return `第${index}个li元素的P标签不能为空`;
+        }
+      } else if (firstChildNode.nodeType !== Node.TEXT_NODE) {
+        return `第${index}个li元素包含ul/ol时，第一个子节点必须是文本节点或P标签`;
+      } else if (!firstChildNode.textContent?.trim()) {
         return `第${index}个li元素包含ul/ol时，第一个文本节点不能为空`;
       }
     }
@@ -356,10 +376,18 @@ class DOMTreeParser {
       // 优先使用a标签的文本作为标题
       title = linkElement.textContent?.trim() || "";
     } else if (listElement) {
-      // 没有a标签时，使用第一个文本节点
-      const firstChildNode = childNodes[0];
-      if (firstChildNode.nodeType === Node.TEXT_NODE) {
-        title = firstChildNode.textContent?.trim() || "";
+      // 没有a标签时，查找标题
+      // 1. 先检查是否有 P 标签（可能包含文本）
+      const pElement = elementChildren.find((child) => child.tagName === "P");
+      if (pElement) {
+        title = pElement.textContent?.trim() || "";
+      }
+      // 2. 如果没有 P 标签，使用第一个文本节点
+      if (!title) {
+        const firstChildNode = childNodes[0];
+        if (firstChildNode.nodeType === Node.TEXT_NODE) {
+          title = firstChildNode.textContent?.trim() || "";
+        }
       }
     }
 
