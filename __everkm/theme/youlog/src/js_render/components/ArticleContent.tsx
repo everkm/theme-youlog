@@ -60,29 +60,31 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
     <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 leading-relaxed relative">
       <Breadcrumb navs={props.pageContext.breadcrumbs || []} />
 
-      <h1
-        id="article-title"
-        data-ajax-element="article-title"
-        class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
-      >
-        {props.doc?.title || "无标题"}
-      </h1>
+      <div id="page-main">
+        <h1
+          id="article-title"
+          data-ajax-element="article-title"
+          class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
+        >
+          {props.doc?.title || "无标题"}
+        </h1>
 
-      <DocMeta doc={props.doc} />
+        <DocMeta doc={props.doc} />
 
-      <article
-        id="article-main"
-        data-ajax-element="article-main"
-        class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0"
-      >
-        <div innerHTML={props.doc?.content_html || ""} />
-        <PrevNextLinks
-          requestId={props.requestId}
-          qs={props.pageContext.qs || {}}
-        />
-      </article>
+        <article
+          id="article-main"
+          data-ajax-element="article-main"
+          class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0"
+        >
+          <div innerHTML={props.doc?.content_html || ""} />
+          <PrevNextLinks
+            requestId={props.requestId}
+            qs={props.pageContext.qs || {}}
+          />
+        </article>
 
-      <PageQrcode />
+        <PageQrcode />
+      </div>
 
       {/* 分页导航（基于目录的上一页/下一页）*/}
       <PageNavigation pageNav={props.pageNav} />
