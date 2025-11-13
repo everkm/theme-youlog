@@ -15,7 +15,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       class="w-72 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
         fixed h-dvh lg:sticky top-0 z-50
         transform transition-transform duration-300 lg:translate-x-0 -translate-x-full
-        flex flex-col"
+        flex flex-col print:hidden"
     >
       {/* Site header */}
       <Show when={!props.configValue("layout.aisde_no_header", false)}>

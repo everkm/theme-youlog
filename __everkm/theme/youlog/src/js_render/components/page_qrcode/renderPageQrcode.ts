@@ -1,6 +1,7 @@
 import { EVENT_PAGE_LOADED, EVENT_PAGE_LOAD_BEFORE } from "../../../pageAjax";
 import { generate } from "lean-qr";
 import { toSvgSource } from "lean-qr/extras/svg";
+import getShortPageUrl from "pageUrl";
 
 const QRCODE_SELECTOR = '[data-el="page-qrcode"]';
 
@@ -15,22 +16,10 @@ function renderQrcode(): void {
   }
 
   try {
-    let url = window.location.href;
-
-    // 优化为短地址。
-    // 判断文件名，如果是以 `xxx-[0-9a-f]{12}(.p\d+)?\.html` 结尾, 可以替换为 /r-{12位十六进制字符}{分页后缀}.html。
-    const pathname = window.location.pathname;
-    const filename = pathname.split("/").pop() || "";
-    const match = filename.match(/^.+?-([0-9a-f]{12})(\..+)?\.html$/);
-    if (match) {
-      const hexId = match[1]; // 12位十六进制字符
-      const pageSuffix = match[2] || ""; // 可选的分页后缀，如 .p1
-      const shortPath = `/r-${hexId}${pageSuffix}.html`;
-      url = url.replace(pathname, shortPath);
-    }
+    const url = getShortPageUrl();
 
     // 生成二维码
-    const qrCode = generate(url);
+    const qrCode = generate(url.toString());
     const svgString = toSvgSource(qrCode, {
       pad: 2,
       scale: 4,
@@ -58,12 +47,12 @@ function initPageQrcode(): void {
   });
 
   // 在页面 AJAX 加载前清空二维码
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
-    const container = document.querySelector<HTMLElement>(QRCODE_SELECTOR);
-    if (container) {
-      container.innerHTML = "";
-    }
-  });
+  // document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  //   const container = document.querySelector<HTMLElement>(QRCODE_SELECTOR);
+  //   if (container) {
+  //     container.innerHTML = "";
+  //   }
+  // });
 
   // 在页面 AJAX 加载后重新生成二维码
   document.addEventListener(EVENT_PAGE_LOADED, () => {

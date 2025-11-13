@@ -10,7 +10,7 @@ interface TopHeaderProps {
 
 const TopHeader: Component<TopHeaderProps> = (props) => {
   return (
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 print:hidden">
       <div class="flex h-14 items-center justify-between px-2 md:px-4">
         <div class="flex items-center gap-2 flex-1 min-w-0">
           <button

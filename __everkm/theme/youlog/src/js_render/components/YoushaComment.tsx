@@ -7,7 +7,7 @@ interface YoushaCommentProps {
 const YoushaComment: Component<YoushaCommentProps> = (props) => {
   return (
     <Show when={props.configValue("yousha")}>
-      <div class="mt-10 pt-8">
+      <div class="mt-10 pt-8 print:hidden">
         <yousha-comment
           community={props.configValue("yousha.community")}
         ></yousha-comment>

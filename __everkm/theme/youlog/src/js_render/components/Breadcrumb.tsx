@@ -10,7 +10,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
     <div
       id="breadcrumb"
       data-ajax-element="breadcrumb"
-      class="text-text-tertiary dark:text-text-tertiary text-[0.95em] mx-auto flex items-center flex-wrap relative -top-5"
+      class="text-text-tertiary dark:text-text-tertiary text-[0.95em] mx-auto flex items-center flex-wrap relative -top-5 print:hidden"
     >
       <For each={props.navs}>
         {(nav) => (

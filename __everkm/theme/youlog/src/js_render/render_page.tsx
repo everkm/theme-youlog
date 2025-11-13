@@ -81,13 +81,16 @@ const BookPage: Component<BookPageProps> = (props) => {
       />
 
       {/* 右侧内容区 */}
-      <div id="body-main" class="flex-1 flex flex-col overflow-auto">
+      <div
+        id="body-main"
+        class="flex-1 flex flex-col overflow-auto print:overflow-visible"
+      >
         {/* 顶部导航 */}
         <TopHeader requestId={requestId} doc={doc} configValue={configValue} />
 
         {/* 主内容区 */}
         <div class="flex-1">
-          <div class="container mx-auto px-4 py-8">
+          <div class="container mx-auto px-4 py-8 print:p-0">
             <div class="flex flex-col lg:flex-row">
               {/* 左侧：正文内容 */}
               <ArticleContent

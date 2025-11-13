@@ -46,10 +46,10 @@ const DocMeta: Component<DocMetaProps> = (props) => {
           </Show>
 
           {/* 打印本页面 */}
-          <PrintPage className="" />
+          <PrintPage className="print:hidden" />
         </div>
         {/* 下边距填充 */}
-        <div class="h-8 w-full"></div>
+        <div class="h-8 w-full print:hidden"></div>
       </Show>
     </div>
   );
@@ -57,10 +57,14 @@ const DocMeta: Component<DocMetaProps> = (props) => {
 
 const ArticleContent: Component<ArticleContentProps> = (props) => {
   return (
-    <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 leading-relaxed relative">
+    <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 print:w-full print:p-0 leading-relaxed relative print:static">
       <Breadcrumb navs={props.pageContext.breadcrumbs || []} />
 
       <div id="page-main">
+        <div class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm">
+          <div>{props.configValue("site.name")}</div>
+          <div class="font-sans" data-el="page-url"></div>
+        </div>
         <h1
           id="article-title"
           data-ajax-element="article-title"

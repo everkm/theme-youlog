@@ -1,43 +1,9 @@
 @media print {
-  body * {
-    visibility: hidden;
-  }
-
-  #page-main,
-  #page-main * {
-    visibility: visible;
-  }
-
-  #page-main {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-  }
-
   #page-main * {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     line-height: 1.5 !important;
-  }
-
-  #doc-meta .flex {
-    flex-wrap: wrap !important;
-    gap: 1rem !important;
-  }
-
-  #doc-meta .flex > * {
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-
-  #doc-meta .flex > * + * {
-    margin-left: 1rem !important;
-  }
-
-  #doc-meta .flex * {
-    white-space: nowrap !important;
   }
 }

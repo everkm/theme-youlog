@@ -1,27 +1,38 @@
+import getShortPageUrl from "pageUrl";
 import youlogRegister from "../../../youlogRegister";
-import printJS from "print-js";
+import { EVENT_PAGE_LOAD_BEFORE, EVENT_PAGE_LOADED } from "pageAjax";
+
+const PAGE_URL_SELECTOR = "[data-el='page-url']";
 
 function youlogPrint() {
-  const pageMain = document.getElementById("page-main");
-  if (!pageMain) {
-    // 如果找不到元素，回退到默认打印
-    window.print();
-    return;
+  window.print();
+}
+
+function renderPageUrl() {
+  const pageUrl = document.querySelector<HTMLElement>(PAGE_URL_SELECTOR);
+  if (pageUrl) {
+    pageUrl.textContent = getShortPageUrl().toString();
   }
-
-  const currentUrl = window.location.href;
-
-  printJS({
-    printable: "page-main",
-    type: "html",
-    header: currentUrl,
-    headerStyle: "font-weight: normal; color: #666; font-size: 12px; font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;",
-    targetStyles: ["*"],
-    style: ``,
-  });
 }
 
 function initYoulogPrint() {
+  document.addEventListener("DOMContentLoaded", () => {
+    renderPageUrl();
+  });
+
+  // 在页面 AJAX 加载前清空页面URL
+  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+    const container = document.querySelector<HTMLElement>(PAGE_URL_SELECTOR);
+    if (container) {
+      container.textContent = "";
+    }
+  });
+
+  // 在页面 AJAX 加载后重新生成页面URL
+  document.addEventListener(EVENT_PAGE_LOADED, () => {
+    renderPageUrl();
+  });
+
   // 使用 youlogRegister 注册 print 函数
   youlogRegister({
     print: youlogPrint,

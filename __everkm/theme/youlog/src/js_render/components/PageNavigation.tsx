@@ -15,7 +15,7 @@ interface PageNavigationProps {
 
 const PageNavigation: Component<PageNavigationProps> = (props) => {
   return (
-    <div id="page-indicator" data-ajax-element="page-indicator">
+    <div id="page-indicator" data-ajax-element="page-indicator" class="print:hidden">
       <Show when={props.pageNav.next || props.pageNav.prev}>
         <div class="mt-10 pt-8 border-t border-border dark:border-border space-y-4 md:flex md:flex-row-reverse md:items-center md:space-y-0 md:gap-8">
           <Show when={props.pageNav.next}>

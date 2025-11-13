@@ -28,7 +28,7 @@ const PrevNextLinks: Component<PrevNextLinksProps> = (props) => {
 
   return (
     <Show when={prevPost || nextPost}>
-      <div class="mt-10 pt-8 border-t border-border dark:border-border space-y-2">
+      <div class="mt-10 pt-8 border-t border-border dark:border-border space-y-2 print:hidden">
         <Show when={prevPost}>
           <div class="space-x-2">
             <span class="text-text-secondary dark:text-text-secondary">

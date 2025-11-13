@@ -156,7 +156,7 @@ const CopyrightAndBeian: Component<CopyrightAndBeianProps> = (props) => {
 
 const Footer: Component<FooterProps> = (props) => {
   return (
-    <div class="mt-10 pt-8 flex flex-col items-center justify-center gap-2">
+    <div class="mt-10 pt-8 flex flex-col items-center justify-center gap-2 print:hidden">
       <BottomNav configValue={props.configValue} />
       <YoulogPlatform
         youlogPlatform={props.youlogPlatform}

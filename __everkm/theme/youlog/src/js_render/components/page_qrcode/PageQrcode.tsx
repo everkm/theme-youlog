@@ -6,9 +6,11 @@ import { Component } from "solid-js";
  */
 const PageQrcode: Component = () => {
   return (
-    <div class="flex flex-col items-center my-6">
+    <div class="md:flex flex-col items-center my-6 hidden print:flex">
       <div data-el="page-qrcode" class="flex justify-center" />
-      <p class="text-sm text-gray-600 text-center whitespace-nowrap w-full">扫码打开本页面</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400 text-center whitespace-nowrap w-full">
+        扫码打开本页面
+      </p>
     </div>
   );
 };
