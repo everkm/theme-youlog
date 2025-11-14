@@ -14,21 +14,21 @@
 
 /* 标题样式 */
 .markdown-body h1 {
-  font-size: 2.25em;
+  font-size: 1.8em;
   @apply font-bold mt-12 mb-6;
   @apply border-b border-gray-200 dark:border-gray-700 pb-2;
   @apply text-gray-900 dark:text-gray-100;
 }
 
 .markdown-body h2 {
-  font-size: 1.875em;
+  font-size: 1.5em;
   @apply font-bold mt-10 mb-4;
   @apply border-b border-gray-200 dark:border-gray-700 pb-2;
   @apply text-gray-800 dark:text-gray-200;
 }
 
 .markdown-body h3 {
-  font-size: 1.5em;
+  font-size: 1.35em;
   @apply font-bold mt-8 mb-3;
   @apply text-gray-800 dark:text-gray-200;
 }
@@ -40,7 +40,7 @@
 }
 
 .markdown-body h5 {
-  font-size: 1.125em;
+  font-size: 1.12em;
   @apply font-bold mt-4 mb-2;
   @apply text-gray-800 dark:text-gray-200;
 }

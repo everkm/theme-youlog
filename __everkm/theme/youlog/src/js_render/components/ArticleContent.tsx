@@ -68,7 +68,7 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
         <h1
           id="article-title"
           data-ajax-element="article-title"
-          class="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
+          class="text-[1.8em] font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
         >
           {props.doc?.title || "无标题"}
         </h1>
