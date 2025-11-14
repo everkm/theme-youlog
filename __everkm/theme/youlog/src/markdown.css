@@ -3,7 +3,7 @@
   @apply w-full mx-auto py-8;
   @apply text-gray-800 dark:text-gray-200;
   /* @apply leading-relaxed; */
-  @apply bg-white dark:bg-gray-900;
+  @apply bg-white dark:bg-gray-900 text-justify;
   @apply rounded-lg;
   @apply break-words;
 
