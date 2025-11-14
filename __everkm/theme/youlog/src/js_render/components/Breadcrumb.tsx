@@ -25,7 +25,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
                   href={nav.url || "javascript:void(0)"}
                 >
                   {nav.is_first ? (
-                    <HomeIcon />
+                    <HomeIcon class="w-[1.2em] h-[1.2em]" />
                   ) : (
                     <span data-nav-title>{nav.title}</span>
                   )}
@@ -33,7 +33,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
               ) : (
                 <>
                   {nav.is_first ? (
-                    <HomeIcon />
+                    <HomeIcon class="w-[1.2em] h-[1.2em]" />
                   ) : (
                     <span data-nav-title>{nav.title}</span>
                   )}
