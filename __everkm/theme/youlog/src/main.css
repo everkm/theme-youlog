@@ -51,8 +51,4 @@
   h6 {
     @apply !mt-6 !mb-3;
   }
-
-  img {
-    @apply !max-w-full h-auto;
-  }
 }
