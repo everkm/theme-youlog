@@ -10,7 +10,7 @@ import { Portal, render } from "solid-js/web";
 import { debounce } from "throttle-debounce";
 import youlogRegister from "youlogRegister";
 
-const DEFAULT_FONT_SIZE = 16;
+const DEFAULT_FONT_SIZE = 14;
 const DEFAULT_LINE_HEIGHT = 1.6;
 
 /**
@@ -38,55 +38,35 @@ createEffect(() => {
   }
 });
 
-/**
- * 管理阅读样式的应用状态
- * @param {boolean} shouldApply - 是否应用样式
- */
-function manageReadabilityStyle(shouldApply: boolean): void {
-  const articleMain = document.getElementById("article-main");
-  if (!articleMain) return;
-
-  if (shouldApply) {
-    if (!articleMain.classList.contains("custom-readability")) {
-      articleMain.classList.add("custom-readability");
-    }
-    localStorage.setItem("reader-style-applied", "true");
-  } else {
-    articleMain.classList.remove("custom-readability");
-    localStorage.setItem("reader-style-applied", "false");
-  }
-}
-
 interface ThemeSettingsProps {
   onClose: () => void;
 }
 
 /**
+ * 计算根据 (屏幕密度-1)*1.5
+ */
+function getFontSizeOffset(): number {
+  const devicePixelRatio = window.devicePixelRatio;
+  const fontSizeOffset = (devicePixelRatio - 1) * 1.5;
+  return fontSizeOffset;
+}
+
+/**
  * 初始化阅读器设置
  */
-function resumeReaderSettings(): void {
+function restoreReaderSettings(): void {
   const root = document.documentElement;
-  const fontFamily = localStorage.getItem("reader-font-family") || "system-ui";
-  const fontSize =
-    Number(localStorage.getItem("reader-font-size")) || DEFAULT_FONT_SIZE;
+  const fontFamily = localStorage.getItem("youlog-font-family") || "system-ui";
+  const baseFontSize =
+    Number(localStorage.getItem("youlog-font-size")) || DEFAULT_FONT_SIZE;
+  const fontSize = baseFontSize + getFontSizeOffset();
   const lineHeight =
-    Number(localStorage.getItem("reader-line-height")) || DEFAULT_LINE_HEIGHT;
-
-  // 应用设置到CSS变量
-  root.style.setProperty("--reader-font-family", fontFamily);
-  root.style.setProperty("--reader-font-size", `${fontSize}px`);
-  root.style.setProperty("--reader-line-height", lineHeight.toString());
+    Number(localStorage.getItem("youlog-line-height")) || DEFAULT_LINE_HEIGHT;
 
   // 直接将样式应用到整个页面（html元素）
   root.style.fontFamily = fontFamily;
   root.style.fontSize = `${fontSize}px`;
   root.style.lineHeight = lineHeight.toString();
-
-  // 检查并应用阅读样式
-  const wasApplied = localStorage.getItem("reader-style-applied") === "true";
-  if (wasApplied) {
-    manageReadabilityStyle(true);
-  }
 }
 
 const SunIcon = () => (
@@ -145,28 +125,8 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
     },
     {
       value:
-        '"Source Han Sans CN", "Noto Sans CJK SC", "Source Han Sans SC", "思源黑体", "Noto Sans SC", "HiraginoSans-W3", "Microsoft YaHei", "Droid Sans Fallback", sans-serif',
-      label: "思源黑体",
-    },
-    {
-      value:
-        '"Source Han Serif CN", "Noto Serif CJK SC", "Source Han Serif SC", "思源宋体", "Noto Serif SC", "HiraginoSerif", "SimSun", "MS Mincho", serif',
-      label: "思源宋体",
-    },
-    {
-      value:
         '"KaiTi", "STKaiti", "楷体", "楷体_GB2312", "DFKai-SB", "TW-Kai", serif',
       label: "楷体",
-    },
-    {
-      value:
-        '"LiSu", "STLiti", "隶书", "隶书_GB2312", "DFLiSong-Lt", "Apple LiSung", serif',
-      label: "隶书",
-    },
-    {
-      value:
-        '"XingKai SC", "STXingkai", "行楷", "华文行楷", "DFHanziPen", "HanziPen SC", "Hannotate SC", serif',
-      label: "行楷",
     },
     {
       value:
@@ -176,13 +136,13 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
   ];
 
   const [fontFamily, setFontFamily] = createSignal(
-    localStorage.getItem("reader-font-family") || fontOptions[0].value
+    localStorage.getItem("youlog-font-family") || fontOptions[0].value
   );
   const [fontSize, setFontSize] = createSignal(
-    Number(localStorage.getItem("reader-font-size")) || DEFAULT_FONT_SIZE
+    Number(localStorage.getItem("youlog-font-size")) || DEFAULT_FONT_SIZE
   );
   const [lineHeight, setLineHeight] = createSignal(
-    Number(localStorage.getItem("reader-line-height")) || DEFAULT_LINE_HEIGHT
+    Number(localStorage.getItem("youlog-line-height")) || DEFAULT_LINE_HEIGHT
   );
 
   // 临时值，用于实时预览
@@ -196,31 +156,20 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
 
   const applySettings = (key: string, value: string | number) => {
     const root = document.documentElement;
-    root.style.setProperty(
-      `--reader-${key}`,
-      typeof value === "number"
-        ? `${value}${key === "font-size" ? "px" : ""}`
-        : value
-    );
-    localStorage.setItem(`reader-${key}`, value.toString());
+    localStorage.setItem(`youlog-${key}`, value.toString());
 
     // 直接将样式应用到整个页面（html元素）
     if (key === "font-size") {
-      root.style.fontSize = `${value}px`;
+      const scaledFontSize = (value as number) + getFontSizeOffset();
+      root.style.fontSize = `${scaledFontSize}px`;
     } else if (key === "font-family") {
       root.style.fontFamily = value as string;
     } else if (key === "line-height") {
       root.style.lineHeight = value.toString();
     }
-
-    // 应用阅读样式
-    manageReadabilityStyle(true);
   };
 
   const resetSettings = () => {
-    // 移除阅读样式
-    manageReadabilityStyle(false);
-
     // 重置状态但不清除CSS变量
     requestAnimationFrame(() => {
       batch(() => {
@@ -233,13 +182,13 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
     // 重置整个页面的样式
     const root = document.documentElement;
     root.style.fontFamily = "";
-    root.style.fontSize = "";
-    root.style.lineHeight = "";
+    root.style.fontSize = `${DEFAULT_FONT_SIZE + getFontSizeOffset()}px`;
+    root.style.lineHeight = DEFAULT_LINE_HEIGHT.toString();
 
     // 清除storage
-    localStorage.removeItem("reader-font-family");
-    localStorage.removeItem("reader-font-size");
-    localStorage.removeItem("reader-line-height");
+    localStorage.removeItem("youlog-font-family");
+    localStorage.removeItem("youlog-font-size");
+    localStorage.removeItem("youlog-line-height");
   };
 
   // 防抖处理函数
@@ -312,8 +261,8 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
                 </label>
                 <input
                   type="range"
-                  min="12"
-                  max="24"
+                  min="10"
+                  max="22"
                   step="1"
                   value={tempFontSize()}
                   onInput={(e) => {
@@ -347,7 +296,10 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
 
               {/* 重置按钮 */}
               <button
-                onClick={resetSettings}
+                onClick={() => {
+                  resetSettings();
+                  props.onClose();
+                }}
                 class="mt-4 w-full rounded-md bg-gray-100 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 恢复默认设置
@@ -426,9 +378,9 @@ function initTheme() {
     }
   });
 
-  document.addEventListener("DOMContentLoaded", () => {
-    resumeReaderSettings();
-  });
+  // document.addEventListener("DOMContentLoaded", () => {
+  restoreReaderSettings();
+  // });
 }
 
 export { initTheme };
