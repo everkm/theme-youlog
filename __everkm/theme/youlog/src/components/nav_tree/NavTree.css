@@ -1,22 +1,4 @@
 .nav-tree {
-  @apply overflow-y-auto;
-
-  &::-webkit-scrollbar {
-    @apply w-1.5;
-  }
-
-  &::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    @apply bg-border-strong dark:bg-border-strong rounded-full;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    @apply bg-border-strong dark:bg-border;
-  }
-
   h1,
   h2,
   h3,

@@ -52,3 +52,21 @@
     @apply !mt-6 !mb-3;
   }
 }
+
+.my-scrollbar {
+  &::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-border-strong dark:bg-border-strong rounded-full;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-border-strong dark:bg-border;
+  }
+}

@@ -224,7 +224,7 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
         onClick={props.onClose}
       >
         <div
-          class="fixed bottom-0 max-h-[80dvh] w-full max-w-md transform overflow-y-auto rounded-t-xl
+          class="fixed bottom-0 max-h-[80dvh] w-full max-w-md transform overflow-y-auto rounded-t-xl my-scrollbar
                  bg-white shadow-xl md:relative md:bottom-auto
                  md:rounded-xl dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}

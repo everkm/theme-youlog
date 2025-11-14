@@ -59,7 +59,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       {/* 导航菜单内容 */}
       <nav
         id="sidebar-nav-tree"
-        class="flex-1 markdown-body !py-0 px-4 !bg-transparent nav-tree invisible overflow-y-auto"
+        class="flex-1 markdown-body !py-0 px-4 !bg-transparent nav-tree invisible overflow-y-auto my-scrollbar"
         innerHTML={props.navDoc?.content_html || ""}
       ></nav>
     </aside>
