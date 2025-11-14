@@ -12,7 +12,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
   return (
     <aside
       id="sidebar-nav"
-      class="w-72 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+      class="w-[80%] lg:w-[var(--sidebar-width)] bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
         fixed h-dvh lg:sticky top-0 z-50
         transform transition-transform duration-300 lg:translate-x-0 -translate-x-full
         flex flex-col print:hidden"
@@ -20,7 +20,11 @@ const Sidebar: Component<SidebarProps> = (props) => {
       {/* Site header */}
       <Show when={!props.configValue("layout.aisde_no_header", false)}>
         <div class="flex h-14 items-center justify-between px-2 md:px-4 bg-gray-50 dark:bg-gray-900 z-10">
-          <a data-logo href={`${props.baseUrl}/`} class="flex items-center gap-2">
+          <a
+            data-logo
+            href={`${props.baseUrl}/`}
+            class="flex items-center gap-2"
+          >
             <Show
               when={props.configValue("site.logo")}
               fallback={
@@ -63,4 +67,3 @@ const Sidebar: Component<SidebarProps> = (props) => {
 };
 
 export default Sidebar;
-
