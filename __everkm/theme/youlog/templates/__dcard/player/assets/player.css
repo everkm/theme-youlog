@@ -1,0 +1,16 @@
+.plyr {
+  margin: 1.5rem 0;
+}
+
+.plyr__video-wrapper video {
+  max-height: 80vh;
+}
+
+.plyr--audio {
+  --plyr-audio-controls-background: #eee;
+  border-radius: 0.5rem;
+}
+
+.dark .plyr--audio {
+  --plyr-audio-controls-background: #222;
+}

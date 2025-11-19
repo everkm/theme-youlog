@@ -152,7 +152,7 @@
 
 /* 图片样式 */
 .markdown-body img {
-  @apply max-w-full h-auto;
+  @apply max-w-full h-auto mx-auto;
   @apply my-4 rounded-lg;
   @apply border border-border dark:border-border;
 }
