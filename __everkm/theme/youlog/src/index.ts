@@ -17,6 +17,7 @@ import "./yousha";
 import "./VersionList.tsx";
 import { initYoulogPrint } from "js_render/components/print_page/youlogPrint";
 import { initTheme } from "./theme";
+import { initImgSwipe } from "./imgSwipe";
 
 function init() {
   // 调用初始化TOC函数
@@ -45,6 +46,9 @@ function init() {
 
   // 初始化页面二维码
   initPageQrcode();
+
+  // 初始化图片预览
+  initImgSwipe();
 
   initYoulogPrint();
 

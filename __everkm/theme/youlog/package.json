@@ -57,6 +57,7 @@
     "mark.js": "^8.11.1",
     "mitt": "^3.0.1",
     "nprogress": "^0.2.0",
+    "photoswipe": "^5.4.4",
     "print-js": "^1.6.0",
     "scroll-into-view-if-needed": "^3.1.0",
     "solid-element": "^1.9.1",
