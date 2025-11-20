@@ -114,6 +114,10 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
       script.type = "text/javascript";
       script.async = true;
 
+      // onload 事件在脚本下载并执行完成后触发
+      // 注意：对于 async 脚本，onload 表示脚本本身执行完成
+      // 如果脚本内部有异步操作（如 setTimeout、fetch 等），
+      // onload 不会等待这些异步操作完成
       script.onload = () => {
         loadedAssetsCache.add(asset);
         resolve();
@@ -123,7 +127,7 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
         reject(new Error(`Failed to load script: ${asset}`));
       };
 
-      parent.appendChild(script);
+      document.getElementsByTagName("head")[0].appendChild(script);
     } else if (asset.endsWith(".css") || asset.includes(".css?")) {
       // 检查是否已经存在相同的 CSS 链接
       const existingLink = document.querySelector(`link[href="${asset}"]`);
@@ -162,7 +166,7 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
         reject(new Error(`Failed to load stylesheet: ${asset}`));
       };
 
-      parent.appendChild(link);
+      document.getElementsByTagName("head")[0].appendChild(link);
       // CSS 加载检测
       checkLoaded();
     } else {
@@ -172,6 +176,14 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
   });
 }
 
+function log(message: string, ...args: any[]) {
+  console.log("installDcard: " + message, ...args);
+}
+
+function error_log(message: string, ...args: any[]) {
+  console.error("installDcard: " + message, ...args);
+}
+
 /**
  * 安装 dcard，加载资源并触发安装事件
  * @param parent 父元素
@@ -179,6 +191,7 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
 function installDcard(parent: HTMLElement) {
   const elements = parent.querySelectorAll("script[type='application/json']");
   if (!elements.length) {
+    // log("no dcard elements found", parent);
     return;
   }
 
@@ -186,6 +199,7 @@ function installDcard(parent: HTMLElement) {
   Array.from(elements).forEach(async (element) => {
     const dcardName = element.getAttribute("data-dcard");
     if (!dcardName) {
+      log("no dcard name found", element);
       return;
     }
 
@@ -193,10 +207,10 @@ function installDcard(parent: HTMLElement) {
     try {
       dcardData = JSON.parse(element.textContent || "{}") as IDcard;
     } catch (e) {
-      console.error(`解析 dcard 数据失败 [${dcardName}]:`, e);
+      error_log(`解析 dcard 数据失败 [${dcardName}]:`, e);
       element.dispatchEvent(
         new CustomEvent(EVENT_DCARD_ASSETS_ERROR, {
-          detail: { dcardName, error: e, element },
+          detail: { dcardName, error: e, element, container: parent },
           bubbles: true,
           composed: true,
         })
@@ -209,8 +223,11 @@ function installDcard(parent: HTMLElement) {
       !Array.isArray(dcardData.assets) ||
       dcardData.assets.length === 0
     ) {
+      log("no assets found", dcardName);
       return;
     }
+
+    log("assets found", dcardName, dcardData.assets);
 
     try {
       // 并行加载所有资源
@@ -221,17 +238,28 @@ function installDcard(parent: HTMLElement) {
       // 所有资源加载完成，触发安装事件
       element.dispatchEvent(
         new CustomEvent(EVENT_DCARD_INSTALL, {
-          detail: { dcardName, assets: dcardData.assets, element },
+          detail: {
+            dcardName,
+            assets: dcardData.assets,
+            element,
+            container: parent,
+          },
           bubbles: true,
           composed: true,
         })
       );
     } catch (error) {
       // 资源加载失败，触发 error 事件
-      console.error(`dcard 资源加载失败 [${dcardName}]:`, error);
+      error_log(`dcard 资源加载失败 [${dcardName}]:`, error);
       element.dispatchEvent(
         new CustomEvent(EVENT_DCARD_ASSETS_ERROR, {
-          detail: { dcardName, error, assets: dcardData.assets, element },
+          detail: {
+            dcardName,
+            error,
+            assets: dcardData.assets,
+            element,
+            container: parent,
+          },
           bubbles: true,
           composed: true,
         })
@@ -257,7 +285,7 @@ function uninstallDcard(parent: HTMLElement) {
     }
     element.dispatchEvent(
       new CustomEvent(EVENT_DCARD_UNINSTALL, {
-        detail: { dcardName, element },
+        detail: { dcardName, element, container: parent },
         bubbles: true,
         composed: true,
       })
