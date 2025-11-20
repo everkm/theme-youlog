@@ -1,5 +1,7 @@
-assets:
+js:
   - https://cdn.plyr.io/3.8.3/plyr.js
-  - https://cdn.plyr.io/3.8.3/plyr.css
   - player.js
+
+css:
+  - https://cdn.plyr.io/3.8.3/plyr.css
   - player.css

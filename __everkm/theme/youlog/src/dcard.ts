@@ -33,8 +33,10 @@
  * <!-- 每个 script 标签表示一个 dcard -->
  * <script type="application/json" data-dcard="player">
  * {
- *   "assets": [
- *     "/assets/player.js",
+ *   "js": [
+ *     "/assets/player.js"
+ *   ],
+ *   "css": [
  *     "/assets/player.css"
  *   ]
  * }
@@ -50,8 +52,8 @@
  *
  * // 监听 dcard 安装完成事件
  * document.addEventListener('dcard:install', (event) => {
- *   const { dcardName, assets, element } = event.detail;
- *   console.log(`dcard [${dcardName}] 安装完成`, assets);
+ *   const { dcardName, js, css, element } = event.detail;
+ *   console.log(`dcard [${dcardName}] 安装完成`, { js, css });
  * });
  *
  * // 监听 dcard 卸载事件
@@ -72,14 +74,15 @@
  *
  * 特性说明：
  * - 每个标签独立处理：每个 script[type='application/json'][data-dcard] 标签代表一个独立的 dcard
- * - 自动判断类型：根据文件后缀（.js 或 .css）自动创建对应元素
+ * - 明确类型分离：通过 js 和 css 数组明确区分资源类型，不再通过文件扩展名判断
  * - 并行加载：同一 dcard 的所有资源并行加载，提高效率
  * - 缓存优化：已加载的资源不会重复加载
  * - 事件通知：安装/卸载时通过事件通知，便于后续初始化和清理
  */
 
 interface IDcard {
-  assets: string[];
+  js?: string[];
+  css?: string[];
 }
 
 //  当dcard assets 加载完成后需要初始化时触发
@@ -95,12 +98,11 @@ const EVENT_DCARD_ASSETS_ERROR = "dcard:assets:error";
 const loadedAssetsCache = new Set<string>();
 
 /**
- * 加载单个资源（JS 或 CSS）
+ * 加载单个 JS 资源
  * @param asset 资源 URL
- * @param parent 父元素
  * @returns Promise，加载成功 resolve，失败 reject
  */
-function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
+function loadJS(asset: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // 检查缓存，如果已加载则直接返回
     if (loadedAssetsCache.has(asset)) {
@@ -108,71 +110,81 @@ function loadAsset(asset: string, parent: HTMLElement): Promise<void> {
       return;
     }
 
-    if (asset.endsWith(".js") || asset.includes(".js?")) {
-      const script = document.createElement("script");
-      script.src = asset;
-      script.type = "text/javascript";
-      script.async = true;
+    const script = document.createElement("script");
+    script.src = asset;
+    script.type = "text/javascript";
+    script.async = true;
 
-      // onload 事件在脚本下载并执行完成后触发
-      // 注意：对于 async 脚本，onload 表示脚本本身执行完成
-      // 如果脚本内部有异步操作（如 setTimeout、fetch 等），
-      // onload 不会等待这些异步操作完成
-      script.onload = () => {
-        loadedAssetsCache.add(asset);
-        resolve();
-      };
+    // onload 事件在脚本下载并执行完成后触发
+    // 注意：对于 async 脚本，onload 表示脚本本身执行完成
+    // 如果脚本内部有异步操作（如 setTimeout、fetch 等），
+    // onload 不会等待这些异步操作完成
+    script.onload = () => {
+      loadedAssetsCache.add(asset);
+      resolve();
+    };
 
-      script.onerror = () => {
-        reject(new Error(`Failed to load script: ${asset}`));
-      };
+    script.onerror = () => {
+      reject(new Error(`Failed to load script: ${asset}`));
+    };
 
-      document.getElementsByTagName("head")[0].appendChild(script);
-    } else if (asset.endsWith(".css") || asset.includes(".css?")) {
-      // 检查是否已经存在相同的 CSS 链接
-      const existingLink = document.querySelector(`link[href="${asset}"]`);
-      if (existingLink) {
-        loadedAssetsCache.add(asset);
-        resolve();
-        return;
-      }
+    document.getElementsByTagName("head")[0].appendChild(script);
+  });
+}
 
-      const link = document.createElement("link");
-      link.href = asset;
-      link.rel = "stylesheet";
-
-      // CSS 加载完成的检测
-      const checkLoaded = () => {
-        try {
-          // 检查样式表是否已加载
-          const sheets = document.styleSheets;
-          for (let i = 0; i < sheets.length; i++) {
-            if (sheets[i].href === asset || sheets[i].ownerNode === link) {
-              loadedAssetsCache.add(asset);
-              resolve();
-              return;
-            }
-          }
-          // 如果还没加载完成，继续等待
-          setTimeout(checkLoaded, 50);
-        } catch (e) {
-          // 跨域样式表可能无法访问，假设已加载
-          loadedAssetsCache.add(asset);
-          resolve();
-        }
-      };
-
-      link.onerror = () => {
-        reject(new Error(`Failed to load stylesheet: ${asset}`));
-      };
-
-      document.getElementsByTagName("head")[0].appendChild(link);
-      // CSS 加载检测
-      checkLoaded();
-    } else {
-      // 不支持的文件类型
-      reject(new Error(`Unsupported asset type: ${asset}`));
+/**
+ * 加载单个 CSS 资源
+ * @param asset 资源 URL
+ * @returns Promise，加载成功 resolve，失败 reject
+ */
+function loadCSS(asset: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // 检查缓存，如果已加载则直接返回
+    if (loadedAssetsCache.has(asset)) {
+      resolve();
+      return;
     }
+
+    // 检查是否已经存在相同的 CSS 链接
+    const existingLink = document.querySelector(`link[href="${asset}"]`);
+    if (existingLink) {
+      loadedAssetsCache.add(asset);
+      resolve();
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.href = asset;
+    link.rel = "stylesheet";
+
+    // CSS 加载完成的检测
+    const checkLoaded = () => {
+      try {
+        // 检查样式表是否已加载
+        const sheets = document.styleSheets;
+        for (let i = 0; i < sheets.length; i++) {
+          if (sheets[i].href === asset || sheets[i].ownerNode === link) {
+            loadedAssetsCache.add(asset);
+            resolve();
+            return;
+          }
+        }
+        // 如果还没加载完成，继续等待
+        setTimeout(checkLoaded, 50);
+      } catch (e) {
+        // 跨域样式表可能无法访问，假设已加载
+        loadedAssetsCache.add(asset);
+        resolve();
+      }
+    };
+
+    link.onerror = () => {
+      reject(new Error(`Failed to load stylesheet: ${asset}`));
+    };
+
+    document.getElementsByTagName("head")[0].appendChild(link);
+    // CSS 加载检测
+    checkLoaded();
   });
 }
 
@@ -218,29 +230,39 @@ function installDcard(parent: HTMLElement) {
       return;
     }
 
-    if (
-      !dcardData ||
-      !Array.isArray(dcardData.assets) ||
-      dcardData.assets.length === 0
-    ) {
+    const jsAssets = Array.isArray(dcardData.js) ? dcardData.js : [];
+    const cssAssets = Array.isArray(dcardData.css) ? dcardData.css : [];
+
+    if (jsAssets.length === 0 && cssAssets.length === 0) {
       log("no assets found", dcardName);
       return;
     }
 
-    log("assets found", dcardName, dcardData.assets);
+    log("assets found", dcardName, { js: jsAssets, css: cssAssets });
 
     try {
       // 并行加载所有资源
-      await Promise.all(
-        dcardData.assets.map((asset) => loadAsset(asset, parent))
-      );
+      const loadPromises: Promise<void>[] = [];
+
+      // 加载 JS 资源
+      for (const asset of jsAssets) {
+        loadPromises.push(loadJS(asset));
+      }
+
+      // 加载 CSS 资源
+      for (const asset of cssAssets) {
+        loadPromises.push(loadCSS(asset));
+      }
+
+      await Promise.all(loadPromises);
 
       // 所有资源加载完成，触发安装事件
       element.dispatchEvent(
         new CustomEvent(EVENT_DCARD_INSTALL, {
           detail: {
             dcardName,
-            assets: dcardData.assets,
+            js: jsAssets,
+            css: cssAssets,
             element,
             container: parent,
           },
@@ -256,7 +278,8 @@ function installDcard(parent: HTMLElement) {
           detail: {
             dcardName,
             error,
-            assets: dcardData.assets,
+            js: jsAssets,
+            css: cssAssets,
             element,
             container: parent,
           },
