@@ -7,6 +7,18 @@ import {
   DEFAULT_MARKDOWN_RULE,
 } from "./markdownTreeParser";
 
+function log(message: string, ...args: any[]) {
+  // console.log("sidebarNavTree2: " + message, ...args);
+}
+
+function error_log(message: string, ...args: any[]) {
+  console.error("sidebarNavTree2: " + message, ...args);
+}
+
+function warn_log(message: string, ...args: any[]) {
+  console.warn("sidebarNavTree2: " + message, ...args);
+}
+
 /**
  * DOM工具类
  */
@@ -74,21 +86,21 @@ class BreadcrumbManager {
   static setupClickHandler(navTreeManager: NavTreeManager): void {
     const breadcrumb = document.getElementById("breadcrumb");
     if (!breadcrumb) {
-      console.warn("找不到breadcrumb元素");
+      warn_log("找不到breadcrumb元素");
       return;
     }
 
     breadcrumb.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      console.log("breadcrumb点击，目标:", target);
+      log("breadcrumb点击，目标:", target);
 
       if (!target.hasAttribute("data-nav-title")) {
-        console.log("breadcrumb点击，目标不是data-nav-title");
+        log("breadcrumb点击，目标不是data-nav-title");
       }
       // 处理父节点是A标签，且href以javascript:开头的情况
       const parentA = target.closest("a");
       if (!(parentA && parentA.href.startsWith("javascript:"))) {
-        console.log("breadcrumb点击，父节点不是A标签或href以javascript:开头");
+        log("breadcrumb点击，父节点不是A标签或href以javascript:开头");
         return;
       }
 
@@ -97,7 +109,7 @@ class BreadcrumbManager {
         const breadcrumbPath = this.getBreadcrumbPath();
 
         if (breadcrumbPath.length === 0) {
-          console.warn("breadcrumb路径为空");
+          warn_log("breadcrumb路径为空");
           return;
         }
 
@@ -107,14 +119,14 @@ class BreadcrumbManager {
           : (target.closest("[data-nav-title]") as HTMLElement | null);
 
         if (!clickedNavTitle) {
-          console.log("breadcrumb点击，找不到data-nav-title元素");
+          log("breadcrumb点击，找不到data-nav-title元素");
           return;
         }
 
         const clickedText = DOMUtils.getCleanTextContent(clickedNavTitle);
 
         if (!clickedText) {
-          console.warn("breadcrumb点击，无法获取文本内容");
+          warn_log("breadcrumb点击，无法获取文本内容");
           return;
         }
 
@@ -124,16 +136,16 @@ class BreadcrumbManager {
         );
 
         if (clickedIndex === -1) {
-          console.warn(`breadcrumb点击，找不到匹配的文本 "${clickedText}"`);
+          warn_log(`breadcrumb点击，找不到匹配的文本 "${clickedText}"`);
           return;
         }
 
         const pathToCurrent = breadcrumbPath.slice(0, clickedIndex + 1);
 
-        console.log("breadcrumb点击，路径到当前位置:", pathToCurrent);
+        log("breadcrumb点击，路径到当前位置:", pathToCurrent);
         navTreeManager.toggleByTextPath(pathToCurrent);
       } catch (error) {
-        console.error("breadcrumb点击处理出错:", error);
+        error_log("breadcrumb点击处理出错:", error);
       }
     });
   }
@@ -353,7 +365,7 @@ class NavTreeManager {
     NavTreeManager.instance = this;
 
     this.setupEventListeners();
-    console.log("NavTreeManager 初始化完成, 监听事件:", EVENT_PAGE_LOADED);
+    log("NavTreeManager 初始化完成, 监听事件:", EVENT_PAGE_LOADED);
   }
 
   /**
@@ -376,9 +388,9 @@ class NavTreeManager {
     element: HTMLElement,
     navTreeState: NavTreeState
   ): void {
-    console.log("注册导航树状态:", element, navTreeState);
+    log("注册导航树状态:", element, navTreeState);
     this.navTreeStates.set(element, navTreeState);
-    console.log(`当前注册的导航树状态数量: ${this.navTreeStates.size}`);
+    log(`当前注册的导航树状态数量: ${this.navTreeStates.size}`);
   }
 
   /**
@@ -400,27 +412,27 @@ class NavTreeManager {
    * 更新导航高亮
    */
   private updateNavHighlight(): void {
-    console.log(`开始更新导航高亮，当前路径: ${window.location.pathname}`);
-    console.log(`注册的导航树状态数量: ${this.navTreeStates.size}`);
+    log(`开始更新导航高亮，当前路径: ${window.location.pathname}`);
+    log(`注册的导航树状态数量: ${this.navTreeStates.size}`);
 
     if (this.navTreeStates.size === 0) {
-      console.warn("没有注册的导航树状态，跳过高亮更新");
+      warn_log("没有注册的导航树状态，跳过高亮更新");
       return;
     }
 
     this.navTreeStates.forEach((navTreeState, element) => {
-      console.log(`处理导航树状态:`, element);
+      log(`处理导航树状态:`, element);
       const activeNodeId = this.findActiveNode(navTreeState);
-      console.log(`找到的活动节点ID: ${activeNodeId}`);
+      log(`找到的活动节点ID: ${activeNodeId}`);
       if (activeNodeId) {
         navTreeState.setActiveNode(activeNodeId);
-        console.log(`已设置活动节点: ${activeNodeId}`);
+        log(`已设置活动节点: ${activeNodeId}`);
       } else {
-        console.log("未找到匹配的活动节点");
+        log("未找到匹配的活动节点");
       }
     });
 
-    console.log(`导航高亮更新完成，当前路径: ${window.location.pathname}`);
+    log(`导航高亮更新完成，当前路径: ${window.location.pathname}`);
   }
 
   /**
@@ -430,7 +442,7 @@ class NavTreeManager {
    */
   private findActiveNode(navTreeState: NavTreeState): string | null {
     const currentUrl = window.location.href;
-    console.log(`查找活动节点，当前路径: ${currentUrl}`);
+    log(`查找活动节点，当前路径: ${currentUrl}`);
 
     // 首先尝试精确路径匹配
     let activeNodeId = navTreeState.findActiveNode(
@@ -444,12 +456,12 @@ class NavTreeManager {
         );
       }
     );
-    console.log(`精确路径匹配结果: ${activeNodeId}`);
+    log(`精确路径匹配结果: ${activeNodeId}`);
 
     // 如果路径匹配失败，尝试使用breadcrumb文本路径匹配
     if (!activeNodeId) {
       activeNodeId = this.findActiveNodeByBreadcrumb(navTreeState);
-      console.log(`面包屑匹配结果: ${activeNodeId}`);
+      log(`面包屑匹配结果: ${activeNodeId}`);
     }
 
     return activeNodeId;
@@ -468,17 +480,17 @@ class NavTreeManager {
       return null;
     }
 
-    console.log("尝试使用breadcrumb路径匹配:", breadcrumbPath);
-    console.log("导航树根节点:", navTreeState.getRootNodes());
+    log("尝试使用breadcrumb路径匹配:", breadcrumbPath);
+    log("导航树根节点:", navTreeState.getRootNodes());
 
     // 使用NavTreeState的文本路径匹配方法
     const matchedNode = navTreeState.findNodeByTextPath(breadcrumbPath);
     if (matchedNode) {
-      console.log(`找到匹配的节点: ${matchedNode.title}`);
+      log(`找到匹配的节点: ${matchedNode.title}`);
       return matchedNode.nodeId;
     }
 
-    console.log("未找到匹配的节点");
+    log("未找到匹配的节点");
     return null;
   }
 
@@ -495,17 +507,17 @@ class NavTreeManager {
    */
   public toggleByTextPath(textPath: string[]): void {
     if (!textPath || textPath.length === 0) {
-      console.warn("toggleByTextPath: 文本路径为空");
+      warn_log("toggleByTextPath: 文本路径为空");
       return;
     }
 
-    console.log("按文本路径toggle:", textPath);
+    log("按文本路径toggle:", textPath);
 
     this.navTreeStates.forEach((navTreeState) => {
       try {
         navTreeState.toggleByTextPath(textPath);
       } catch (error) {
-        console.error("toggleByTextPath 执行出错:", error);
+        error_log("toggleByTextPath 执行出错:", error);
       }
     });
   }
@@ -537,12 +549,7 @@ class TreeConverter {
     const validationError =
       TreeStructureValidator.validateTreeStructure(element);
     if (validationError) {
-      console.log(
-        "元素结构不符合要求，跳过转换:",
-        element,
-        "错误:",
-        validationError
-      );
+      log("元素结构不符合要求，跳过转换:", element, "错误:", validationError);
       return false;
     }
 
@@ -551,7 +558,7 @@ class TreeConverter {
       const navItems = TreeConverter.parser.parse(element);
 
       if (navItems.length === 0) {
-        console.log("解析结果为空，跳过转换:", element);
+        log("解析结果为空，跳过转换:", element);
         return false;
       }
 
@@ -580,10 +587,10 @@ class TreeConverter {
       // 标记为已转换
       this.convertedElements.add(element);
 
-      console.log("成功转换元素为NavTree:", element, navItems);
+      log("TreeConverter: 成功转换元素为NavTree:", element, navItems);
       return true;
     } catch (error) {
-      console.error("转换元素失败:", element, error);
+      error_log("TreeConverter: 转换元素失败:", element, error);
       return false;
     }
   }
@@ -614,23 +621,23 @@ class TreeScanner {
    */
   static scanContainer(container: HTMLElement): void {
     const lists = container.querySelectorAll(":scope > ul, :scope > ol");
-    console.log("扫描容器内的树元素:", lists);
-    console.log(`找到 ${lists.length} 个列表元素`);
+    log("TreeScanner: 扫描容器内的树元素:", lists);
+    log(`找到 ${lists.length} 个列表元素`);
     let convertedCount = 0;
 
     Array.from(lists).forEach((list, index) => {
       const element = list as HTMLElement;
-      console.log(`处理第 ${index + 1} 个列表元素:`, element);
+      log(`TreeScanner: 处理第 ${index + 1} 个列表元素:`, element);
 
       if (TreeConverter.convertToNavTree(element)) {
         convertedCount++;
-        console.log(`成功转换第 ${index + 1} 个元素`);
+        log(`TreeScanner: 成功转换第 ${index + 1} 个元素`);
       } else {
-        console.log(`跳过第 ${index + 1} 个元素（不符合转换条件）`);
+        log(`TreeScanner: 跳过第 ${index + 1} 个元素（不符合转换条件）`);
       }
     });
 
-    console.log(`容器扫描完成，共转换了 ${convertedCount} 个元素`);
+    log(`TreeScanner: 容器扫描完成，共转换了 ${convertedCount} 个元素`);
   }
 }
 
@@ -640,7 +647,7 @@ class TreeScanner {
  */
 export function initSidebarNavTree2(): void {
   document.addEventListener("DOMContentLoaded", () => {
-    console.log("初始化SidebarNavTree2...");
+    log("sidebarNavTree2: 初始化SidebarNavTree2...");
 
     // 初始化导航树管理器
     const navTreeManager = NavTreeManager.getInstance();
@@ -651,11 +658,11 @@ export function initSidebarNavTree2(): void {
     ) as HTMLElement;
 
     if (!container) {
-      console.error("找不到导航树容器元素 #sidebar-nav-tree");
+      error_log("sidebarNavTree2: 找不到导航树容器元素 #sidebar-nav-tree");
       return;
     }
 
-    console.log("找到导航树容器:", container);
+    log("sidebarNavTree2: 找到导航树容器:", container);
     TreeScanner.scanContainer(container);
 
     // 设置breadcrumb点击处理
@@ -663,13 +670,13 @@ export function initSidebarNavTree2(): void {
 
     // 初始高亮更新
     requestAnimationFrame(() => {
-      console.log("执行初始高亮更新");
+      log("执行初始高亮更新");
       navTreeManager.refreshHighlight();
     });
 
     // 监听页面加载事件，处理动态内容
     document.addEventListener(EVENT_PAGE_LOADED, () => {
-      console.log("页面加载完成，重新扫描...");
+      log("页面加载完成，重新扫描...");
       // 重新扫描容器
       if (container) {
         TreeScanner.scanContainer(container);

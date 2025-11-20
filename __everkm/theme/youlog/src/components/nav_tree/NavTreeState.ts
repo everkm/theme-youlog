@@ -55,6 +55,18 @@ const DEFAULT_CONFIG: NavTreeConfig = {
   scrollDelay: 100,
 };
 
+function log(message: string, ...args: any[]) {
+  // console.log("NavTreeState: " + message, ...args);
+}
+
+function error_log(message: string, ...args: any[]) {
+  console.error("NavTreeState: " + message, ...args);
+}
+
+function warn_log(message: string, ...args: any[]) {
+  console.warn("NavTreeState: " + message, ...args);
+}
+
 /**
  * DOM工具类
  */
@@ -344,7 +356,7 @@ export class NavTreeState {
    */
   private updateHighlightDisplay(): void {
     const visibleNodeId = this.getCurrentVisibleHighlightNode();
-    console.log(`updateHighlightDisplay:`, visibleNodeId);
+    log(`updateHighlightDisplay:`, visibleNodeId);
 
     // 清除所有活动状态
     this.updateState("activeIds", new Set());
@@ -415,9 +427,9 @@ export class NavTreeState {
    * @param activeNodeId 活动节点ID
    */
   setActiveNode(activeNodeId: string): void {
-    console.log(`设置活动节点: ${activeNodeId}`);
+    log(`设置活动节点: ${activeNodeId}`);
     const nodePath = this.getNodePath(activeNodeId);
-    console.log(`节点路径:`, nodePath);
+    log(`节点路径:`, nodePath);
 
     // 清除高亮路径
     this.cleanActiveIds();
@@ -428,7 +440,7 @@ export class NavTreeState {
 
       // 展开包含活动项的路径（除了最后一个节点）
       nodePath.slice(0, -1).forEach((nodeId) => {
-        console.log(`展开节点 ${nodeId}`);
+        log(`展开节点 ${nodeId}`);
         this.setExpanded(nodeId, true);
       });
 
@@ -437,11 +449,11 @@ export class NavTreeState {
 
       // 滚动到活动链接
       if (this.config.scrollToActiveLink) {
-        console.log(`滚动到活动链接: ${activeNodeId}`);
+        log(`滚动到活动链接: ${activeNodeId}`);
         this.scrollToActiveLink(activeNodeId);
       }
     } else {
-      console.warn(`未找到节点路径: ${activeNodeId}`);
+      warn_log(`未找到节点路径: ${activeNodeId}`);
     }
   }
 
@@ -474,16 +486,14 @@ export class NavTreeState {
 
     for (const item of items) {
       const newPath = [...currentPath, item.title];
-      console.log(
-        `检查路径: [${newPath.join(", ")}] vs [${textPath.join(", ")}]`
-      );
+      log(`检查路径: [${newPath.join(", ")}] vs [${textPath.join(", ")}]`);
 
       // 检查是否完全匹配
       if (
         newPath.length === textPath.length &&
         newPath.every((text, index) => text === textPath[index])
       ) {
-        console.log(`找到完全匹配的节点: ${item.title}`);
+        log(`找到完全匹配的节点: ${item.title}`);
         return item;
       }
 
@@ -492,9 +502,7 @@ export class NavTreeState {
         newPath.length <= textPath.length &&
         newPath.every((text, index) => text === textPath[index])
       ) {
-        console.log(
-          `找到部分匹配的节点: ${item.title}，匹配长度: ${newPath.length}`
-        );
+        log(`找到部分匹配的节点: ${item.title}，匹配长度: ${newPath.length}`);
         if (newPath.length > bestMatchLength) {
           bestMatch = item;
           bestMatchLength = newPath.length;
@@ -516,7 +524,7 @@ export class NavTreeState {
 
     // 如果没有完全匹配，返回最佳的部分匹配
     if (bestMatch) {
-      console.log(`返回最佳部分匹配: ${bestMatch.title}`);
+      log(`返回最佳部分匹配: ${bestMatch.title}`);
     }
 
     return bestMatch;
