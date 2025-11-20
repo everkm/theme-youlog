@@ -18,6 +18,7 @@ import "./VersionList.tsx";
 import { initYoulogPrint } from "js_render/components/print_page/youlogPrint";
 import { initTheme } from "./theme";
 import { initImgSwipe } from "./imgSwipe";
+import { initDcardUse } from "./dcardUse";
 
 function init() {
   // 调用初始化TOC函数
@@ -53,6 +54,8 @@ function init() {
   initYoulogPrint();
 
   initTheme();
+
+  initDcardUse();
 }
 
 init();
