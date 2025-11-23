@@ -75,6 +75,8 @@ declare global {
     draft?: boolean;
     recursive?: boolean;
     include_myself?: boolean;
+    order_by?: "date" | "updated_at" | "title";
+    order_direction?: "asc" | "desc";
   }
 
   interface PostsDirectoryArgs extends FetchPostsArgs {

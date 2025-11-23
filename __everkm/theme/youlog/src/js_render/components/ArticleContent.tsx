@@ -38,15 +38,15 @@ const DocMeta: Component<DocMetaProps> = (props) => {
             {formatDate(props.doc?.updated_at)}
           </div>
 
-          {/* 地址编号 */}
-          <Show when={props.doc?.meta?.uno}>
+          {/* 短地址 */}
+          <Show when={props.doc?.meta?.permalink}>
             <div
               class="flex items-center"
-              data-doc-meta-uno={props.doc?.meta?.uno}
+              data-doc-meta-uno={props.doc?.meta?.permalink}
             >
               <span class="icon-[uil--map-pin-alt] text-base"></span>
-              <a href={`/${props.doc?.meta?.uno}?__not_follow`} target="_blank">
-                https://{props.configValue("site.host")}/{props.doc?.meta?.uno}
+              <a href={`/${props.doc?.meta?.permalink}?__not_follow`} target="_blank" data-no-ajax>
+                https://{props.configValue("site.host")}/{props.doc?.meta?.permalink}
               </a>
             </div>
           </Show>

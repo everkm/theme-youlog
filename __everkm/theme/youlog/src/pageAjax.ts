@@ -37,18 +37,20 @@ async function loadPageContent(url: string): Promise<boolean> {
     // 使用 data-ajax-element 选择器同步元素
     const syncElementsByDataAttribute = () => {
       // 获取当前页面中所有带有 data-ajax-element 属性的元素
-      const currentElements = document.querySelectorAll('[data-ajax-element]');
-      
+      const currentElements = document.querySelectorAll("[data-ajax-element]");
+
       currentElements.forEach((currentElement) => {
-        const elementId = currentElement.getAttribute('data-ajax-element');
+        const elementId = currentElement.getAttribute("data-ajax-element");
         if (!elementId) {
-          console.warn('元素缺少 data-ajax-element 值:', currentElement);
+          console.warn("元素缺少 data-ajax-element 值:", currentElement);
           return;
         }
 
         // 在新页面中查找对应的元素
-        const nextElement = doc.querySelector(`[data-ajax-element="${elementId}"]`);
-        
+        const nextElement = doc.querySelector(
+          `[data-ajax-element="${elementId}"]`
+        );
+
         if (nextElement) {
           // 找到对应元素，同步内容
           currentElement.innerHTML = nextElement.innerHTML;
@@ -69,7 +71,7 @@ async function loadPageContent(url: string): Promise<boolean> {
       setTimeout(() => {
         document.getElementById("body-main")?.scrollTo({
           top: 0,
-          behavior: "smooth"
+          behavior: "smooth",
         });
       }, 30);
     });
@@ -247,6 +249,11 @@ export function setupAjaxPageLoading() {
 
       if (!linkElement) {
         // console.log("事件路径中没有A元素");
+        return;
+      }
+
+      // 检查链接是否应该被忽略
+      if (linkElement.hasAttribute("data-no-ajax")) {
         return;
       }
 
