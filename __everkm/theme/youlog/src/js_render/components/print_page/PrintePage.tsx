@@ -11,7 +11,8 @@ const PrintPage: Component<PrintPageProps> = (props) => {
       class={`${props.className}`}
       onclick={() => window.print()}
     >
-      打印
+      <span class="icon-[prime--print] text-base"></span>
+      Print
     </a>
   );
 };

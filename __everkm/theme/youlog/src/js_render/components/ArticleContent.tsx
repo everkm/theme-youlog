@@ -24,6 +24,7 @@ interface ArticleContentProps {
 
 interface DocMetaProps {
   doc: PostItem;
+  configValue: (path: string, defaultValue?: any) => any;
 }
 
 const DocMeta: Component<DocMetaProps> = (props) => {
@@ -32,21 +33,26 @@ const DocMeta: Component<DocMetaProps> = (props) => {
       <Show when={!props.doc?.meta?.hide_meta}>
         <div class="text-sm flex items-center gap-4 text-gray-500 dark:text-gray-400">
           {/* 更新时间  */}
-          <div class="" data-doc-update-at={props.doc?.updated_at?.toString()}>
-            更新于{formatDate(props.doc?.updated_at)}
+          <div class="flex items-center gap-0.5" data-doc-update-at={props.doc?.updated_at?.toString()}>
+            <span class="icon-[fluent-mdl2--date-time-2] text-base"></span>
+            {formatDate(props.doc?.updated_at)}
           </div>
 
           {/* 地址编号 */}
           <Show when={props.doc?.meta?.uno}>
-            <div class="" data-doc-meta-uno={props.doc?.meta?.uno}>
-              <a href={`/${props.doc?.meta?.uno}`} target="_blank">
-                地址编号: {props.doc?.meta?.uno}
+            <div
+              class="flex items-center"
+              data-doc-meta-uno={props.doc?.meta?.uno}
+            >
+              <span class="icon-[uil--map-pin-alt] text-base"></span>
+              <a href={`/${props.doc?.meta?.uno}?__not_follow`} target="_blank">
+                https://{props.configValue("site.host")}/{props.doc?.meta?.uno}
               </a>
             </div>
           </Show>
 
           {/* 打印本页面 */}
-          <PrintPage className="hidden md:block print:hidden" />
+          <PrintPage className="hidden md:flex items-center print:hidden" />
         </div>
       </Show>
       {/* 下边距填充 */}
@@ -73,7 +79,7 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           {props.doc?.title || "无标题"}
         </h1>
 
-        <DocMeta doc={props.doc} />
+        <DocMeta doc={props.doc} configValue={props.configValue} />
 
         <article
           id="article-main"
