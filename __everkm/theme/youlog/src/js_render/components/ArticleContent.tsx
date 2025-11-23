@@ -42,7 +42,7 @@ const DocMeta: Component<DocMetaProps> = (props) => {
           <Show when={props.doc?.meta?.permalink}>
             <div
               class="flex items-center"
-              data-doc-meta-uno={props.doc?.meta?.permalink}
+              data-doc-meta-permalink={props.doc?.meta?.permalink}
             >
               <span class="icon-[uil--map-pin-alt] text-base"></span>
               <a href={`/${props.doc?.meta?.permalink}?__not_follow`} target="_blank" data-no-ajax>

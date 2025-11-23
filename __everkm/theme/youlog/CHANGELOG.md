@@ -48,3 +48,6 @@
 - 更改 `updated_at` 图标
 - 切换永久链接字段至 `permalink`
 
+## v0.3.15 (2025-11-23)
+- 添加标记属性 `data-doc-meta-permalink`
+
