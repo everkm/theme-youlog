@@ -34,7 +34,7 @@ const DocMeta: Component<DocMetaProps> = (props) => {
         <div class="text-sm flex items-center gap-4 text-gray-500 dark:text-gray-400">
           {/* 更新时间  */}
           <div class="flex items-center gap-0.5" data-doc-update-at={props.doc?.updated_at?.toString()}>
-            <span class="icon-[fluent-mdl2--date-time-2] text-base"></span>
+            <span class="icon-[lets-icons--date-range-light] text-base"></span>
             {formatDate(props.doc?.updated_at)}
           </div>
 
