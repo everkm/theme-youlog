@@ -51,3 +51,7 @@
 ## v0.3.15 (2025-11-23)
 - 添加标记属性 `data-doc-meta-permalink`
 
+## v0.3.16 (2025-12-09)
+- 正文内容中的链接添加下划线
+- 添加 alert 块：`.tips`, `.info`, `.success`, `.warning`, `.error`
+
