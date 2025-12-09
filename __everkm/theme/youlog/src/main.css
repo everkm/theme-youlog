@@ -53,6 +53,11 @@
   }
 }
 
+#article-main a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .my-scrollbar {
   &::-webkit-scrollbar {
     @apply w-1.5;
@@ -68,5 +73,100 @@
 
   &::-webkit-scrollbar-thumb:hover {
     @apply bg-border-strong dark:bg-border;
+  }
+}
+
+/* 提示块样式 - 用于 quoteblock */
+.tips {
+  @apply print:border !border-[#9333ea] dark:!border-[#a855f7];
+  @apply bg-purple-50 dark:bg-purple-950/30;
+  @apply text-purple-900 dark:text-purple-200;
+  @apply !pl-12 !pr-4 !py-4 !my-4;
+  @apply rounded-lg;
+  @apply relative;
+
+  &::before {
+    content: "";
+    @apply icon-[material-symbols--lightbulb-outline] absolute left-4 top-4 print:top-0;
+    @apply w-6 h-6;
+    @apply text-purple-600 dark:text-purple-400;
+  }
+}
+
+.info {
+  @apply print:border !border-[#0369a1] dark:!border-[#0ea5e9];
+  @apply bg-blue-50 dark:bg-blue-950/30;
+  @apply text-blue-900 dark:text-blue-200;
+  @apply !pl-12 !pr-4 !py-4 !my-4;
+  @apply rounded-lg;
+  @apply relative;
+
+  &::before {
+    content: "";
+    @apply icon-[jam--info] absolute left-4 top-4 print:top-0;
+    @apply w-6 h-6;
+    @apply text-blue-600 dark:text-blue-400;
+  }
+}
+
+.warning {
+  @apply print:border !border-[#e67700] dark:!border-[#f59e0b];
+  @apply bg-amber-50 dark:bg-amber-950/30;
+  @apply text-amber-900 dark:text-amber-200;
+  @apply !pl-12 !pr-4 !py-4 !my-4;
+  @apply rounded-lg;
+  @apply relative;
+
+  &::before {
+    content: "";
+    @apply icon-[bx--error] absolute left-4 top-4 print:top-0;
+    @apply w-6 h-6;
+    @apply text-amber-600 dark:text-amber-400;
+  }
+}
+
+.error {
+  @apply print:border !border-[#cf1717] dark:!border-[#ef4444];
+  @apply bg-red-50 dark:bg-red-950/30;
+  @apply text-red-900 dark:text-red-200;
+  @apply !pl-12 !pr-4 !py-4 !my-4;
+  @apply rounded-lg;
+  @apply relative;
+
+  &::before {
+    content: "";
+    @apply icon-[ix--error] absolute left-4 top-4 print:top-0;
+    @apply w-6 h-6;
+    @apply text-red-600 dark:text-red-400;
+  }
+}
+
+.success {
+  @apply print:border !border-[#007d4f] dark:!border-[#10b981];
+  @apply bg-green-50 dark:bg-green-950/30;
+  @apply text-green-900 dark:text-green-200;
+  @apply !pl-12 !pr-4 !py-4 !my-4;
+  @apply rounded-lg;
+  @apply relative;
+
+  &::before {
+    content: "";
+    @apply icon-[material-symbols--check-circle-outline] absolute left-4 top-4 print:top-0;
+    @apply w-6 h-6;
+    @apply text-green-600 dark:text-green-400;
+  }
+}
+
+/* 打印模式下确保图标显示 */
+@media print {
+  .tips::before,
+  .info::before,
+  .warning::before,
+  .error::before,
+  .success::before {
+    display: block !important;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

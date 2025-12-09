@@ -6,4 +6,12 @@
     padding-bottom: 0 !important;
     line-height: 1.5 !important;
   }
+
+  #page-main .tips,
+  #page-main .info,
+  #page-main .warning,
+  #page-main .error,
+  #page-main .success {
+    @apply !my-2;
+  }
 }

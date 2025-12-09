@@ -78,19 +78,25 @@
 
 /* 引用样式 */
 .markdown-body blockquote {
+  /* @apply border-l-4 border-gray-300 dark:border-gray-600; */
+  @apply p-4 my-4;
+  /* @apply text-gray-600 dark:text-gray-400;
+  @apply bg-gray-50 dark:bg-gray-800/50; */
+}
+
+.markdown-body blockquote:not(.info):not(.success):not(.tips):not(.warning):not(.error) {
   @apply border-l-4 border-gray-300 dark:border-gray-600;
-  @apply pl-4 py-1 my-4;
   @apply text-gray-600 dark:text-gray-400;
   @apply bg-gray-50 dark:bg-gray-800/50;
 }
 
 /* 引用块内段落样式 - 修复首尾间距不对称问题 */
-.markdown-body blockquote p:first-child {
-  @apply mt-0;
+.markdown-body blockquote *:first-child {
+  @apply mt-0 pt-0;
 }
 
-.markdown-body blockquote p:last-child {
-  @apply mb-0;
+.markdown-body blockquote *:last-child {
+  @apply mb-0 pb-0;
 }
 
 /* 代码样式 */
