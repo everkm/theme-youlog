@@ -2,7 +2,8 @@
 
 import "../assets/css/base.css";
 import "../assets/css/youlog.css";
-import "../assets/css/markdown.css";
+// import "../assets/css/markdown.css";
+import "../assets/css/markdown2.css";
 
 import { initToc } from "../youlog_lib/widgets/toc";
 import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
