@@ -1,0 +1,114 @@
+.nav-tree {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-lg font-medium;
+  }
+
+  ul,
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    position: relative;
+    margin: 2px 0;
+  }
+
+  li p {
+    margin: 0;
+    padding: 0;
+  }
+
+  .node-content {
+    display: flex;
+    align-items: center;
+    padding: 0px 8px 0px 1em;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    min-height: 2rem;
+    a {
+      @apply block;
+      width: 100%;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+    }
+    &:has(a) {
+      cursor: pointer;
+    }
+    & > p {
+      @apply flex-1;
+    }
+  }
+
+  li[data-depth] > .node-content.with-toggle {
+    padding-left: calc((var(--depth, 0) * 1.25rem) + 1.65em);
+  }
+
+  li[data-depth] > .node-content:not(.with-toggle) {
+    padding-left: calc((var(--depth, 0) * 1.25rem) + 1.2em);
+  }
+
+  .node-content:hover {
+    @apply bg-state-hover hover:bg-state-hover dark:hover:bg-state-hover;
+  }
+
+  li.active > .node-content {
+    @apply bg-state-active dark:bg-state-active font-medium;
+  }
+
+  .active-link {
+    @apply text-brand-primary dark:text-brand-primary-light font-semibold;
+  }
+
+  .tree-node-branch > .with-toggle::before {
+    content: "";
+    position: absolute;
+    left: calc((var(--depth, 0) * 1.25rem) + 0.5em);
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234b5563'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s;
+    transform: rotate(0deg);
+  }
+
+  .dark .tree-node-branch > .with-toggle::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e5e7eb'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+  }
+
+  .tree-node-branch > .with-toggle.expanded::before {
+    transform: rotate(90deg);
+  }
+
+  .tree-node-leaf > .with-toggle::before {
+    content: "";
+    position: absolute;
+    left: calc((var(--depth, 0) * 1.25rem) + 0.5em);
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .branch-node {
+    cursor: pointer;
+  }
+
+  .node-content:active {
+    @apply bg-state-active dark:bg-state-active;
+  }
+}

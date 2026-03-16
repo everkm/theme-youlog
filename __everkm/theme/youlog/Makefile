@@ -36,16 +36,14 @@ bundle:
 	cp everkm-theme.yaml $(DIST_DIR)
 	
 	# 将 everkm_version 写入 everkm-theme.yaml
-	# 如果 EVERKM_VERSION 为空或未定义，则使用 0.0.0
-	@if [ -z "$${EVERKM_VERSION}" ]; then \
-		VERSION=0.0.0; \
-	else \
+	# 如果 EVERKM_VERSION 存在则替换，否则不处理
+	@if [ -n "$${EVERKM_VERSION}" ]; then \
 		VERSION=$${EVERKM_VERSION}; \
-	fi; \
-	if [ "$$(uname)" = "Darwin" ]; then \
-		sed -i '' "s/version: .*/version: $${VERSION}/" $(DIST_DIR)/everkm-theme.yaml; \
-	else \
-		sed -i "s/version: .*/version: $${VERSION}/" $(DIST_DIR)/everkm-theme.yaml; \
+		if [ "$$(uname)" = "Darwin" ]; then \
+			sed -i '' "s/version: .*/version: $${VERSION}/" $(DIST_DIR)/everkm-theme.yaml; \
+		else \
+			sed -i "s/version: .*/version: $${VERSION}/" $(DIST_DIR)/everkm-theme.yaml; \
+		fi; \
 	fi
 	
 	# 打包

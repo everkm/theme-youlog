@@ -5,7 +5,7 @@ declare global {
   interface Everkm {
     assets(
       requestId: string,
-      args: { type: "js" | "css"; section: string; cdn?: string }
+      args: { type: "js" | "css"; section: string; cdn?: string },
     ): string;
     data(
       requestId: string,
@@ -17,45 +17,52 @@ declare global {
         format?: "json" | "yaml" | "toml" | "csv";
         json_payload?: Record<string, any>;
         csv_delimiter?: string;
-      }
+      },
     ): any;
     markdown_to_html(content: string): string;
     base_url(requestId: string, args?: { url?: string }): string;
     asset_base_url(requestId: string, args?: { url?: string }): string;
     posts(
       requestId: string,
-      args?: FetchPostsArgs & { offset?: number; limit?: number }
+      args?: FetchPostsArgs & { offset?: number; limit?: number },
     ): {
       items: PostItem[];
       total: number;
     };
     posts_tag_list(
       requestId: string,
-      args?: FetchPostsArgs
+      args?: FetchPostsArgs,
     ): Record<string, number>;
     posts_category_list(
       requestId: string,
-      args?: FetchPostsArgs
+      args?: FetchPostsArgs,
     ): Record<string, number>;
     posts_directory_list(
       requestId: string,
-      args?: PostsDirectoryArgs
+      args?: PostsDirectoryArgs,
     ): string[];
     post_meta(requestId: string, args: FetchPostArgs): PostItem | null;
     post_detail(requestId: string, args: FetchPostArgs): PostItem | null;
     has_post(requestId: string, args: { path: string }): boolean;
     nav_indicator(
       requestId: string,
-      args: { from_file: string }
+      args: { from_file: string },
     ): {
       prev?: NavIndicatorItem;
       next?: NavIndicatorItem;
     };
     nav_path(requestId: string, args: NavPathArgs): LinkItem[];
+    nav_tree(
+      requestId: string,
+      args: NavTreeArgs,
+    ): {
+      nodes: NavNode[];
+      paths: LinkItem[];
+    };
     media_remote(requestId: string, args: { url: string }): string;
     media_dimension(
       requestId: string,
-      args: { file: string }
+      args: { file: string },
     ): {
       width: number;
       height: number;
@@ -65,6 +72,7 @@ declare global {
     has_config(requestId: string, args: { key: string }): boolean;
     media(requestId: string, args: { file: string }): string;
     env(requestId: string, args: { name: string; default?: any }): any;
+    lang(): string;
   }
 
   interface FetchPostsArgs {
@@ -100,6 +108,16 @@ declare global {
   interface NavPathArgs {
     from_file: string;
     merge?: LinkItem[];
+  }
+
+  interface NavTreeArgs {
+    from_file: string;
+  }
+
+  interface NavNode {
+    text: string;
+    link?: string;
+    children?: NavNode[];
   }
 
   interface LinkItem {

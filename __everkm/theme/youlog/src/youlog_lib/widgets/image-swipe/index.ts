@@ -1,0 +1,1 @@
+export { initImgSwipe } from "./imgSwipe";

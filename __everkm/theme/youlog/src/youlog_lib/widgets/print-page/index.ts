@@ -1,0 +1,1 @@
+export { initYoulogPrint } from "./youlogPrint";

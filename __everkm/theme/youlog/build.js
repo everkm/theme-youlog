@@ -118,18 +118,18 @@ const manifestPlugin = {
 // 多入口点配置
 const entryPoints = [
   {
-    in: "src/index.ts",
+    in: "src/entries/browser.ts",
     out: "youlog",
   },
   {
-    in: "src/plugins/in_search/index.ts",
+    in: "src/youlog_lib/plugins/in_search/index.ts",
     out: "plugin-in-search",
   },
 ];
 
 // SSR 入口点配置
 const ssrEntryPoint = {
-  in: "src/js_render/index.tsx",
+  in: "src/entries/ssr.ts",
   out: "everkm-render",
 };
 

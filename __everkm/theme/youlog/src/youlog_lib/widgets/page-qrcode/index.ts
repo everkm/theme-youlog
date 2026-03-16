@@ -1,0 +1,1 @@
+export { initPageQrcode } from "./renderPageQrcode";
