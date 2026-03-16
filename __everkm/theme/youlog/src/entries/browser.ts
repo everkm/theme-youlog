@@ -39,6 +39,7 @@ function init() {
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
   initLazyImg();
+  initNavMenu(document.getElementById("header-nav") as HTMLElement);
 
   // 初始化应用头部
   initAppHeader();
@@ -59,11 +60,6 @@ function init() {
   initDcardUse();
 
   setupAjaxPageLoad();
-
-  // const primaryNav = document.getElementById("primary-nav");
-  // if (primaryNav) {
-  //   initNavMenu(primaryNav as HTMLElement, convertLinkWithCurrentLocation);
-  // }
 }
 
 init();
