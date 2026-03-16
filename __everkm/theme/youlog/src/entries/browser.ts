@@ -35,31 +35,39 @@ function init() {
     },
   });
 
-  initSidebarNavTree2();
+  // 初始化导航树
+  const sidebarNavTreeContainer = document.getElementById(
+    "sidebar-nav-tree",
+  ) as HTMLElement | null;
+  const breadcrumbEl = document.getElementById(
+    "breadcrumb",
+  ) as HTMLElement | null;
+  if (sidebarNavTreeContainer) {
+    initSidebarNavTree2({
+      container: sidebarNavTreeContainer,
+      breadcrumbRoot: breadcrumbEl ?? undefined,
+    });
+  }
+
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
   initLazyImg();
   initNavMenu(document.getElementById("header-nav") as HTMLElement);
+  initKeywordHighlighter("#article-main");
+  initYoulogPrint();
+  initDcardUse("#article-main");
+  setupAjaxPageLoad();
+
+  // 初始化图片预览
+  initImgSwipe("#article-main");
 
   // 初始化应用头部
   initAppHeader();
 
-  // 初始化关键词高亮
-  initKeywordHighlighter("#article-main");
-
   // 初始化页面二维码
   initPageQrcode();
 
-  // 初始化图片预览
-  initImgSwipe();
-
-  initYoulogPrint();
-
   initTheme();
-
-  initDcardUse();
-
-  setupAjaxPageLoad();
 }
 
 init();

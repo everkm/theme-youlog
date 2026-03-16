@@ -69,7 +69,7 @@ export function setupLazyImg(container: HTMLElement, attr = "data-src") {
       image.setAttribute(
         "src",
         svgPlaceholder({
-          text: "图片加载失败",
+          text: "Image loading failed",
           width: parseInt(image.getAttribute("width") || "0") || 300,
           height: parseInt(image.getAttribute("height") || "0") || 200,
         }),
@@ -81,7 +81,9 @@ export function setupLazyImg(container: HTMLElement, attr = "data-src") {
     }
   };
 
-  const imageToLazy = container.querySelectorAll<HTMLImageElement>(`img[${attr}]`);
+  const imageToLazy = container.querySelectorAll<HTMLImageElement>(
+    `img[${attr}]`,
+  );
   imageToLazy.forEach(function (image) {
     observer.observe(image);
   });

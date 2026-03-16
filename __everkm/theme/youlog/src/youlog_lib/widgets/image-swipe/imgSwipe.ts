@@ -8,21 +8,19 @@ import "photoswipe/style.css";
 let currentCleanupFn: (() => void) | null = null;
 let lightbox: PhotoSwipeLightbox | null = null;
 
-const IMG_BOX_SELECTOR = "#article-main";
-
 interface IImgSwipeItem {
   width: number;
   height: number;
   src: string;
 }
 
-function setup() {
+function setup(selector: string) {
   if (currentCleanupFn) {
     currentCleanupFn();
     currentCleanupFn = null;
   }
 
-  const box = document.querySelector<HTMLElement>(IMG_BOX_SELECTOR);
+  const box = document.querySelector<HTMLElement>(selector);
   if (!box) return;
 
   const images = box.querySelectorAll<HTMLImageElement>("img");
@@ -52,8 +50,8 @@ function setup() {
   };
 }
 
-function imageClickHandleAgent() {
-  const box = document.querySelector<HTMLElement>(IMG_BOX_SELECTOR);
+function imageClickHandleAgent(selector: string) {
+  const box = document.querySelector<HTMLElement>(selector);
   if (!box) return;
 
   box.addEventListener("click", (event) => {
@@ -66,13 +64,13 @@ function imageClickHandleAgent() {
   });
 }
 
-export function initImgSwipe() {
+export function initImgSwipe(bodySelector: string) {
   document.addEventListener("DOMContentLoaded", () => {
-    setup();
-    imageClickHandleAgent();
+    setup(bodySelector);
+    imageClickHandleAgent(bodySelector);
   });
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    setup();
+    setup(bodySelector);
   });
   document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
     if (currentCleanupFn) {

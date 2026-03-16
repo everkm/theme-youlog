@@ -1,13 +1,14 @@
 import { installDcard, uninstallDcard } from "./dcard";
-import { EVENT_PAGE_LOAD_BEFORE, EVENT_PAGE_LOADED } from "../widgets/page-ajax/constants";
+import {
+  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_PAGE_LOADED,
+} from "../widgets/page-ajax/constants";
 
 function log(message: string, ...args: any[]) {
   console.log("dcard:use: " + message, ...args);
 }
 
-function initDcardUse() {
-  const bodySelector = "#article-main";
-
+function initDcardUse(bodySelector: string = "#article-main") {
   const doDispatch = () => {
     const el = document.querySelector(bodySelector) as HTMLElement;
     if (el) {
