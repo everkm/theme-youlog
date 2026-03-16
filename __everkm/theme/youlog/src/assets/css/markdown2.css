@@ -10,63 +10,40 @@
   --focus-outlineColor: var(--brand-primary);
   --fgColor-default: var(--text-primary);
   --fgColor-muted: var(--text-tertiary);
-  --fgColor-accent: var(--accent);
-  --fgColor-success: var(--success);
-  --fgColor-attention: var(--warning);
-  --fgColor-danger: var(--error);
-  --fgColor-done: var(--link-visited);
 
   /* 背景 */
   --bgColor-default: var(--background);
-  --bgColor-muted: var(--surface);
-  --bgColor-neutral-muted: rgba(148, 163, 184, 0.12);
-  --bgColor-attention-muted: rgba(230, 119, 0, 0.1);
+  --bgColor-muted: var(--background);
+  --bgColor-neutral-muted: var(--background);
+  --bgColor-attention-muted: var(--background);
 
   /* 边框 */
   --borderColor-default: var(--border);
-  --borderColor-muted: rgba(226, 232, 240, 0.7);
-  --borderColor-neutral-muted: rgba(226, 232, 240, 0.7);
-  --borderColor-accent-emphasis: var(--accent);
-  --borderColor-success-emphasis: var(--success);
-  --borderColor-attention-emphasis: var(--warning);
-  --borderColor-danger-emphasis: var(--error);
-  --borderColor-done-emphasis: var(--link-visited);
+  --borderColor-muted: var(--border);
 
   /* 下面这些是参考文件中与 markdown 排版相关、且项目中尚未定义的变量 */
   /* Base sizing */
-  --base-size-4: 0.25rem;
   --base-size-8: 0.5rem;
   --base-size-16: 1rem;
-  --base-size-24: 1.5rem;
-  --base-size-40: 2.5rem;
   --base-text-weight-normal: 400;
   --base-text-weight-medium: 500;
   --base-text-weight-semibold: 600;
 
   /* Font stacks */
   --font-serif: "LXGWWenKaiGB", "Noto Serif SC", serif;
-  --font-sans: "LXGWWenKaiGB", "Noto Sans SC", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
-
-  /* Layout（只给 markdown/layout 相关组件用） */
-  --content-max-width: 560px;
-  --toc-width: 220px;
-  --layout-gap: 3rem;
-  --content-padding-x: 2rem;
+  --font-sans:
+    "LXGWWenKaiGB", "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --focus-outlineColor: var(--brand-primary-light);
+    /* --focus-outlineColor: var(--brand-primary-light);
     --fgColor-default: var(--text-primary);
     --fgColor-muted: var(--text-tertiary);
-    --fgColor-accent: var(--accent);
-    --fgColor-success: var(--success);
-    --fgColor-attention: var(--warning);
-    --fgColor-danger: var(--error);
-    --fgColor-done: var(--link-visited);
 
     --bgColor-default: var(--background);
     --bgColor-muted: var(--surface);
@@ -74,25 +51,14 @@
     --bgColor-attention-muted: rgba(245, 158, 11, 0.16);
 
     --borderColor-default: var(--border);
-    --borderColor-muted: rgba(51, 65, 85, 0.7);
-    --borderColor-neutral-muted: rgba(51, 65, 85, 0.7);
-    --borderColor-accent-emphasis: var(--accent);
-    --borderColor-success-emphasis: var(--success);
-    --borderColor-attention-emphasis: var(--warning);
-    --borderColor-danger-emphasis: var(--error);
-    --borderColor-done-emphasis: var(--link-visited);
+    --borderColor-muted: rgba(51, 65, 85, 0.7); */
   }
 }
 
 .dark {
-  --focus-outlineColor: var(--brand-primary-light);
+  /* --focus-outlineColor: var(--brand-primary-light);
   --fgColor-default: var(--text-primary);
   --fgColor-muted: var(--text-tertiary);
-  --fgColor-accent: var(--accent);
-  --fgColor-success: var(--success);
-  --fgColor-attention: var(--warning);
-  --fgColor-danger: var(--error);
-  --fgColor-done: var(--link-visited);
 
   --bgColor-default: var(--background);
   --bgColor-muted: var(--surface);
@@ -100,18 +66,13 @@
   --bgColor-attention-muted: rgba(245, 158, 11, 0.16);
 
   --borderColor-default: var(--border);
-  --borderColor-muted: rgba(51, 65, 85, 0.7);
-  --borderColor-neutral-muted: rgba(51, 65, 85, 0.7);
-  --borderColor-accent-emphasis: var(--accent);
-  --borderColor-success-emphasis: var(--success);
-  --borderColor-attention-emphasis: var(--warning);
-  --borderColor-danger-emphasis: var(--error);
-  --borderColor-done-emphasis: var(--link-visited);
+  --borderColor-muted: rgba(51, 65, 85, 0.7); */
 }
 
-/* ─── 容器基础 ─────────────────────────────────────────────────────────────── */
+/* ─── .markdown-body ─────────────────────────────────────────────────────── */
 
 .markdown-body {
+  /* Reset github vars that might conflict */
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 
@@ -124,12 +85,13 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  /* Typography */
+  font-family:
+    var(--font-sans), "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+
   font-size: 1rem;
   line-height: 1.8;
-  color: var(--text-primary);
+  color: var(--fgColor-default);
   background-color: transparent;
 }
 
@@ -145,7 +107,7 @@
   margin-bottom: 0 !important;
 }
 
-/* ─── 标题 ───────────────────────────────────────────────────────────────── */
+/* ── Headings ──────────────────────────────────────────────────────────────*/
 
 .markdown-body h1,
 .markdown-body h2,
@@ -153,11 +115,12 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
+  font-family: var(--font-serif);
   margin-top: 2.5rem;
   margin-bottom: 0.875rem;
-  font-weight: 600;
+  font-weight: var(--base-text-weight-semibold, 600);
   line-height: 1.3;
-  color: var(--text-primary);
+  color: var(--fgColor-default);
   scroll-margin-top: 5rem;
 }
 
@@ -192,25 +155,25 @@
 
 .markdown-body h4 {
   font-size: 1em;
-  font-weight: 500;
+  font-weight: var(--base-text-weight-medium, 500);
 }
 
 .markdown-body h5 {
   font-size: 0.9em;
-  font-weight: 500;
+  font-weight: var(--base-text-weight-medium, 500);
 }
 
 .markdown-body h6 {
   font-size: 0.85em;
-  font-weight: 500;
-  color: var(--text-tertiary);
+  font-weight: var(--base-text-weight-medium, 500);
+  color: var(--fgColor-muted);
 }
 
-/* 标题锚点 */
+/* Heading anchor */
 .markdown-body .heading-anchor {
   opacity: 0;
   margin-left: 0.4em;
-  color: var(--text-tertiary);
+  color: var(--fgColor-muted);
   text-decoration: none;
   font-size: 0.85em;
   transition: opacity 0.15s;
@@ -225,22 +188,23 @@
   opacity: 1;
 }
 
-/* ─── 段落 ───────────────────────────────────────────────────────────────── */
+/* ── Paragraph ─────────────────────────────────────────────────────────────*/
 
 .markdown-body p {
   margin-top: 0;
   margin-bottom: 1em;
-  color: var(--text-secondary);
 }
 
-/* ─── 链接 ───────────────────────────────────────────────────────────────── */
+/* ── Links ─────────────────────────────────────────────────────────────────*/
 
 .markdown-body a {
   color: var(--link);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 91, 153, 0.4);
-  transition: color 0.15s, text-decoration-color 0.15s;
+  text-decoration-color: var(--link);
+  transition:
+    color 0.15s,
+    text-decoration-color 0.15s;
 }
 
 .markdown-body a:hover {
@@ -250,14 +214,14 @@
 
 .markdown-body a:visited {
   color: var(--link);
-  text-decoration-color: rgba(126, 59, 146, 0.4);
+  text-decoration-color: var(--link);
 }
 
-/* ─── 行内文字 ───────────────────────────────────────────────────────────── */
+/* ── Inline text ───────────────────────────────────────────────────────────*/
 
 .markdown-body b,
 .markdown-body strong {
-  font-weight: 600;
+  font-weight: var(--base-text-weight-semibold, 600);
   color: var(--text-primary);
 }
 
@@ -267,12 +231,12 @@
 
 .markdown-body del {
   text-decoration: line-through;
-  color: var(--text-tertiary);
+  color: var(--fgColor-muted);
 }
 
 .markdown-body mark {
-  background-color: rgba(230, 119, 0, 0.1);
-  color: var(--text-primary);
+  background-color: var(--bgColor-attention-muted);
+  color: var(--fgColor-default);
   border-radius: 2px;
   padding: 0.05em 0.25em;
 }
@@ -306,28 +270,28 @@
   font-style: italic;
 }
 
-/* ─── 代码 ───────────────────────────────────────────────────────────────── */
+/* ── Code ──────────────────────────────────────────────────────────────────*/
 
 .markdown-body code,
 .markdown-body kbd,
 .markdown-body pre,
 .markdown-body samp {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-mono);
 }
 
 .markdown-body code {
+  font-family: var(--font-mono);
   font-size: 0.84em;
   padding: 0.15em 0.45em;
-  background-color: var(--surface-muted);
+  background-color: var(--bgColor-neutral-muted);
   border-radius: 4px;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  border: 1px solid var(--borderColor-muted);
+  color: var(--fgColor-default);
 }
 
 .markdown-body pre {
-  background-color: var(--background-elevated);
-  border: 1px solid var(--border);
+  background-color: var(--bgColor-muted);
+  border: 1px solid var(--borderColor-default);
   border-radius: 6px;
   font-size: 0.84em;
   line-height: 1.6;
@@ -339,6 +303,11 @@
   max-width: 100%;
   word-wrap: normal;
   position: relative;
+}
+
+/* pre 内部有 code 时（代码块）不显示边框 */
+.markdown-body pre:has(code) {
+  border: none;
 }
 
 .markdown-body pre code {
@@ -354,7 +323,7 @@
   color: inherit;
 }
 
-/* ─── 引用块 ─────────────────────────────────────────────────────────────── */
+/* ── Blockquote ────────────────────────────────────────────────────────────*/
 
 .markdown-body blockquote {
   margin: 1.25rem 0;
@@ -367,6 +336,12 @@
   position: relative;
 }
 
+@media (prefers-color-scheme: dark) {
+  .markdown-body blockquote {
+    background-color: var(--brand-primary-subtle);
+  }
+}
+
 .markdown-body blockquote > :first-child {
   margin-top: 0;
 }
@@ -377,10 +352,10 @@
 
 .markdown-body blockquote blockquote {
   border-left-color: var(--border-strong);
-  background-color: var(--surface-muted);
+  background-color: var(--bgColor-neutral-muted);
 }
 
-/* ─── 列表 ───────────────────────────────────────────────────────────────── */
+/* ── Lists ─────────────────────────────────────────────────────────────────*/
 
 .markdown-body ul,
 .markdown-body ol {
@@ -394,6 +369,7 @@
   padding-left: 1.5em;
 }
 
+/* 第一层 ul 左侧多留一点间距 */
 .markdown-body > ul {
   padding-left: 2.3em;
 }
@@ -414,32 +390,32 @@
   content: "";
   position: absolute;
   left: -1.3em;
-  top: 0.62em;
-  width: 7px;
-  height: 7px;
-  background-color: var(--accent);
+  top: 0.75em;
+  width: 6px;
+  height: 6px;
+  background-color: var(--text-secondary);
   border-radius: 50%;
   opacity: 0.85;
 }
 
 .markdown-body ul ul > li:not(.task-list-item)::before {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   left: -1.2em;
-  top: 0.65em;
+  top: 0.75em;
   border-radius: 0;
-  background-color: var(--accent);
+  background-color: var(--text-secondary);
   opacity: 0.7;
 }
 
 .markdown-body ul ul ul > li:not(.task-list-item)::before {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   left: -1.15em;
-  top: 0.65em;
+  top: 0.75em;
   border-radius: 50%;
   background-color: transparent;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--text-secondary);
   opacity: 0.65;
 }
 
@@ -451,10 +427,11 @@
 .markdown-body ol > li::before {
   content: counter(ol-counter) ".";
   position: absolute;
+  top: 0.1em;
   left: -2em;
   width: 1.75em;
   text-align: right;
-  color: var(--accent);
+  color: var(--text-secondary);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   font-size: 0.9em;
@@ -467,7 +444,7 @@
 
 .markdown-body ol ol > li::before {
   content: counter(ol-counter, lower-alpha) ".";
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .markdown-body ul ul,
@@ -478,21 +455,36 @@
   margin-bottom: 0;
 }
 
-/* ─── 任务列表 ───────────────────────────────────────────────────────────── */
+/* ── Task List ─────────────────────────────────────────────────────────────*/
 
 .markdown-body .task-list-item {
   list-style-type: none;
   padding-left: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
 }
 
 .markdown-body .task-list-item::before {
   display: none;
 }
 
+.markdown-body .task-list-item input[type="checkbox"] {
+  display: none;
+}
+
+/* SVG checkbox via pseudo-element on the li */
+.markdown-body .task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+/* Use background SVG trick on label or create checkbox icon */
+.markdown-body .task-list-item input[type="checkbox"] + * {
+  position: relative;
+}
+
+/* Override: render custom checkboxes */
 .markdown-body li > input[type="checkbox"] {
+  display: inline-block;
   appearance: none;
   width: 1em;
   height: 1em;
@@ -500,6 +492,7 @@
   border: 1.5px solid var(--border-strong);
   border-radius: 3px;
   margin: 0;
+  /* margin-top: 0.25em; */
   margin-bottom: 0.25em;
   flex-shrink: 0;
   background-color: var(--background-elevated);
@@ -511,13 +504,13 @@
 .markdown-body li > input[type="checkbox"]:checked {
   background-color: var(--accent);
   border-color: var(--accent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M2 6l3 3 5-5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23faf8f4' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M2 6l3 3 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: 75%;
   background-position: center;
 }
 
-/* ─── 表格 ───────────────────────────────────────────────────────────────── */
+/* ── Table ─────────────────────────────────────────────────────────────────*/
 
 .markdown-body table {
   border-collapse: collapse;
@@ -532,44 +525,44 @@
 
 .markdown-body table th,
 .markdown-body table td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--borderColor-default);
   padding: 0.5rem 0.875rem;
   vertical-align: top;
   line-height: 1.6;
 }
 
 .markdown-body table th {
-  background-color: var(--surface-muted);
-  font-weight: 600;
+  background-color: var(--bgColor-muted);
+  font-weight: var(--base-text-weight-semibold, 600);
   font-size: 0.875em;
   letter-spacing: 0.02em;
   color: var(--text-secondary);
   text-align: left;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid var(--borderColor-default);
 }
 
 .markdown-body table tr:nth-child(2n) {
-  background-color: var(--surface-muted);
+  background-color: var(--bgColor-neutral-muted);
 }
 
 .markdown-body table tr:hover {
   background-color: var(--state-hover);
 }
 
-/* ─── 分割线 ─────────────────────────────────────────────────────────────── */
+/* ── Horizontal Rule ───────────────────────────────────────────────────────*/
 
 .markdown-body hr {
   height: 0;
   padding: 0;
   margin: 2rem 0;
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--borderColor-default);
   background: transparent;
   box-sizing: content-box;
   overflow: hidden;
 }
 
-/* ─── 图片 ───────────────────────────────────────────────────────────────── */
+/* ── Image ─────────────────────────────────────────────────────────────────*/
 
 .markdown-body img {
   max-width: 100%;
@@ -578,7 +571,13 @@
   display: block;
   margin: 0 0 1rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--borderColor-muted);
+  border-style: none;
+}
+
+.markdown-body img[src] {
+  /* border-style: solid; */
+  border: none;
 }
 
 .markdown-body figure {
@@ -586,9 +585,10 @@
   font-size: 0.8em;
 }
 
-/* ─── 键盘按键 ───────────────────────────────────────────────────────────── */
+/* ── Keyboard ──────────────────────────────────────────────────────────────*/
 
 .markdown-body kbd {
+  font-family: var(--font-mono);
   font-size: 0.78em;
   padding: 0.15em 0.45em;
   background-color: var(--background-elevated);
@@ -599,7 +599,7 @@
   box-shadow: inset 0 -1px 0 var(--border-strong);
 }
 
-/* ─── 定义列表 ───────────────────────────────────────────────────────────── */
+/* ── Definition List ───────────────────────────────────────────────────────*/
 
 .markdown-body dl {
   margin-bottom: 1rem;
@@ -607,7 +607,7 @@
 }
 
 .markdown-body dt {
-  font-weight: 600;
+  font-weight: var(--base-text-weight-semibold, 600);
   color: var(--text-primary);
   margin-top: 1em;
   margin-bottom: 0.25em;
@@ -619,7 +619,7 @@
   margin-bottom: 0.25em;
 }
 
-/* ─── 脚注 ───────────────────────────────────────────────────────────────── */
+/* ── Footnotes ─────────────────────────────────────────────────────────────*/
 
 .markdown-body .footnote-reference {
   font-size: 0.78em;
@@ -628,12 +628,13 @@
 }
 
 .markdown-body .footnote-reference a {
-  text-decoration: none;
+  text-decoration: none !important;
   color: var(--accent);
   padding: 0 0.1em;
 }
 
 .markdown-body .footnote-definition {
+  font-family: var(--font-serif);
   font-size: 0.85em;
   color: var(--text-secondary);
   margin-top: 0.5em;
@@ -642,18 +643,20 @@
 }
 
 .markdown-body .footnote-definition-label {
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-weight: var(--base-text-weight-semibold, 600);
   color: var(--accent);
   margin-right: 0.3em;
 }
 
+/* Footnote section wrapper */
 .markdown-body .footnotes-section,
 .markdown-body [class*="footnote"] > p {
   font-size: 0.875em;
   color: var(--text-secondary);
 }
 
-/* ─── 数学公式容器（配合 KaTeX）──────────────────────────────────────────── */
+/* ── Math ──────────────────────────────────────────────────────────────────*/
 
 .markdown-body .math.math-inline {
   font-size: 1em;
@@ -666,12 +669,12 @@
   text-align: center;
 }
 
-/* ─── Details / Summary ─────────────────────────────────────────────────── */
+/* ── Details / Summary ─────────────────────────────────────────────────────*/
 
 .markdown-body details {
   display: block;
   margin-bottom: 1em;
-  border: 1px solid var(--border);
+  border: 1px solid var(--borderColor-default);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -679,9 +682,9 @@
 .markdown-body summary {
   display: list-item;
   padding: 0.6em 1em;
-  background-color: var(--surface-muted);
+  background-color: var(--bgColor-muted);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: var(--base-text-weight-medium, 500);
   color: var(--text-secondary);
 }
 
@@ -690,58 +693,72 @@
 }
 
 .markdown-body details[open] summary {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--borderColor-default);
 }
 
 .markdown-body details > *:not(summary) {
   padding: 0 1em;
 }
 
-/* ─── Markdown Alerts ───────────────────────────────────────────────────── */
+/* ── Markdown Alerts ───────────────────────────────────────────────────────*/
 
 .markdown-body .markdown-alert {
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
+  padding: var(--base-size-8) var(--base-size-16);
+  margin-bottom: var(--base-size-16);
   color: inherit;
-  border-left: 0.25em solid var(--border);
+  border-left: 0.25em solid var(--borderColor-default);
   border-radius: 0 6px 6px 0;
 }
 
 .markdown-body .markdown-alert > :first-child {
   margin-top: 0;
 }
-
 .markdown-body .markdown-alert > :last-child {
   margin-bottom: 0;
 }
 
 .markdown-body .markdown-alert .markdown-alert-title {
   display: flex;
-  font-weight: 500;
+  font-weight: var(--base-text-weight-medium, 500);
   align-items: center;
   line-height: 1;
   margin-bottom: 0.5em;
 }
 
 .markdown-body .markdown-alert.markdown-alert-note {
-  border-left-color: var(--accent);
-  background-color: rgba(194, 94, 0, 0.05);
+  border-left-color: var(--borderColor-accent-emphasis);
+  background-color: rgba(184, 92, 44, 0.05);
 }
-
+.markdown-body .markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--fgColor-accent);
+}
+.markdown-body .markdown-alert.markdown-alert-important {
+  border-left-color: var(--borderColor-done-emphasis);
+}
+.markdown-body .markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--fgColor-done);
+}
 .markdown-body .markdown-alert.markdown-alert-warning {
-  border-left-color: var(--warning);
-  background-color: rgba(230, 119, 0, 0.08);
+  border-left-color: var(--borderColor-attention-emphasis);
+  background-color: var(--bgColor-attention-muted);
 }
-
+.markdown-body .markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--fgColor-attention);
+}
 .markdown-body .markdown-alert.markdown-alert-tip {
-  border-left-color: var(--success);
+  border-left-color: var(--borderColor-success-emphasis);
 }
-
+.markdown-body .markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--fgColor-success);
+}
 .markdown-body .markdown-alert.markdown-alert-caution {
-  border-left-color: var(--error);
+  border-left-color: var(--borderColor-danger-emphasis);
+}
+.markdown-body .markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--fgColor-danger);
 }
 
-/* ─── 输入与焦点 ─────────────────────────────────────────────────────────── */
+/* ── Input / Focus ─────────────────────────────────────────────────────────*/
 
 .markdown-body input {
   font: inherit;
@@ -752,21 +769,21 @@
   line-height: inherit;
 }
 
-.markdown-body a:focus:not(:focus-visible),
+.markdown-body [role="button"]:focus:not(:focus-visible),
 .markdown-body button:focus:not(:focus-visible),
 .markdown-body summary:focus:not(:focus-visible),
-.markdown-body [role="button"]:focus:not(:focus-visible) {
+.markdown-body a:focus:not(:focus-visible) {
   outline: none;
   box-shadow: none;
 }
 
 .markdown-body a:focus-visible,
 .markdown-body button:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--focus-outlineColor);
   outline-offset: 2px;
 }
 
-/* ─── 其他 ───────────────────────────────────────────────────────────────── */
+/* ── Misc GH markdown ──────────────────────────────────────────────────────*/
 
 .markdown-body [hidden] {
   display: none !important;
@@ -775,11 +792,11 @@
 .markdown-body g-emoji {
   display: inline-block;
   min-width: 1ch;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    "Noto Color Emoji";
+  font-family:
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   font-size: 1em;
   font-style: normal !important;
-  font-weight: 400;
+  font-weight: var(--base-text-weight-normal, 400);
   line-height: 1;
   vertical-align: -0.075em;
 }
@@ -789,14 +806,26 @@
   height: 1em;
 }
 
-/* ─── 响应式微调（只改 markdown-body 行为）──────────────────────────────── */
+.markdown-body .octicon {
+  display: inline-block;
+  fill: currentColor;
+  vertical-align: text-bottom;
+}
 
+.markdown-body ::-webkit-calendar-picker-indicator {
+  filter: invert(50%);
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+/* Medium — 单栏布局，小屏起隐藏 TOC（仅大屏显示侧栏） */
 @media (max-width: 900px) {
   .markdown-body h2::before {
     left: -0.75rem;
   }
 }
 
+/* Small */
 @media (max-width: 560px) {
   .markdown-body pre {
     font-size: 0.8em;
@@ -808,3 +837,9 @@
   }
 }
 
+/* Print */
+@media print {
+  .markdown-body a {
+    text-decoration: underline;
+  }
+}
