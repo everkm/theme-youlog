@@ -5,8 +5,6 @@ import "../assets/css/youlog.css";
 import "../assets/css/markdown.css";
 
 import { initToc } from "../youlog_lib/widgets/toc";
-import { initLeftDrawer } from "../utils/left_drawer";
-import { convertLinkWithCurrentLocation } from "utils/nav_menu_transform";
 import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { setupAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
@@ -14,7 +12,7 @@ import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { initLazyImg } from "../youlog_lib/widgets/image-lazy";
 import { initImgSwipe } from "../youlog_lib/widgets/image-swipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
-import { initAppHeader } from "layout/appHeader";
+import { initAppHeader } from "utils/app_header";
 import { initKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
 import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { initYoulogPrint } from "youlog_lib/widgets/print-page";
