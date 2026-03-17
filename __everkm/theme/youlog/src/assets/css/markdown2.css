@@ -99,7 +99,8 @@
   h3,
   h4,
   h5,
-  h6 {
+  h6,
+  .footnote-definition {
     scroll-margin-top: 7rem;
   }
 }
@@ -685,14 +686,14 @@
 }
 
 /* 确保在每个 footnote-definition 的最后一个子元素后显示返回箭头 */
-.markdown-body .footnote-definition > :last-child::after {
+/* .markdown-body .footnote-definition > :last-child::after {
   content: "⤴";
   display: inline-flex;
   align-items: bottom;
   font-size: 1em;
   font-weight: bold;
   @apply ml-2;
-}
+} */
 
 /* ── Math ──────────────────────────────────────────────────────────────────*/
 
