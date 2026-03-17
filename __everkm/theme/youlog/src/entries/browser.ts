@@ -21,6 +21,7 @@ import { initTheme } from "layout/theme";
 import { initDcardUse } from "youlog_lib/dcard";
 import { initPrism } from "youlog_lib/widgets/prism";
 import { initKatex } from "youlog_lib/widgets/katex";
+import { initHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 
 function init() {
   initToc({
@@ -64,6 +65,7 @@ function init() {
 
   initPrism("#article-main");
   initKatex("#article-main");
+  initHeadingAnchor("#article-main");
 
   // 初始化图片预览
   initImgSwipe("#article-main");

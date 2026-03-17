@@ -187,6 +187,10 @@
   transition: opacity 0.15s;
 }
 
+.markdown-body .heading-anchor:hover {
+  color: var(--link-hover);
+}
+
 .markdown-body h1:hover .heading-anchor,
 .markdown-body h2:hover .heading-anchor,
 .markdown-body h3:hover .heading-anchor,
