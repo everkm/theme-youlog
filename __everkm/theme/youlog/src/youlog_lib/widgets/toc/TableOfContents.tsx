@@ -224,11 +224,14 @@ export function MobileToc(props: MobileTocProps) {
   });
 
   const getHeaderHeight = () => {
-    return parseInt(
+    const h = parseInt(
       getComputedStyle(document.documentElement)
-        .getPropertyValue("--header-height")
+        .getPropertyValue("--topbar-height")
         .trim() || "0",
     );
+
+    console.log("getHeaderHeight", h);
+    return h;
   };
 
   // 检查是否在sticky状态
@@ -685,7 +688,10 @@ export function TableOfContents(props: TocProps) {
       <>
         {/* 目录标题作为第一个项目，使用div而非链接 */}
         <div class="toc-item toc-title-item">
-          <div class="toc-title toc-title-clickable cursor-pointer" onClick={scrollToTop}>
+          <div
+            class="toc-title toc-title-clickable cursor-pointer"
+            onClick={scrollToTop}
+          >
             {props.title || "On this page"}
           </div>
         </div>

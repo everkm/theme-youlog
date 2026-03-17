@@ -131,7 +131,7 @@
   }
   to {
     max-height: calc(
-      100dvh - var(--header-height, 60px) - var(--indicator-height, 50px)
+      100dvh - var(--topbar-height, 60px) - var(--indicator-height, 50px)
     );
     opacity: 1;
   }

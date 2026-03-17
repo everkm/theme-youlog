@@ -62,7 +62,7 @@ function watchAppHeader(): void {
   const getHeaderHeight = () => {
     return parseInt(
       getComputedStyle(document.documentElement)
-        .getPropertyValue("--header-height")
+        .getPropertyValue("--topbar-height")
         .trim() || "0",
     );
   };

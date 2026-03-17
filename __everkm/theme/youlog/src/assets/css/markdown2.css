@@ -92,6 +92,16 @@
   line-height: 1.8;
   color: var(--fgColor-default);
   background-color: transparent;
+
+  a,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    scroll-margin-top: var(--topbar-height);
+  }
 }
 
 .markdown-body * {

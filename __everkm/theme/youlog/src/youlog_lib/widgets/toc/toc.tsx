@@ -23,7 +23,7 @@ interface TocOptions extends Omit<
   enableMobileToc?: boolean;
 }
 
-const DEFAULT_HEADER_HEIGHT = 10;
+const DEFAULT_HEADER_HEIGHT = 0;
 
 function setupMobileToc(
   options: TocOptions,
@@ -118,7 +118,7 @@ function generateToc(
     return [h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT];
   };
   document.documentElement.style.setProperty(
-    "--header-height",
+    "--topbar-height",
     `${callbackHeadersHeight()}px`,
   );
 
