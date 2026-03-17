@@ -88,9 +88,9 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
         <article
           id="article-main"
           data-ajax-element="article-main"
-          class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none markdown-body !pt-0"
+          class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none !pt-0"
         >
-          <div innerHTML={props.doc?.content_html || ""} />
+          <div class="markdown-body" innerHTML={props.doc?.content_html || ""} />
           <PrevNextLinks
             requestId={props.requestId}
             qs={props.pageContext.qs || {}}

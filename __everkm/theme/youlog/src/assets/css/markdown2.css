@@ -81,7 +81,6 @@
   max-width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
 
@@ -369,11 +368,6 @@
   padding-left: 1.5em;
 }
 
-/* 第一层 ul 左侧多留一点间距 */
-.markdown-body > ul {
-  padding-left: 2.3em;
-}
-
 .markdown-body ol {
   list-style: none;
   counter-reset: ol-counter;
@@ -453,6 +447,12 @@
 .markdown-body ol ol {
   margin-top: 0.25em;
   margin-bottom: 0;
+}
+
+/* 第一层 ul 左侧多留一点间距 */
+.markdown-body > ul,
+.markdown-body > ol {
+  margin-left: 0.8em;
 }
 
 /* ── Task List ─────────────────────────────────────────────────────────────*/
