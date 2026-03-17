@@ -638,8 +638,10 @@
   font-size: 0.85em;
   color: var(--text-secondary);
   margin-top: 0.5em;
-  padding-left: 1em;
-  border-left: 2px solid var(--border);
+  display: flex;
+  /* align-items: baselien; */
+  column-gap: 0.5em;
+  position: relative;
 }
 
 .markdown-body .footnote-definition-label {
@@ -647,6 +649,19 @@
   font-weight: var(--base-text-weight-semibold, 600);
   color: var(--accent);
   margin-right: 0.3em;
+  flex: 0 0 auto;
+  min-width: 2.2em;
+  text-align: right;
+  position: relative;
+  top: 1em;
+}
+
+.markdown-body .footnote-definition-label::before {
+  content: "[";
+}
+
+.markdown-body .footnote-definition-label::after {
+  content: "]";
 }
 
 /* Footnote section wrapper */
@@ -654,6 +669,16 @@
 .markdown-body [class*="footnote"] > p {
   font-size: 0.875em;
   color: var(--text-secondary);
+}
+
+/* 确保在每个 footnote-definition 的最后一个子元素后显示返回箭头 */
+.markdown-body .footnote-definition > :last-child::after {
+  content: "⤴";
+  display: inline-flex;
+  align-items: bottom;
+  font-size: 1em;
+  font-weight: bold;
+  @apply ml-2;
 }
 
 /* ── Math ──────────────────────────────────────────────────────────────────*/
