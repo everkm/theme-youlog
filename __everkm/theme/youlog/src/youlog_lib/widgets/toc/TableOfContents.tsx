@@ -230,7 +230,7 @@ export function MobileToc(props: MobileTocProps) {
         .trim() || "0",
     );
 
-    console.log("getHeaderHeight", h);
+    // console.log("getHeaderHeight", h);
     return h;
   };
 

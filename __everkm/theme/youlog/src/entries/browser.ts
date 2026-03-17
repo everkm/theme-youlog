@@ -34,7 +34,8 @@ function init() {
     enableMobileToc: true,
     scrollContainer: document.getElementById("body-main") || undefined,
     onAfterGoto: (id: string, anchorName?: string) => {
-      location.hash = anchorName || id;
+      const hash = anchorName || id;
+      history.pushState(null, "", `#${hash}`);
     },
   });
 

@@ -17,6 +17,10 @@
     word-break: break-word;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   a {
     @apply underline-offset-4;
   }
