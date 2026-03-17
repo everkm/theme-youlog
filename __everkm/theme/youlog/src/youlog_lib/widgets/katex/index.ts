@@ -7,32 +7,38 @@ function setupKatex(bodySelector: string) {
     return;
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const options = {
-      throwOnError: false,
-      errorColor: "#cc0000",
-      macros: {
-        "\\RR": "\\mathbb{R}",
-        "\\NN": "\\mathbb{N}",
-        "\\ZZ": "\\mathbb{Z}",
-      },
-    };
-    container.querySelectorAll(".math.math-inline").forEach(function (el) {
-      try {
-        (window as any).katex.render(el.textContent, el, {
-          ...options,
-          displayMode: false,
-        });
-      } catch (e) {}
-    });
-    container.querySelectorAll(".math.math-display").forEach(function (el) {
-      try {
-        (window as any).katex.render(el.textContent, el, {
-          ...options,
-          displayMode: true,
-        });
-      } catch (e) {}
-    });
+  const options = {
+    throwOnError: false,
+    errorColor: "#cc0000",
+    macros: {
+      "\\RR": "\\mathbb{R}",
+      "\\NN": "\\mathbb{N}",
+      "\\ZZ": "\\mathbb{Z}",
+    },
+  };
+  container.querySelectorAll(".math.math-inline").forEach(function (el) {
+    try {
+      (window as any).katex.render(el.textContent, el, {
+        ...options,
+        displayMode: false,
+      });
+    } catch (e) {
+      console.error(`Katex render error:`, e);
+    } finally {
+      el.classList.remove("opacity-0");
+    }
+  });
+  container.querySelectorAll(".math.math-display").forEach(function (el) {
+    try {
+      (window as any).katex.render(el.textContent, el, {
+        ...options,
+        displayMode: true,
+      });
+    } catch (e) {
+      console.error(`Katex render error:`, e);
+    } finally {
+      el.classList.remove("opacity-0");
+    }
   });
 }
 

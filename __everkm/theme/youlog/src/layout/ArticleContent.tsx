@@ -68,7 +68,11 @@ const DocMeta: Component<DocMetaProps> = (props) => {
 };
 
 const ArticleContent: Component<ArticleContentProps> = (props) => {
-  const htmlContent = props.doc?.content_html || "";
+  let htmlContent = props.doc?.content_html || "";
+  htmlContent = htmlContent.replaceAll(
+    ' class="math math-',
+    ' class="opacity-0 math math-',
+  );
 
   // const hasKatex = htmlContent.includes("math math-");
   // const hasCodeBlock = htmlContent.includes('<pre><code class="language-');
@@ -97,10 +101,7 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           data-ajax-element="article-main"
           class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none !pt-0"
         >
-          <div
-            class="markdown-body"
-            innerHTML={props.doc?.content_html || ""}
-          />
+          <div class="markdown-body" innerHTML={htmlContent} />
           <PrevNextLinks
             requestId={props.requestId}
             qs={props.pageContext.qs || {}}
