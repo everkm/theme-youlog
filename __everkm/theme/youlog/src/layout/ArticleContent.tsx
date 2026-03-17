@@ -7,6 +7,8 @@ import YoushaComment from "./YoushaComment";
 import Footer from "./Footer";
 import PageQrcode from "./PageQrcode";
 import PrintPage from "./PrintPage";
+import { Katex } from "youlog_lib/widgets/katex/ssr";
+import { Prism } from "youlog_lib/widgets/prism/ssr";
 
 interface ArticleContentProps {
   requestId: string;
@@ -66,6 +68,11 @@ const DocMeta: Component<DocMetaProps> = (props) => {
 };
 
 const ArticleContent: Component<ArticleContentProps> = (props) => {
+  const htmlContent = props.doc?.content_html || "";
+
+  // const hasKatex = htmlContent.includes("math math-");
+  // const hasCodeBlock = htmlContent.includes('<pre><code class="language-');
+
   return (
     <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 print:w-full print:p-0 leading-relaxed relative print:static">
       <Breadcrumb navs={props.pageContext.breadcrumbs || []} />
@@ -90,7 +97,10 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           data-ajax-element="article-main"
           class="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none !pt-0"
         >
-          <div class="markdown-body" innerHTML={props.doc?.content_html || ""} />
+          <div
+            class="markdown-body"
+            innerHTML={props.doc?.content_html || ""}
+          />
           <PrevNextLinks
             requestId={props.requestId}
             qs={props.pageContext.qs || {}}

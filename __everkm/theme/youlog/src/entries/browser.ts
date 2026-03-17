@@ -19,6 +19,8 @@ import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { initYoulogPrint } from "youlog_lib/widgets/print-page";
 import { initTheme } from "layout/theme";
 import { initDcardUse } from "youlog_lib/dcard";
+import { initPrism } from "youlog_lib/widgets/prism";
+import { initKatex } from "youlog_lib/widgets/katex";
 
 function init() {
   initToc({
@@ -58,6 +60,9 @@ function init() {
   initYoulogPrint();
   initDcardUse("#article-main");
   setupAjaxPageLoad();
+
+  initPrism("#article-main");
+  initKatex("#article-main");
 
   // 初始化图片预览
   initImgSwipe("#article-main");

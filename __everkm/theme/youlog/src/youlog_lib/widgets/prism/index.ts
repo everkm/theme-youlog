@@ -7,13 +7,9 @@ function setupPrism(bodySelector: string) {
     return;
   }
 
-  // 后端渲染时会自动添加上语言
-  //   container.querySelectorAll("pre code").forEach((el) => {
-  //     el.classList.add("language-markdown");
-  //   });
-
   const prism = (window as any).Prism;
   if (!prism) {
+    console.error(`Prism not found in window`);
     return;
   }
 
@@ -25,12 +21,18 @@ function setupPrism(bodySelector: string) {
 }
 
 function initPrism(bodySelector: string) {
-  document.addEventListener("DOMContentLoaded", () => {
+  const run = () => {
     setupPrism(bodySelector);
-  });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    setupPrism(bodySelector);
+    run();
   });
 }
 

@@ -1,9 +1,17 @@
 interface KatexProps {
   isCN?: boolean;
+  disableDetectCN?: boolean;
 }
 
 const Katex = (props: KatexProps) => {
-  const { isCN = false } = props;
+  let { isCN = false } = props;
+
+  // 如果未指定 isCN，则根据语言自动检测是否为中国大陆
+  if (!isCN && typeof props.isCN === "undefined" && !props.disableDetectCN) {
+    const lang = everkm.lang().toLowerCase().replace("_", "-");
+    isCN = lang === "zh" || lang.startsWith("zh-");
+  }
+
   const cdnHost = isCN ? "cdn.jsdmirror.com" : "cdn.jsdelivr.net";
   return (
     <>

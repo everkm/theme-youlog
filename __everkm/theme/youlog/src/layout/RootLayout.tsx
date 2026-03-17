@@ -1,4 +1,6 @@
 import { Component, Show } from "solid-js";
+import { Katex } from "youlog_lib/widgets/katex/ssr";
+import { Prism } from "youlog_lib/widgets/prism/ssr";
 
 const RootLayout: Component<{ context: PageContext; children?: any }> = (
   props,
@@ -43,7 +45,9 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
           innerHTML={`window.__everkm_lang = ${JSON.stringify(
             lang,
           )}; window.__everkm_base_url = ${JSON.stringify(baseUrl + "/")};`}
-        />
+        ></script>
+        <Katex />
+        <Prism />
       </head>
       <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {props.children}

@@ -34,9 +34,10 @@ async function renderPage(compName: string, props: any) {
     props.request_id,
   )}/assets/alpinejs@3.14.9.js" defer></script>`;
 
+  // 使用第一个 `</script>` 标签后面的内容替换为 CSS, 是为了避免 youlog css 覆盖 prism
   const withCss = html.replace(
-    /<\/head>/i,
-    `${cssYoulog}${cssSearch}${alpine}</head>`,
+    /<\/script>/i,
+    `</script>${cssYoulog}${cssSearch}${alpine}`,
   );
   const withJs = withCss.replace(/<\/body>/i, `${jsYoulog}${jsSearch}</body>`);
   return `<!DOCTYPE html>${withJs}`;
