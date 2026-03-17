@@ -63,6 +63,7 @@
     "solid-element": "^1.9.1",
     "solid-js": "^1.9.5",
     "throttle-debounce": "^5.0.2",
+    "toastify-js": "^1.12.0",
     "universal-router": "^9.2.1",
     "w3c-keyname": "^2.2.8"
   }
