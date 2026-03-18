@@ -92,6 +92,7 @@
   line-height: 1.8;
   color: var(--fgColor-default);
   background-color: transparent;
+  text-align: justify;
 
   a,
   h1,

@@ -68,3 +68,7 @@
 
 ## v0.4.2 (2026-03-18)
 - 移除 NavTree 中的 `markdown_body`
+
+
+## v0.4.3 ()
+- `markdown_body` 使用 `justify` 对齐
