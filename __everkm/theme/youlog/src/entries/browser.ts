@@ -57,7 +57,7 @@ function init() {
 
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
-  initLazyImg();
+  initLazyImg("#article-main");
   initNavMenu(document.getElementById("header-nav") as HTMLElement);
   initKeywordHighlighter("#article-main");
   initYoulogPrint();

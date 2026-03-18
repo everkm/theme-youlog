@@ -93,7 +93,7 @@ export function setupLazyImg(container: HTMLElement, attr = "data-src") {
   };
 }
 
-export function initLazyImg() {
+export function initLazyImg(bodySelector: string) {
   let currentCleanupFn: (() => void) | null = null;
 
   const setup = () => {
@@ -102,7 +102,7 @@ export function initLazyImg() {
       currentCleanupFn = null;
     }
 
-    const article = document.querySelector<HTMLElement>("article");
+    const article = document.querySelector<HTMLElement>(bodySelector);
     if (article) {
       currentCleanupFn = setupLazyImg(article);
     }
