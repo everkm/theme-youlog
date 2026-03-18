@@ -64,3 +64,7 @@
 ## v0.4.1 (2026-03-18)
 - 增加配置 `config.features.code_highlight` 代码高亮开关，默认为 `true`
 - 增加配置 `config.features.katex_fomula` 公式渲染， 默认为 `false`
+
+
+## v0.4.2 (2026-03-18)
+- 移除 NavTree 中的 `markdown_body`
