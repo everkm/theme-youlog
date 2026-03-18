@@ -651,11 +651,10 @@
   font-family: var(--font-serif);
   font-size: 0.85em;
   color: var(--text-secondary);
-  margin-top: 0.5em;
+  margin-top: 0.6em;
   display: flex;
-  /* align-items: baselien; */
   column-gap: 0.5em;
-  position: relative;
+  line-height: 1.6;
 }
 
 .markdown-body .footnote-definition-label {
@@ -666,8 +665,8 @@
   flex: 0 0 auto;
   min-width: 2.2em;
   text-align: right;
-  position: relative;
-  top: 1em;
+  font-size: 0.8em;
+  padding-top: 0.1em;
 }
 
 .markdown-body .footnote-definition-label::before {
@@ -676,6 +675,10 @@
 
 .markdown-body .footnote-definition-label::after {
   content: "]";
+}
+
+.markdown-body .footnote-definition > :last-child {
+  margin-bottom: 0; /* 最后一段不留空白 */
 }
 
 /* Footnote section wrapper */
