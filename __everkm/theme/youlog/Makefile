@@ -34,6 +34,7 @@ bundle:
 	cp -r templates $(DIST_DIR)
 	cp assets-manifest.json $(DIST_DIR)
 	cp everkm-theme.yaml $(DIST_DIR)
+	cp __assets/* $(DIST_DIR)/assets/
 	
 	# 将 everkm_version 写入 everkm-theme.yaml
 	# 如果 EVERKM_VERSION 存在则替换，否则不处理
