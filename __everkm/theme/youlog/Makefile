@@ -19,14 +19,7 @@ fe-clean:
 fe-dev: fe-clean
 	cd . && pnpm run dev
 
-bundle:
-	@if [ -d "$(DIST_DIR)" ]; then \
-		rm -rf $(DIST_DIR); \
-	fi
-	@if [ -d ".dist" ]; then \
-		rm -rf .dist; \
-	fi
-
+build: fe-clean
 	# 构建
 	# $(MAKE) fe-build #已经自动构建了
 	$(MAKE) ssr-build
@@ -45,6 +38,11 @@ bundle:
 		else \
 			sed -i "s/version: .*/version: $${VERSION}/" $(DIST_DIR)/everkm-theme.yaml; \
 		fi; \
+	fi
+
+bundle: build
+	@if [ -d ".dist" ]; then \
+		rm -rf .dist; \
 	fi
 	
 	# 打包

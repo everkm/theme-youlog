@@ -23,6 +23,7 @@ work: print-ekmp
 		$(EKMP) serve \
 		--work-dir ../ \
 		--theme youlog \
+		--theme-dev \
 		--listen=0.0.0.0:9081
 
 export-all: print-ekmp
@@ -30,6 +31,7 @@ export-all: print-ekmp
 		$(EKMP) serve \
 		--work-dir ../ \
 		--theme youlog \
+		--theme-dev \
 		--export
 
 # package-theme: print-ekmp
@@ -38,9 +40,9 @@ export-all: print-ekmp
 # 		$(EKMP) theme pack \
 # 		--dev-dir ./ 
 
-
+.PHONY: dist
 dist: 
-	cd theme/youlog && $(MAKE) fe-build
+	cd theme/youlog && $(MAKE) build
 	$(MAKE) export-all
 
 
