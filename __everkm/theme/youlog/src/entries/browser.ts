@@ -63,11 +63,15 @@ function init() {
   initYoulogPrint();
   initDcardUse("#article-main");
   setupAjaxPageLoad();
-
-  initPrism("#article-main");
-  initKatex("#article-main");
   initHeadingAnchor("#article-main");
   initFootnoteBackButton("#article-main");
+
+  if ((window as any).__everkm_features_code_highlight) {
+    initPrism("#article-main");
+  }
+  if ((window as any).__everkm_features_katex_formula) {
+    initKatex("#article-main");
+  }
 
   // 初始化图片预览
   initImgSwipe("#article-main");

@@ -59,3 +59,8 @@
 ## v0.4.0 (2026-03-18)
 - 优化模块源码结构
 - 优化脚注、代码高亮、公式渲染
+
+
+## v0.4.1 (2026-03-18)
+- 增加配置 `config.features.code_highlight` 代码高亮开关，默认为 `true`
+- 增加配置 `config.features.katex_fomula` 公式渲染， 默认为 `false`

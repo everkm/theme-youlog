@@ -17,6 +17,10 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
   const themeColor = (cfg.theme_color as string) || undefined;
   const customCss = (cfg.custom_css as string) || undefined;
 
+  const features = cfg.features || {};
+  const hasCodeHighlight = features.code_highlight ?? true;
+  const hasKatex = features.katex_formula ?? false;
+
   return (
     <html lang={lang} class="light">
       <head>
@@ -42,12 +46,19 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
           <meta name="theme-color" content={themeColor} />
         </Show>
         <script
-          innerHTML={`window.__everkm_lang = ${JSON.stringify(
-            lang,
-          )}; window.__everkm_base_url = ${JSON.stringify(baseUrl + "/")};`}
+          innerHTML={`
+          window.__everkm_lang = ${JSON.stringify(lang)}; 
+          window.__everkm_base_url = ${JSON.stringify(baseUrl + "/")};
+          window.__everkm_features_code_highlight = ${JSON.stringify(hasCodeHighlight)};
+          window.__everkm_features_katex_formula = ${JSON.stringify(hasKatex)};
+          `}
         ></script>
-        <Katex />
-        <Prism />
+        <Show when={hasCodeHighlight}>
+          <Prism />
+        </Show>
+        <Show when={hasKatex}>
+          <Katex />
+        </Show>
       </head>
       <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {props.children}
