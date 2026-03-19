@@ -1,3 +1,5 @@
+import { getCurrentLang } from "youlog_lib/core/i18n";
+
 interface KatexProps {
   isCN?: boolean;
   disableDetectCN?: boolean;
@@ -8,7 +10,7 @@ const Katex = (props: KatexProps) => {
 
   // 如果未指定 isCN，则根据语言自动检测是否为中国大陆
   if (!isCN && typeof props.isCN === "undefined" && !props.disableDetectCN) {
-    const lang = everkm.lang().toLowerCase().replace("_", "-");
+    const lang = getCurrentLang().toLowerCase().replace("_", "-");
     isCN = lang === "zh" || lang.startsWith("zh-");
   }
 

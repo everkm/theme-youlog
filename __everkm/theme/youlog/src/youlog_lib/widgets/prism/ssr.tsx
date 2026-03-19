@@ -1,3 +1,5 @@
+import { getCurrentLang } from "youlog_lib/core/i18n";
+
 interface PrismProps {
   isCN?: boolean;
   disableDetectCN?: boolean;
@@ -6,7 +8,7 @@ interface PrismProps {
 const Prism = (props: PrismProps) => {
   let { isCN = false } = props;
   if (!isCN && typeof props.isCN === "undefined" && !props.disableDetectCN) {
-    const lang = everkm.lang().toLowerCase().replace("_", "-");
+    const lang = getCurrentLang().toLowerCase().replace("_", "-");
     isCN = lang === "zh" || lang.startsWith("zh-");
   }
   const cdnHost = isCN ? "cdn.jsdmirror.com" : "cdn.jsdelivr.net";

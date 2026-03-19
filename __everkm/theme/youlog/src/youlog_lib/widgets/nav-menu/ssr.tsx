@@ -21,7 +21,7 @@ const NavMenuInner: Component<NavMenuProps> = (props) => (
       {(item) => (
         <li>
           <a
-            href={item.url || everkm.base_url(props.requestId, { url: "/" })}
+            href={item.url || "#"}
             target={
               (item.new_window ?? props.defaultNewWindow) !== false
                 ? "_blank"

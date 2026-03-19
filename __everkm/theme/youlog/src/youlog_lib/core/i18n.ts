@@ -2,14 +2,19 @@
 
 import { isServer } from "solid-js/web";
 
+const DEFAULT_LANG = "en";
+
 function getCurrentLang() {
   if (isServer) {
+    if (typeof everkm === "undefined") {
+      return DEFAULT_LANG;
+    }
     return everkm.lang();
   }
-  return document.documentElement.lang || "en";
+  return document.documentElement.lang || DEFAULT_LANG;
 }
 
-export function useTranslate(
+function useTranslate(
   customTranslations: Record<string, Record<string, string>>,
 ) {
   return (key: string, params?: Record<string, string | boolean | number>) => {
@@ -24,3 +29,5 @@ export function useTranslate(
     return translated;
   };
 }
+
+export { getCurrentLang, useTranslate };
