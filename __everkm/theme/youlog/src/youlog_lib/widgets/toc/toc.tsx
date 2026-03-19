@@ -25,10 +25,10 @@ interface TocOptions extends Omit<
 
 const DEFAULT_HEADER_HEIGHT = 0;
 
-function setupMobileToc(
+function initMobileToc(
   options: TocOptions,
   tocEmitter: Emitter<TocEvents>,
-): void | (() => void) {
+): undefined | (() => void) {
   const {
     articleSelector = "#article-main",
     headingSelector = "h1, h2, h3, h4",
@@ -40,7 +40,7 @@ function setupMobileToc(
   } = options;
 
   const article = document.querySelector<HTMLElement>(articleSelector);
-  if (!article) return;
+  if (!article) return undefined;
 
   const header = document.querySelector<HTMLElement>(headerSelector);
   const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
@@ -151,21 +151,37 @@ const DEFAULT_TOC_OPTIONS: TocOptions = {
   highlightParents: true,
   title: "On This Page",
   enableMobileToc: true,
-  scrollContainer: document.getElementById("body-main") || undefined,
+  scrollContainer: document.body || undefined,
 };
 
-function initTocInner(customOptions?: TocOptions): void {
+interface TocResult {
+  tocEmitter: Emitter<TocEvents>;
+  mobileTocCleanup?: () => void;
+  options: TocOptions;
+}
+
+function initToc(customOptions?: TocOptions): TocResult {
   const options: TocOptions = {
     ...DEFAULT_TOC_OPTIONS,
     ...customOptions,
   };
-  let mobileTocCleanup: (() => void) | void;
+  let mobileTocCleanup: undefined | (() => void);
   const tocEmitter = mitt<TocEvents>();
 
   generateToc(options, tocEmitter);
   if (options.enableMobileToc) {
-    mobileTocCleanup = setupMobileToc(options, tocEmitter);
+    mobileTocCleanup = initMobileToc(options, tocEmitter);
   }
+
+  return {
+    tocEmitter,
+    mobileTocCleanup,
+    options,
+  };
+}
+
+function installToc(options?: TocOptions): void {
+  let { tocEmitter, mobileTocCleanup, options: tocOptions } = initToc(options);
 
   document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
     tocEmitter.emit("stop");
@@ -173,22 +189,16 @@ function initTocInner(customOptions?: TocOptions): void {
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
     tocEmitter.emit("update");
-    if (options.enableMobileToc) {
-      setTimeout(() => {
-        if (mobileTocCleanup) {
-          mobileTocCleanup();
-          mobileTocCleanup = undefined;
-        }
-        mobileTocCleanup = setupMobileToc(options, tocEmitter);
-      }, 100);
-    }
-  });
-}
 
-export function initToc(options?: TocOptions): void {
-  document.addEventListener("DOMContentLoaded", () => {
-    initTocInner(options);
+    setTimeout(() => {
+      if (mobileTocCleanup) {
+        mobileTocCleanup();
+        mobileTocCleanup = undefined;
+      }
+      mobileTocCleanup = initMobileToc(tocOptions, tocEmitter);
+    }, 100);
   });
 }
 
 export type { TocOptions, TocItem };
+export { initToc, installToc };

@@ -5,7 +5,7 @@ import "../assets/css/youlog.css";
 // import "../assets/css/markdown.css";
 import "../assets/css/markdown2.css";
 
-import { initToc } from "../youlog_lib/widgets/toc";
+import { installToc } from "../youlog_lib/widgets/toc";
 import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { setupAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
@@ -25,7 +25,7 @@ import { initHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { initFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
 function init() {
-  initToc({
+  installToc({
     tocSelector: "#toc",
     articleSelector: "#article-main",
     headingSelector: "h1, h2, h3, h4",

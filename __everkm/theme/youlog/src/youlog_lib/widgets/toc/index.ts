@@ -1,4 +1,4 @@
-export { initToc } from "./toc";
+export { installToc, initToc } from "./toc";
 export type { TocOptions, TocItem } from "./toc";
 export {
   TableOfContents,

@@ -35,6 +35,7 @@ export interface TocItem {
  */
 export interface TocProps {
   tocContainer?: HTMLElement;
+  scrollContainer?: HTMLElement; // 滚动容器
   articleSelector?: string;
   headingSelector?: string;
   headerHeight?: number;
@@ -44,7 +45,6 @@ export interface TocProps {
   callbackHeadersHeight?: () => number[]; // 回调获取所有header高度
   onAfterGoto?: (id: string, anchorName?: string) => void; // 回调在滚动到指定标题后执行
   emitter?: Emitter<TocEvents>; // mitt事件发射器
-  scrollContainer?: HTMLElement; // 滚动容器
 }
 
 /**
