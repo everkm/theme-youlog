@@ -8,8 +8,8 @@ import "photoswipe/style.css";
 type CleanupFunction = (() => void) | null;
 
 interface IImgSwipeItem {
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   src: string;
 }
 
@@ -22,11 +22,12 @@ function initImgSwipe(selector: string): CleanupFunction {
 
   const imgList: IImgSwipeItem[] = [];
   images.forEach((image) => {
-    const width = parseInt(image.getAttribute("width") || "0") || 0;
-    const height = parseInt(image.getAttribute("height") || "0") || 0;
-    const src = image.getAttribute("src") || "";
+    const width = parseInt(image.getAttribute("width") || "0") || undefined;
+    const height = parseInt(image.getAttribute("height") || "0") || undefined;
+    const src =
+      image.getAttribute("data-src") || image.getAttribute("src") || "";
 
-    if (width > 0 && height > 0 && src) {
+    if (src) {
       imgList.push({ width, height, src });
       image.setAttribute("data-pswp-index", (imgList.length - 1).toString());
     }
