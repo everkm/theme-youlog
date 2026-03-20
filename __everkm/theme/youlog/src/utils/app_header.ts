@@ -89,7 +89,7 @@ function watchAppHeader(): void {
   observer.observe(targetElement);
 }
 
-export function initAppHeader(): void {
+export function installAppHeader(): void {
   document.addEventListener("DOMContentLoaded", () => {
     watchAppHeader();
   });

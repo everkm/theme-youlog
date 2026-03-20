@@ -13,7 +13,7 @@ import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
 import { installImgSwipe } from "../youlog_lib/widgets/image-swipe/imgSwipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
-import { initAppHeader } from "utils/app_header";
+import { installAppHeader } from "utils/app_header";
 import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
 import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { installYoulogPrint } from "youlog_lib/widgets/print-page";
@@ -80,7 +80,7 @@ function init() {
   installImgSwipe("#article-main");
 
   // 初始化应用头部
-  initAppHeader();
+  installAppHeader();
 
   // 初始化页面二维码
   initPageQrcode();
