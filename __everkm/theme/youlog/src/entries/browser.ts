@@ -24,7 +24,7 @@ import { installKatex } from "youlog_lib/widgets/katex";
 import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
-function init() {
+function install() {
   const bodyMain = document.getElementById("body-main") as HTMLElement;
   if (bodyMain) {
     installToc({
@@ -88,4 +88,4 @@ function init() {
   installTheme();
 }
 
-init();
+install();
