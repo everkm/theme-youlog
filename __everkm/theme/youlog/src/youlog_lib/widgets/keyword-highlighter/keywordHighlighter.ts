@@ -1,97 +1,104 @@
-import Mark from 'mark.js'
+import Mark from "mark.js";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
-import scrollIntoView from 'scroll-into-view-if-needed'
+import scrollIntoView from "scroll-into-view-if-needed";
 
 // 从当前URL中获取高亮关键字
 function extractKeywordsFromUrl() {
-  const u = new URL(window.location.href)
-  const param = u.searchParams.get('__hlts') || ''
+  const u = new URL(window.location.href);
+  const param = u.searchParams.get("__hlts") || "";
   if (!param) {
-    return null
+    return null;
   }
 
-  const words = JSON.parse(param)
+  const words = JSON.parse(param);
   if (!Array.isArray(words)) {
-    return
+    return;
   }
-  return words
+  return words;
 }
 
 function markKeywords(
   words: string[],
   container: HTMLElement | Document = document.body,
 ) {
-  const mark = new Mark(container)
+  const mark = new Mark(container);
   mark.mark(words, {
-    className: '!bg-[yellow]',
+    className: "!bg-[yellow]",
     // 忽略高亮，则无法定位，所以去除
     // exclude: ['pre code'],
-  })
+  });
 }
 
 function setupKeywordHighlighter(container?: HTMLElement) {
-  const words = extractKeywordsFromUrl()
+  const words = extractKeywordsFromUrl();
   if (!words) {
-    return
+    return;
   }
 
-  markKeywords(words, container)
+  markKeywords(words, container);
 
-  const target = document.querySelectorAll('mark[data-markjs]')
+  const target = document.querySelectorAll("mark[data-markjs]");
   if (target.length === 0) {
-    return
+    return;
   }
-  let focusEl = target[0] as HTMLElement
+  let focusEl = target[0] as HTMLElement;
 
   // 向上搜索，确定是否代码块，若是则将目标修改为该代码块，
   // 因为代码高亮会修改dom, 造成节点无效
-  let currentEl = focusEl
+  let currentEl = focusEl;
   while (
     currentEl.parentElement &&
-    currentEl.parentElement.tagName.toLowerCase() !== 'pre'
+    currentEl.parentElement.tagName.toLowerCase() !== "pre"
   ) {
-    currentEl = currentEl.parentElement
-    if (currentEl.tagName.toLowerCase() === 'code') {
-      focusEl = currentEl
-      break
+    currentEl = currentEl.parentElement;
+    if (currentEl.tagName.toLowerCase() === "code") {
+      focusEl = currentEl;
+      break;
     }
   }
 
-  console.log('scrollIntoView ', focusEl)
+  console.log("scrollIntoView ", focusEl);
   setTimeout(() => {
     scrollIntoView(focusEl, {
-      scrollMode: 'if-needed',
-      block: 'start',
-      inline: 'nearest',
+      scrollMode: "if-needed",
+      block: "start",
+      inline: "nearest",
       behavior: (actions) => {
-        actions.forEach(({el, top, left}) => {
+        actions.forEach(({ el, top, left }) => {
           // 添加 100px 的顶部间距
           el.scrollTo({
             top: Math.max(0, top - 100),
             left,
-            behavior: 'smooth',
-          })
-        })
+            behavior: "smooth",
+          });
+        });
       },
-    })
+    });
 
-    console.log('second mark highlight', 'complete')
-    markKeywords(words, focusEl)
-  }, 300)
+    console.log("second mark highlight", "complete");
+    markKeywords(words, focusEl);
+  }, 300);
 }
 
 function initKeywordHighlighter(container_selector: string) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const container =
-      document.querySelector(container_selector) || document.body
-    setupKeywordHighlighter(container as HTMLElement)
-  })
-
-  document.addEventListener(EVENT_PAGE_LOADED, () => {
-    const container =
-      document.querySelector(container_selector) || document.body
-    setupKeywordHighlighter(container as HTMLElement)
-  })
+  const container = document.querySelector(container_selector);
+  if (!container) {
+    console.error(
+      `Keyword highlighter container selector ${container_selector} not found`,
+    );
+    return;
+  }
+  setupKeywordHighlighter(container as HTMLElement);
 }
 
-export default initKeywordHighlighter
+function installKeywordHighlighter(container_selector: string) {
+  document.addEventListener("DOMContentLoaded", () => {
+    initKeywordHighlighter(container_selector);
+  });
+
+  document.addEventListener(EVENT_PAGE_LOADED, () => {
+    initKeywordHighlighter(container_selector);
+  });
+}
+
+export { initKeywordHighlighter, installKeywordHighlighter };

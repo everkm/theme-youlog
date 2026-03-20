@@ -1,1 +1,4 @@
-export { default as initKeywordHighlighter } from "./keywordHighlighter";
+export {
+  installKeywordHighlighter,
+  initKeywordHighlighter,
+} from "./keywordHighlighter";

@@ -14,7 +14,7 @@ import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
 import { initImgSwipe } from "../youlog_lib/widgets/image-swipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
 import { initAppHeader } from "utils/app_header";
-import { initKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
+import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
 import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { initYoulogPrint } from "youlog_lib/widgets/print-page";
 import { initTheme } from "layout/theme";
@@ -62,7 +62,7 @@ function init() {
   initSidebarResizer("sidebar-nav");
   installLazyImg("#article-main");
   initNavMenu(document.getElementById("header-nav") as HTMLElement);
-  initKeywordHighlighter("#article-main");
+  installKeywordHighlighter("#article-main");
   initYoulogPrint();
   initDcardUse("#article-main");
   installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
