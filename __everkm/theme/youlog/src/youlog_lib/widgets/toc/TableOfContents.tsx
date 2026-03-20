@@ -288,10 +288,20 @@ function MobileToc(props: MobileTocProps) {
       }
     };
 
-    // 使用指定的滚动容器或窗口
-    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    // 浏览器对“整页滚动(=documentElement/body)”的 scroll 事件触发点不完全一致，
+    // 有些情况下只会触发 window.scroll，因此这里做兼容：如果是 html/body，则监听 window。
+    const isDocScrollRoot =
+      scrollEl instanceof HTMLElement &&
+      (scrollEl === document.documentElement || scrollEl === document.body);
 
-    onCleanup(() => scrollEl.removeEventListener("scroll", handleScroll));
+    if (isDocScrollRoot) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      onCleanup(() => window.removeEventListener("scroll", handleScroll));
+    } else {
+      // 使用指定的滚动容器或窗口
+      scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+      onCleanup(() => scrollEl.removeEventListener("scroll", handleScroll));
+    }
   });
 
   // 当TOC展开时滚动到当前活跃项
@@ -646,10 +656,20 @@ function TableOfContents(props: TocProps) {
       }
     };
 
-    // 监听滚动事件
-    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    // 浏览器对“整页滚动(=documentElement/body)”的 scroll 事件触发点不完全一致，
+    // 有些情况下只会触发 window.scroll，因此这里做兼容：如果是 html/body，则监听 window。
+    const isDocScrollRoot =
+      scrollEl instanceof HTMLElement &&
+      (scrollEl === document.documentElement || scrollEl === document.body);
 
-    onCleanup(() => scrollEl.removeEventListener("scroll", handleScroll));
+    if (isDocScrollRoot) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      onCleanup(() => window.removeEventListener("scroll", handleScroll));
+    } else {
+      // 监听滚动事件
+      scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+      onCleanup(() => scrollEl.removeEventListener("scroll", handleScroll));
+    }
   });
 
   return (
