@@ -37,7 +37,11 @@ function install() {
     scrollContainerSelector: "#body-main",
     onAfterGoto: (id: string, anchorName?: string) => {
       const hash = anchorName || id;
-      history.pushState(null, "", `#${hash}`);
+      if (hash.length) {
+        history.pushState(null, "", `#${hash}`);
+      } else {
+        history.pushState(null, "", window.location.pathname);
+      }
     },
   });
 
