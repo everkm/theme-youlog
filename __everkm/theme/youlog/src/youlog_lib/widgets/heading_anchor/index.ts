@@ -1,9 +1,12 @@
 import { showToast } from "youlog_lib/toast";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 
-function setupHeadingAnchor(bodySelector: string): void {
+function initHeadingAnchor(bodySelector: string): void {
   const container = document.querySelector(bodySelector) as HTMLElement | null;
-  if (!container) return;
+  if (!container) {
+    console.error(`Heading anchor container not found: ${bodySelector}`);
+    return;
+  }
 
   const anchors =
     container.querySelectorAll<HTMLAnchorElement>(".heading-anchor");
@@ -23,14 +26,14 @@ function setupHeadingAnchor(bodySelector: string): void {
   });
 }
 
-function initHeadingAnchor(bodySelector: string): void {
+function installHeadingAnchor(bodySelector: string): void {
   document.addEventListener("DOMContentLoaded", () => {
-    setupHeadingAnchor(bodySelector);
+    initHeadingAnchor(bodySelector);
   });
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    setupHeadingAnchor(bodySelector);
+    initHeadingAnchor(bodySelector);
   });
 }
 
-export { initHeadingAnchor };
+export { initHeadingAnchor, installHeadingAnchor };

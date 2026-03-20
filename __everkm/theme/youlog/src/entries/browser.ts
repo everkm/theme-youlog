@@ -21,7 +21,7 @@ import { initTheme } from "layout/theme";
 import { installDcardUse } from "youlog_lib/dcard";
 import { initPrism } from "youlog_lib/widgets/prism";
 import { initKatex } from "youlog_lib/widgets/katex";
-import { initHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
+import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { initFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
 function init() {
@@ -66,7 +66,7 @@ function init() {
   installYoulogPrint();
   installDcardUse("#article-main");
   installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
-  initHeadingAnchor("#article-main");
+  installHeadingAnchor("#article-main");
   initFootnoteBackButton("#article-main");
 
   if ((window as any).__everkm_features_code_highlight) {
