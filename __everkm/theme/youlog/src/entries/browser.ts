@@ -10,7 +10,7 @@ import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
-import { initLazyImg } from "../youlog_lib/widgets/image-lazy";
+import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
 import { initImgSwipe } from "../youlog_lib/widgets/image-swipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
 import { initAppHeader } from "utils/app_header";
@@ -60,7 +60,7 @@ function init() {
 
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
-  initLazyImg("#article-main");
+  installLazyImg("#article-main");
   initNavMenu(document.getElementById("header-nav") as HTMLElement);
   initKeywordHighlighter("#article-main");
   initYoulogPrint();

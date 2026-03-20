@@ -7,7 +7,7 @@ const PLACEHOLDER_DEFAULT_WIDTH = 300;
 const PLACEHOLDER_DEFAULT_HEIGHT = 180;
 const PLACEHOLDER_FONT_RATIO = 0.16;
 
-export interface IPlaceHolderContext {
+interface IPlaceHolderContext {
   width?: number;
   height?: number;
   text?: string;
@@ -21,7 +21,7 @@ export interface IPlaceHolderContext {
   charset?: string;
 }
 
-export function svgPlaceholder(ctx: IPlaceHolderContext) {
+function svgPlaceholder(ctx: IPlaceHolderContext) {
   const width = ctx.width || PLACEHOLDER_DEFAULT_WIDTH;
   const height = ctx.height || PLACEHOLDER_DEFAULT_HEIGHT;
   const text = ctx.text || `${width}×${height}`;
@@ -55,7 +55,7 @@ export function svgPlaceholder(ctx: IPlaceHolderContext) {
   return cleaned;
 }
 
-export function setupLazyImg(container: HTMLElement, attr = "data-src") {
+function setupLazyImg(container: HTMLElement, attr = "data-src") {
   const loadImage = function (image: Element) {
     const imgEl = image as HTMLImageElement;
     const src = imgEl.getAttribute(attr);
@@ -104,26 +104,36 @@ export function setupLazyImg(container: HTMLElement, attr = "data-src") {
   };
 }
 
-export function initLazyImg(bodySelector: string) {
-  let currentCleanupFn: (() => void) | null = null;
+type TCleanupFn = (() => void) | null;
 
-  const setup = () => {
+function initLazyImg(bodySelector: string): TCleanupFn {
+  let currentCleanupFn: TCleanupFn = null;
+
+  const article = document.querySelector<HTMLElement>(bodySelector);
+  if (article) {
+    currentCleanupFn = setupLazyImg(article);
+  }
+
+  return currentCleanupFn;
+}
+
+function installLazyImg(bodySelector: string) {
+  let currentCleanupFn: TCleanupFn = null;
+
+  const cleanup = () => {
     if (currentCleanupFn) {
       currentCleanupFn();
       currentCleanupFn = null;
-    }
-
-    const article = document.querySelector<HTMLElement>(bodySelector);
-    if (article) {
-      currentCleanupFn = setupLazyImg(article);
     }
   };
 
+  const setup = () => {
+    cleanup();
+    currentCleanupFn = initLazyImg(bodySelector);
+  };
+
   document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
-    if (currentCleanupFn) {
-      currentCleanupFn();
-      currentCleanupFn = null;
-    }
+    cleanup();
   });
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -134,3 +144,5 @@ export function initLazyImg(bodySelector: string) {
     setup();
   });
 }
+
+export { installLazyImg, initLazyImg };

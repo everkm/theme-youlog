@@ -1,6 +1,1 @@
-export {
-  svgPlaceholder,
-  setupLazyImg,
-  initLazyImg,
-  type IPlaceHolderContext,
-} from "./lazyImage";
+export { installLazyImg, initLazyImg } from "./lazyImage";
