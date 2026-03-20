@@ -1,3 +1,3 @@
 export { installToc, initToc } from "./toc";
-export type { TocOptions, TocItem } from "./toc";
-export type { TocProps, TocEvents } from "./TableOfContents";
+export type { TocOptions, TocResult } from "./toc";
+export type { TocEvents } from "./TableOfContents";

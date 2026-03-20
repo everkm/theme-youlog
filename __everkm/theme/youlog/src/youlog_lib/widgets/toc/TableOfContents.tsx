@@ -9,12 +9,17 @@ import {
 } from "solid-js";
 
 // 垂直高度的间距
-export const VERTICAL_PADDING = 20;
+const VERTICAL_PADDING = 20;
 
-const HEADING_SELECTOR = "h1, h2, h3, h4, h5";
+/** 滚动目标：window 为整页滚动，否则为可滚动元素 */
+type TocScrollContainer = Window | HTMLElement;
+
+function getScrollTop(target: TocScrollContainer): number {
+  return target instanceof Window ? target.scrollY : target.scrollTop;
+}
 
 // 定义TOC事件类型
-export type TocEvents = {
+type TocEvents = {
   stop?: string; // 停止更新
   update?: string; // 重新解析TOC
 };
@@ -22,7 +27,7 @@ export type TocEvents = {
 /**
  * 目录项接口
  */
-export interface TocItem {
+interface TocItem {
   id: string;
   text: string;
   level: number;
@@ -30,28 +35,34 @@ export interface TocItem {
 }
 
 /**
- * TableOfContents组件属性
+ * TableOfContents组件属性（全部必填；默认值由 toc.tsx 的 DEFAULT_TOC_OPTIONS 等统一合并后再传入）
  */
-export interface TocProps {
-  tocContainer?: HTMLElement;
-  scrollContainer?: HTMLElement; // 滚动容器
-  articleSelector?: string;
-  headingSelector?: string;
-  headerHeight?: number;
-  offset?: number; // 滚动偏移量
-  highlightParents?: boolean;
-  title?: string; // 目录标题
-  callbackHeadersHeight?: () => number[]; // 回调获取所有header高度
-  onAfterGoto?: (id: string, anchorName?: string) => void; // 回调在滚动到指定标题后执行
-  emitter?: Emitter<TocEvents>; // mitt事件发射器
+interface TocProps {
+  tocContainer: HTMLElement;
+  scrollContainer: TocScrollContainer;
+  articleSelector: string;
+  headingSelector: string;
+  headerHeight: number;
+  offset: number; // 滚动偏移量
+  highlightParents: boolean;
+  title: string; // 目录标题
+  /** 非 null 时按各块高度累加；为 null 时仅使用 headerHeight */
+  callbackHeadersHeight: (() => number[]) | null;
+  onAfterGoto: (id: string, anchorName?: string) => void; // 回调在滚动到指定标题后执行
+  /** 为 null 时不注册 mitt 监听 */
+  emitter: Emitter<TocEvents> | null;
 }
 
 /**
- * MobileTocProps接口
+ * MobileToc 入参（由 initMobileToc 注入；嵌套的 TableOfContents 在展开时再补全 tocContainer / callbackHeadersHeight / onAfterGoto）
  */
-interface MobileTocProps extends TocProps {
-  isMobile?: boolean;
-}
+type MobileTocProps = Omit<
+  TocProps,
+  "tocContainer" | "callbackHeadersHeight" | "onAfterGoto"
+> & {
+  /** 移动端必须可收 stop 等事件，不使用 null */
+  emitter: Emitter<TocEvents>;
+};
 
 /**
  * 解析文章内容，提取标题信息
@@ -142,7 +153,7 @@ function itemLevelJustify(items: TocItem[]) {
 /**
  * 移动端TOC组件 - 显示当前标题，点击后弹出完整目录
  */
-export function MobileToc(props: MobileTocProps) {
+function MobileToc(props: MobileTocProps) {
   const [tocItems, setTocItems] = createSignal<TocItem[]>([]);
   const [activeId, setActiveId] = createSignal<string>("");
   const [showToc, setShowToc] = createSignal<boolean>(false);
@@ -163,14 +174,15 @@ export function MobileToc(props: MobileTocProps) {
   // 初始化TOC数据
   onMount(() => {
     const articleElement = document.querySelector<HTMLElement>(
-      props.articleSelector || "#article-main",
+      props.articleSelector,
     );
-    if (!articleElement) return;
+    if (!articleElement) {
+      throw new Error(
+        `[MobileToc] article not found for selector "${props.articleSelector}"`,
+      );
+    }
 
-    const items = parseTocItems(
-      articleElement,
-      props.headingSelector || HEADING_SELECTOR,
-    );
+    const items = parseTocItems(articleElement, props.headingSelector);
     setTocItems(items);
 
     // 初始化时设置当前活跃项
@@ -181,7 +193,6 @@ export function MobileToc(props: MobileTocProps) {
   // 不需要 update 事件, 因为每次更新都会重建。
   createEffect(() => {
     const emitter = props.emitter;
-    if (!emitter) return;
 
     // 监听停止更新事件 - 仅停止滚动状态同步，通常在页面加载前触发
     const onStop = () => {
@@ -262,7 +273,7 @@ export function MobileToc(props: MobileTocProps) {
   // 监听页面滚动
   createEffect(() => {
     let ticking = false;
-    const scrollEl = props.scrollContainer || window;
+    const scrollEl = props.scrollContainer;
 
     const handleScroll = () => {
       // 如果设置了停止同步，则不处理滚动事件
@@ -359,7 +370,7 @@ export function MobileToc(props: MobileTocProps) {
         <Show when={showToc()}>
           <div class="mobile-toc-content" ref={tocContentRef}>
             <TableOfContents
-              tocContainer={mobileTocRef}
+              tocContainer={mobileTocRef!}
               articleSelector={props.articleSelector}
               headingSelector={props.headingSelector}
               headerHeight={props.headerHeight}
@@ -369,6 +380,7 @@ export function MobileToc(props: MobileTocProps) {
               callbackHeadersHeight={() => [getTotalOffset()]}
               onAfterGoto={onAfterGoto}
               scrollContainer={props.scrollContainer}
+              emitter={null}
             />
           </div>
         </Show>
@@ -380,7 +392,7 @@ export function MobileToc(props: MobileTocProps) {
 /**
  * TableOfContents组件
  */
-export function TableOfContents(props: TocProps) {
+function TableOfContents(props: TocProps) {
   const [tocItems, setTocItems] = createSignal<TocItem[]>([]);
   const [activeId, setActiveId] = createSignal<string>("");
   const [containerHeight, setContainerHeight] = createSignal<string>("auto");
@@ -391,25 +403,24 @@ export function TableOfContents(props: TocProps) {
   let tocContainerRef: HTMLElement | undefined;
 
   onMount(() => {
-    tocContainerRef =
-      props.tocContainer ||
-      document.querySelector<HTMLElement>("#toc") ||
-      undefined;
+    tocContainerRef = props.tocContainer;
     if (!tocContainerRef) {
-      console.warn("tocContainer is not found");
-      return;
+      throw new Error(
+        "[TableOfContents] tocContainer is missing (must be a valid HTMLElement)",
+      );
     }
 
     // 初始化TOC数据
     const articleElement = document.querySelector<HTMLElement>(
-      props.articleSelector || "#article-main",
+      props.articleSelector,
     );
-    if (!articleElement) return;
+    if (!articleElement) {
+      throw new Error(
+        `[TableOfContents] article not found for selector "${props.articleSelector}"`,
+      );
+    }
 
-    const items = parseTocItems(
-      articleElement,
-      props.headingSelector || HEADING_SELECTOR,
-    );
+    const items = parseTocItems(articleElement, props.headingSelector);
     setTocItems(items);
 
     // 计算TOC容器高度
@@ -440,24 +451,21 @@ export function TableOfContents(props: TocProps) {
 
   // 计算所有header的高度
   const calculateHeaderHeight = () => {
-    if (props.callbackHeadersHeight) {
+    if (props.callbackHeadersHeight !== null) {
       const heights = props.callbackHeadersHeight();
       return heights.reduce((sum, height) => sum + height, 0);
-    } else {
-      return props.headerHeight || 0;
     }
+    return props.headerHeight;
   };
 
   const getArticleElement = () => {
-    return document.querySelector<HTMLElement>(
-      props.articleSelector || "#article-main",
-    );
+    return document.querySelector<HTMLElement>(props.articleSelector);
   };
 
   // 监听emitter事件
   createEffect(() => {
     const emitter = props.emitter;
-    if (!emitter) return;
+    if (emitter === null) return;
 
     // 监听停止更新事件 - 仅停止滚动状态同步，通常在页面加载前触发
     const onStop = () => {
@@ -470,13 +478,13 @@ export function TableOfContents(props: TocProps) {
       // console.log("TOC: 更新内容并恢复滚动同步");
       // 重新解析文章内容
       const articleElement = getArticleElement();
-      if (articleElement) {
-        const items = parseTocItems(
-          articleElement,
-          props.headingSelector || HEADING_SELECTOR,
+      if (!articleElement) {
+        throw new Error(
+          `[TableOfContents] article not found on update for selector "${props.articleSelector}"`,
         );
-        setTocItems(items);
       }
+      const items = parseTocItems(articleElement, props.headingSelector);
+      setTocItems(items);
 
       // 启用滚动同步
       setStopSync(false);
@@ -553,14 +561,12 @@ export function TableOfContents(props: TocProps) {
 
     // 计算最终的偏移位置
     const elementPosition = targetHeading.getBoundingClientRect().top;
-    const offsetPosition = props.scrollContainer
-      ? props.scrollContainer.scrollTop
-      : window.scrollY;
+    const offsetPosition = getScrollTop(props.scrollContainer);
     const totalOffset =
-      elementPosition + offsetPosition - headerHeight - (props.offset || 10);
+      elementPosition + offsetPosition - headerHeight - props.offset;
 
     // 平滑滚动到目标位置
-    const scrollElement = props.scrollContainer || window;
+    const scrollElement = props.scrollContainer;
     scrollElement.scrollTo({
       top: totalOffset,
       behavior: "smooth",
@@ -575,21 +581,19 @@ export function TableOfContents(props: TocProps) {
     }, 1000);
 
     // 回调
-    if (props.onAfterGoto) {
-      let anchorName: string | undefined = undefined;
-      const anchorEl = document
-        .getElementById(id)
-        ?.querySelector("a.heading-anchor");
-      if (anchorEl) {
-        anchorName = anchorEl.getAttribute("name") || undefined;
-      }
-      props.onAfterGoto(id, anchorName);
+    let anchorName: string | undefined = undefined;
+    const anchorEl = document
+      .getElementById(id)
+      ?.querySelector("a.heading-anchor");
+    if (anchorEl) {
+      anchorName = anchorEl.getAttribute("name") || undefined;
     }
+    props.onAfterGoto(id, anchorName);
   };
 
   // 回到顶部
   const scrollToTop = () => {
-    const scrollElement = props.scrollContainer || window;
+    const scrollElement = props.scrollContainer;
     scrollElement.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -597,9 +601,7 @@ export function TableOfContents(props: TocProps) {
     setActiveId("");
 
     // 回调
-    if (props.onAfterGoto) {
-      props.onAfterGoto("");
-    }
+    props.onAfterGoto("");
   };
 
   // 确保当前活跃链接在视图内
@@ -607,8 +609,7 @@ export function TableOfContents(props: TocProps) {
     const activeIdValue = activeId();
     if (!activeIdValue) return;
 
-    const tocContainer =
-      tocContainerRef || props.tocContainer || document.querySelector("#toc");
+    const tocContainer = tocContainerRef || props.tocContainer;
     if (!tocContainer) return;
 
     // 获取容器和活跃链接
@@ -630,7 +631,7 @@ export function TableOfContents(props: TocProps) {
   // 监听页面滚动
   createEffect(() => {
     let ticking = false;
-    const scrollEl = props.scrollContainer || window;
+    const scrollEl = props.scrollContainer;
 
     const handleScroll = () => {
       // 如果设置了停止同步，则不处理滚动事件
@@ -657,7 +658,7 @@ export function TableOfContents(props: TocProps) {
       fallback={
         <>
           <div class="toc-item toc-title-item">
-            <div class="toc-title">{props.title || "On this page"}</div>
+            <div class="toc-title">{props.title}</div>
           </div>
           <div class="toc-empty">No Table of Contents</div>
         </>
@@ -670,7 +671,7 @@ export function TableOfContents(props: TocProps) {
             class="toc-title toc-title-clickable cursor-pointer"
             onClick={scrollToTop}
           >
-            {props.title || "On this page"}
+            {props.title}
           </div>
         </div>
 
@@ -726,3 +727,12 @@ export function TableOfContents(props: TocProps) {
     </Show>
   );
 }
+
+export { VERTICAL_PADDING, MobileToc, TableOfContents };
+export type {
+  TocScrollContainer,
+  TocEvents,
+  TocItem,
+  TocProps,
+  MobileTocProps,
+};

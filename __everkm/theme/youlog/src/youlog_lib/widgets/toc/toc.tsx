@@ -3,7 +3,6 @@ import {
   TableOfContents,
   MobileToc,
   VERTICAL_PADDING,
-  TocItem,
   TocEvents,
 } from "./TableOfContents";
 import type { TocProps } from "./TableOfContents";
@@ -15,21 +14,23 @@ import {
 } from "../page-ajax/constants";
 import mitt, { Emitter } from "mitt";
 
-interface TocOptions extends Omit<
+/** 合并默认后的完整配置（不含运行时解析的 tocContainer / scrollContainer / headerHeight / callbackHeadersHeight / emitter） */
+export type RequiredTocOptions = Omit<
   TocProps,
   | "tocContainer"
+  | "scrollContainer"
   | "headerHeight"
   | "callbackHeadersHeight"
   | "emitter"
-  | "scrollContainer"
-> {
+> & {
+  tocSelector: string;
   scrollContainerSelector: string;
-  tocSelector?: string;
-  headerSelector?: string;
-  enableMobileToc?: boolean;
-}
+  headerSelector: string;
+  enableMobileToc: boolean;
+};
 
-type RequiredTocOptions = Required<TocOptions>;
+/** 对外传入 initToc/installToc；未传字段由 DEFAULT_TOC_OPTIONS 补全 */
+export type TocOptions = Partial<RequiredTocOptions>;
 
 const DEFAULT_TOC_OPTIONS: RequiredTocOptions = {
   tocSelector: "#toc",
@@ -70,10 +71,18 @@ function initMobileToc(
   const scrollContainer = document.querySelector<HTMLElement>(
     scrollContainerSelector,
   );
-  if (!scrollContainer) return undefined;
+  if (!scrollContainer) {
+    throw new Error(
+      `[initMobileToc] scroll container not found: "${scrollContainerSelector}"`,
+    );
+  }
 
   const article = scrollContainer.querySelector<HTMLElement>(articleSelector);
-  if (!article) return undefined;
+  if (!article) {
+    throw new Error(
+      `[initMobileToc] article not found: "${articleSelector}" under "${scrollContainerSelector}"`,
+    );
+  }
 
   const header = document.querySelector<HTMLElement>(headerSelector);
   const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
@@ -156,9 +165,10 @@ function generateToc(
     const h = document.querySelector<HTMLElement>(headerSelector);
     return [h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT];
   };
+  const topBarHeights = callbackHeadersHeight();
   document.documentElement.style.setProperty(
     "--topbar-height",
-    `${callbackHeadersHeight()}px`,
+    `${topBarHeights.reduce((a, b) => a + b, 0)}px`,
   );
 
   render(
@@ -226,9 +236,9 @@ function doSetupToc(options?: TocOptions): void {
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
     tocEmitter.emit("update");
-    console.log("TOC: EVENT_PAGE_LOADED");
+    // console.log("TOC: EVENT_PAGE_LOADED");
 
-    if (options?.enableMobileToc) {
+    if (tocOptions.enableMobileToc) {
       setTimeout(() => {
         mobileTocCleanup = initMobileToc(tocOptions, tocEmitter);
       }, 100);
@@ -236,5 +246,5 @@ function doSetupToc(options?: TocOptions): void {
   });
 }
 
-export type { TocOptions, TocItem };
 export { initToc, installToc };
+export type { TocResult };
