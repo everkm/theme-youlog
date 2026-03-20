@@ -2,7 +2,7 @@ import { Component } from "solid-js";
 
 /**
  * 页面二维码组件（占位符）
- * 实际渲染由 renderPageQrcode 中的 initPageQrcode 函数在客户端执行
+ * 实际渲染由 renderPageQrcode 中的 installPageQrcode 函数在客户端执行
  */
 const PageQrcode: Component = () => {
   return (

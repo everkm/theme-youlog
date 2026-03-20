@@ -40,7 +40,7 @@ function renderQrcode(): void {
 /**
  * 初始化页面二维码
  */
-function initPageQrcode(): void {
+function installPageQrcode(): void {
   // 在 DOM 加载完成后初始化
   document.addEventListener("DOMContentLoaded", () => {
     renderQrcode();
@@ -60,4 +60,4 @@ function initPageQrcode(): void {
   });
 }
 
-export { initPageQrcode };
+export { installPageQrcode, renderQrcode as initPageQrcode };

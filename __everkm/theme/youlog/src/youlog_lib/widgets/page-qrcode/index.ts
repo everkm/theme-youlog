@@ -1,1 +1,1 @@
-export { initPageQrcode } from "./renderPageQrcode";
+export { installPageQrcode, initPageQrcode } from "./renderPageQrcode";

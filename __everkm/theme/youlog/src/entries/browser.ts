@@ -15,7 +15,7 @@ import { installImgSwipe } from "../youlog_lib/widgets/image-swipe/imgSwipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
 import { installAppHeader } from "utils/app_header";
 import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
-import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
+import { installPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { installYoulogPrint } from "youlog_lib/widgets/print-page";
 import { initTheme } from "layout/theme";
 import { installDcardUse } from "youlog_lib/dcard";
@@ -83,7 +83,7 @@ function init() {
   installAppHeader();
 
   // 初始化页面二维码
-  initPageQrcode();
+  installPageQrcode();
 
   initTheme();
 }
