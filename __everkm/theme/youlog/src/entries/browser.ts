@@ -19,8 +19,8 @@ import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { installYoulogPrint } from "youlog_lib/widgets/print-page";
 import { initTheme } from "layout/theme";
 import { installDcardUse } from "youlog_lib/dcard";
-import { initPrism } from "youlog_lib/widgets/prism";
-import { initKatex } from "youlog_lib/widgets/katex";
+import { installPrism } from "youlog_lib/widgets/prism";
+import { installKatex } from "youlog_lib/widgets/katex";
 import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
@@ -70,10 +70,10 @@ function init() {
   installFootnoteBackButton("#article-main");
 
   if ((window as any).__everkm_features_code_highlight) {
-    initPrism("#article-main");
+    installPrism("#article-main");
   }
   if ((window as any).__everkm_features_katex_formula) {
-    initKatex("#article-main");
+    installKatex("#article-main");
   }
 
   // 初始化图片预览

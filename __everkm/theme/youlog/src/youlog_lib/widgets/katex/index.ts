@@ -1,6 +1,6 @@
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 
-function setupKatex(bodySelector: string) {
+function initKatex(bodySelector: string) {
   const container = document.querySelector(bodySelector) as HTMLElement;
   if (!container) {
     console.error(`Katex body selector ${bodySelector} not found`);
@@ -42,13 +42,13 @@ function setupKatex(bodySelector: string) {
   });
 }
 
-function initKatex(bodySelector: string) {
+function installKatex(bodySelector: string) {
   document.addEventListener("DOMContentLoaded", () => {
-    setupKatex(bodySelector);
+    initKatex(bodySelector);
   });
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    setupKatex(bodySelector);
+    initKatex(bodySelector);
   });
 }
 
-export { initKatex };
+export { initKatex, installKatex };

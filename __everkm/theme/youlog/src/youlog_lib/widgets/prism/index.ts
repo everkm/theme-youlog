@@ -1,6 +1,6 @@
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 
-function setupPrism(bodySelector: string) {
+function initPrism(bodySelector: string) {
   const container = document.querySelector(bodySelector) as HTMLElement;
   if (!container) {
     console.error(`Prism body selector ${bodySelector} not found`);
@@ -20,9 +20,9 @@ function setupPrism(bodySelector: string) {
   }
 }
 
-function initPrism(bodySelector: string) {
+function installPrism(bodySelector: string) {
   const run = () => {
-    setupPrism(bodySelector);
+    initPrism(bodySelector);
   };
 
   if (document.readyState === "loading") {
@@ -36,4 +36,4 @@ function initPrism(bodySelector: string) {
   });
 }
 
-export { initPrism };
+export { initPrism, installPrism };
