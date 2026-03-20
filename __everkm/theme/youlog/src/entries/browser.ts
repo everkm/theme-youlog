@@ -22,7 +22,7 @@ import { installDcardUse } from "youlog_lib/dcard";
 import { initPrism } from "youlog_lib/widgets/prism";
 import { initKatex } from "youlog_lib/widgets/katex";
 import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
-import { initFootnoteBackButton } from "youlog_lib/widgets/footnote";
+import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
 function init() {
   const bodyMain = document.getElementById("body-main") as HTMLElement;
@@ -67,7 +67,7 @@ function init() {
   installDcardUse("#article-main");
   installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
   installHeadingAnchor("#article-main");
-  initFootnoteBackButton("#article-main");
+  installFootnoteBackButton("#article-main");
 
   if ((window as any).__everkm_features_code_highlight) {
     initPrism("#article-main");
