@@ -465,8 +465,8 @@
 }
 
 /* 第一层 ul 左侧多留一点间距 */
-.markdown-body > ul,
-.markdown-body > ol {
+/* .markdown-body > ol  是右对齐，前面已经有间距 */
+.markdown-body > ul {
   margin-left: 0.8em;
 }
 

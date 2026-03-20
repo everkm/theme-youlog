@@ -25,24 +25,21 @@ import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
 function install() {
-  const bodyMain = document.getElementById("body-main") as HTMLElement;
-  if (bodyMain) {
-    installToc({
-      tocSelector: "#toc",
-      articleSelector: "#article-main",
-      headingSelector: "h1, h2, h3, h4",
-      headerSelector: "header",
-      offset: 10,
-      highlightParents: true,
-      title: "目录",
-      enableMobileToc: true,
-      scrollContainerSelector: "#body-main",
-      onAfterGoto: (id: string, anchorName?: string) => {
-        const hash = anchorName || id;
-        history.pushState(null, "", `#${hash}`);
-      },
-    });
-  }
+  installToc({
+    tocSelector: "#toc",
+    articleSelector: "#article-main",
+    headingSelector: "h1, h2, h3, h4",
+    headerSelector: "header",
+    offset: 10,
+    highlightParents: true,
+    title: "目录",
+    enableMobileToc: true,
+    scrollContainerSelector: "#body-main",
+    onAfterGoto: (id: string, anchorName?: string) => {
+      const hash = anchorName || id;
+      history.pushState(null, "", `#${hash}`);
+    },
+  });
 
   // 初始化导航树
   const sidebarNavTreeContainer = document.getElementById(
