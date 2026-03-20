@@ -7,7 +7,7 @@ import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
 import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
-import { setupAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
+import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { initLazyImg } from "../youlog_lib/widgets/image-lazy";
@@ -65,7 +65,7 @@ function init() {
   initKeywordHighlighter("#article-main");
   initYoulogPrint();
   initDcardUse("#article-main");
-  setupAjaxPageLoad();
+  installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
   initHeadingAnchor("#article-main");
   initFootnoteBackButton("#article-main");
 
@@ -87,15 +87,5 @@ function init() {
 
   initTheme();
 }
-
-// (function () {
-//   if (document.readyState === "loading") {
-//     document.addEventListener("DOMContentLoaded", () => {
-//       init();
-//     });
-//   } else {
-//     init();
-//   }
-// })();
 
 init();

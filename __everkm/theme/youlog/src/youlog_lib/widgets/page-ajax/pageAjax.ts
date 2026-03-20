@@ -11,6 +11,19 @@ import {
 
 let lastFullUrl: string | null = null;
 
+export interface PjaxOptions {
+  /** 导航完成后滚动到顶部的滚动容器 CSS 选择器 */
+  scrollContainerSelector?: string;
+}
+
+export type RequiredPjaxOptions = Required<PjaxOptions>;
+
+function getMergedOptions(opts: PjaxOptions): RequiredPjaxOptions {
+  return {
+    scrollContainerSelector: opts.scrollContainerSelector ?? "#body-main",
+  };
+}
+
 function getCurrentFullUrl(): string {
   if (typeof window === "undefined") {
     return "";
@@ -29,7 +42,10 @@ function setupPageLoading() {
   });
 }
 
-async function loadPageContent(url: string): Promise<boolean> {
+async function loadPageContent(
+  url: string,
+  opts: RequiredPjaxOptions,
+): Promise<boolean> {
   try {
     document.body.classList.add(PAGE_LOADING_CLASS);
     nProgress.start();
@@ -77,13 +93,11 @@ async function loadPageContent(url: string): Promise<boolean> {
     });
 
     // 阶段3: DOM 已替换完成，等待浏览器完成布局计算后再滚动到顶部
-    // FIXME: 滚动到顶部需要参数化
     requestAnimationFrame(() => {
       setTimeout(() => {
-        document.getElementById("body-main")?.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+        document
+          .querySelector(opts.scrollContainerSelector)
+          ?.scrollTo({ top: 0, behavior: "smooth" });
       }, 30);
     });
 
@@ -112,7 +126,10 @@ function dispatchPageLoaded(url: string) {
   );
 }
 
-async function handleNavigation(url: string): Promise<void> {
+async function handleNavigation(
+  url: string,
+  opts: RequiredPjaxOptions,
+): Promise<void> {
   try {
     if (lastFullUrl && isOnlyHashChange(lastFullUrl, url)) {
       lastFullUrl = url;
@@ -124,7 +141,7 @@ async function handleNavigation(url: string): Promise<void> {
       new CustomEvent(EVENT_PAGE_LOAD_BEFORE, { detail: { url } }),
     );
 
-    const success = await loadPageContent(url);
+    const success = await loadPageContent(url, opts);
     if (success) {
       lastFullUrl = url;
       window.history.pushState(null, document.title, url);
@@ -140,7 +157,7 @@ async function handleNavigation(url: string): Promise<void> {
   }
 }
 
-async function handlePopState(): Promise<void> {
+async function handlePopState(opts: RequiredPjaxOptions): Promise<void> {
   try {
     const currentUrl = getCurrentFullUrl();
 
@@ -149,7 +166,7 @@ async function handlePopState(): Promise<void> {
       return;
     }
 
-    const success = await loadPageContent(currentUrl);
+    const success = await loadPageContent(currentUrl, opts);
     if (success) {
       dispatchPageLoaded(currentUrl);
       lastFullUrl = currentUrl;
@@ -202,7 +219,8 @@ function shouldHandleLink(element: HTMLElement | null): boolean {
   return isBeginWithBaseUrl;
 }
 
-function setupAjaxPageLoad() {
+function installAjaxPageLoad(opts: PjaxOptions) {
+  const mergedOpts = getMergedOptions(opts);
   setupPageLoading();
 
   lastFullUrl = getCurrentFullUrl();
@@ -221,20 +239,20 @@ function setupAjaxPageLoad() {
       if (shouldHandleLink(linkElement)) {
         event.preventDefault();
         const href = linkElement.getAttribute("href") as string;
-        handleNavigation(href);
+        handleNavigation(href, mergedOpts);
       }
     },
     { capture: true, passive: false },
   );
 
   window.addEventListener("popstate", () => {
-    handlePopState();
+    handlePopState(mergedOpts);
   });
 
   window.addEventListener(EVENT_PAGE_NAVIGATE, (event: Event) => {
     const customEvent = event as CustomEvent<{ url: string }>;
-    handleNavigation(customEvent.detail.url);
+    handleNavigation(customEvent.detail.url, mergedOpts);
   });
 }
 
-export { setupAjaxPageLoad };
+export { installAjaxPageLoad };
