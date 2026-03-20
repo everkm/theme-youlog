@@ -25,8 +25,7 @@
  *    - 不支持的文件类型处理
  *
  * 5. 安装与卸载
- *    - installDcard：安装 dcard，加载资源并触发安装事件
- *    - uninstallDcard：卸载 dcard，触发卸载事件
+ *    - installDcard：安装 dcard，加载资源并触发安装事件，返回卸载函数
  *
  * 使用示例：
  * ```html
@@ -44,11 +43,11 @@
  * ```
  *
  * ```javascript
- * import { installDcard, uninstallDcard, EVENT_DCARD_INSTALL, EVENT_DCARD_UNINSTALL, EVENT_DCARD_ASSETS_ERROR } from 'youlog_lib/dcard';
+ * import { installDcard, EVENT_DCARD_INSTALL, EVENT_DCARD_UNINSTALL, EVENT_DCARD_ASSETS_ERROR } from 'youlog_lib/dcard';
  *
  * // 安装 dcard
  * const container = document.getElementById('container');
- * installDcard(container);
+ * const uninstall = installDcard(container);
  *
  * // 监听 dcard 安装完成事件
  * document.addEventListener('dcard:install', (event) => {
@@ -69,7 +68,7 @@
  * });
  *
  * // 卸载 dcard
- * uninstallDcard(container);
+ * uninstall?.();
  * ```
  *
  * 特性说明：
@@ -196,15 +195,17 @@ function error_log(message: string, ...args: any[]) {
   console.error("installDcard: " + message, ...args);
 }
 
+type UninstallDcardFunction = (() => void) | null;
+
 /**
  * 安装 dcard，加载资源并触发安装事件
  * @param parent 父元素
  */
-function installDcard(parent: HTMLElement) {
+function installDcard(parent: HTMLElement): UninstallDcardFunction {
   const elements = parent.querySelectorAll("script[type='application/json']");
   if (!elements.length) {
     // log("no dcard elements found", parent);
-    return;
+    return null;
   }
 
   // 处理每个 dcard
@@ -225,7 +226,7 @@ function installDcard(parent: HTMLElement) {
           detail: { dcardName, error: e, element, container: parent },
           bubbles: true,
           composed: true,
-        })
+        }),
       );
       return;
     }
@@ -235,7 +236,7 @@ function installDcard(parent: HTMLElement) {
 
     if (jsAssets.length === 0 && cssAssets.length === 0) {
       log("no assets found", dcardName);
-      return;
+      return null;
     }
 
     log("assets found", dcardName, { js: jsAssets, css: cssAssets });
@@ -268,7 +269,7 @@ function installDcard(parent: HTMLElement) {
           },
           bubbles: true,
           composed: true,
-        })
+        }),
       );
     } catch (error) {
       // 资源加载失败，触发 error 事件
@@ -285,10 +286,13 @@ function installDcard(parent: HTMLElement) {
           },
           bubbles: true,
           composed: true,
-        })
+        }),
       );
     }
   });
+  return () => {
+    uninstallDcard(parent);
+  };
 }
 
 /**
@@ -311,15 +315,16 @@ function uninstallDcard(parent: HTMLElement) {
         detail: { dcardName, element, container: parent },
         bubbles: true,
         composed: true,
-      })
+      }),
     );
   }
 }
 
 export {
   installDcard,
-  uninstallDcard,
   EVENT_DCARD_INSTALL,
   EVENT_DCARD_ASSETS_ERROR,
   EVENT_DCARD_UNINSTALL,
 };
+
+export type { UninstallDcardFunction };

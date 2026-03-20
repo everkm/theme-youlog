@@ -4,10 +4,9 @@ export { default as DcardItems } from "./DcardItems";
 
 export {
   installDcard,
-  uninstallDcard,
   EVENT_DCARD_INSTALL,
   EVENT_DCARD_ASSETS_ERROR,
   EVENT_DCARD_UNINSTALL,
 } from "./dcard";
-export { initDcardUse } from "./dcardUse";
-
+export { installDcardUse } from "./dcardUse";
+export type { UninstallDcardFunction } from "./dcard";

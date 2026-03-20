@@ -1,4 +1,4 @@
-import { installDcard, uninstallDcard } from "./dcard";
+import { installDcard } from "./dcard";
 import {
   EVENT_PAGE_LOAD_BEFORE,
   EVENT_PAGE_LOADED,
@@ -8,30 +8,33 @@ function log(message: string, ...args: any[]) {
   console.log("dcard:use: " + message, ...args);
 }
 
-function initDcardUse(bodySelector: string = "#article-main") {
-  const doDispatch = () => {
-    const el = document.querySelector(bodySelector) as HTMLElement;
-    if (el) {
-      installDcard(el);
-    }
-  };
+type UninstallDcard = (() => void) | null;
+
+function initDcardUse(bodySelector: string): UninstallDcard {
+  const el = document.querySelector(bodySelector) as HTMLElement;
+  if (!el) {
+    console.error(`Dcard container not found: ${bodySelector}`);
+    return null;
+  }
+  return installDcard(el);
+}
+
+function installDcardUse(bodySelector: string) {
+  let uninstallDcard: UninstallDcard = null;
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    doDispatch();
+    uninstallDcard = initDcardUse(bodySelector);
   });
 
   document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
-    const el = document.querySelector(bodySelector) as HTMLElement;
-    if (el) {
-      uninstallDcard(el);
-    }
+    uninstallDcard?.();
   });
 
   document.addEventListener("DOMContentLoaded", () => {
-    doDispatch();
+    uninstallDcard = initDcardUse(bodySelector);
   });
 
   log("initialized");
 }
 
-export { initDcardUse };
+export { installDcardUse };

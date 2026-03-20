@@ -18,7 +18,7 @@ import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighte
 import { initPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { installYoulogPrint } from "youlog_lib/widgets/print-page";
 import { initTheme } from "layout/theme";
-import { initDcardUse } from "youlog_lib/dcard";
+import { installDcardUse } from "youlog_lib/dcard";
 import { initPrism } from "youlog_lib/widgets/prism";
 import { initKatex } from "youlog_lib/widgets/katex";
 import { initHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
@@ -64,7 +64,7 @@ function init() {
   initNavMenu(document.getElementById("header-nav") as HTMLElement);
   installKeywordHighlighter("#article-main");
   installYoulogPrint();
-  initDcardUse("#article-main");
+  installDcardUse("#article-main");
   installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
   initHeadingAnchor("#article-main");
   initFootnoteBackButton("#article-main");
