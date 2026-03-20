@@ -54,6 +54,20 @@ function getMergedOptions(customOptions?: TocOptions): RequiredTocOptions {
 
 const DEFAULT_HEADER_HEIGHT = 0;
 
+function resolveScrollContainer(selector: string): HTMLElement | null {
+  const normalized = selector.trim().toLowerCase();
+
+  // 在标准模式（有 DOCTYPE）下，真实滚动容器通常是 documentElement，而不是 body。
+  if (normalized === "body" || normalized === "html") {
+    return (
+      (document.scrollingElement as HTMLElement | null) ||
+      document.documentElement
+    );
+  }
+
+  return document.querySelector<HTMLElement>(selector);
+}
+
 function initMobileToc(
   options: RequiredTocOptions,
   tocEmitter: Emitter<TocEvents>,
@@ -68,9 +82,7 @@ function initMobileToc(
     scrollContainerSelector,
   } = options;
 
-  const scrollContainer = document.querySelector<HTMLElement>(
-    scrollContainerSelector,
-  );
+  const scrollContainer = resolveScrollContainer(scrollContainerSelector);
   if (!scrollContainer) {
     throw new Error(
       `[initMobileToc] scroll container not found: "${scrollContainerSelector}"`,
@@ -139,9 +151,7 @@ function generateToc(
   // console.log("generateToc", options);
 
   const tocContainer = document.querySelector<HTMLElement>(tocSelector);
-  const scrollContainer = document.querySelector<HTMLElement>(
-    scrollContainerSelector,
-  );
+  const scrollContainer = resolveScrollContainer(scrollContainerSelector);
   if (!scrollContainer) {
     throw new Error(`${scrollContainerSelector} is not found`);
   }

@@ -560,6 +560,7 @@ function TableOfContents(props: TocProps) {
       }
 
       if (!targetHeading) {
+        console.error("TOC: targetHeading not found", id);
         return;
       }
     }
@@ -581,6 +582,7 @@ function TableOfContents(props: TocProps) {
       top: totalOffset,
       behavior: "smooth",
     });
+    // console.log("scrollToHeading", totalOffset, scrollElement);
 
     // 更新活跃ID
     setActiveId(id);
