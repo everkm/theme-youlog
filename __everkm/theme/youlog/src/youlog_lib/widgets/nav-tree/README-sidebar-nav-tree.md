@@ -16,9 +16,9 @@
 ## 使用方法
 
 ```typescript
-import { initSidebarNavTree2, TreeScanner, TreeConverter, TreeStructureValidator } from "youlog_lib";
+import { installSidebarNavTree2, TreeScanner, TreeConverter, TreeStructureValidator } from "youlog_lib";
 
-initSidebarNavTree2();
+installSidebarNavTree2();
 
 // 或手动扫描容器
 const container = document.getElementById("my-container");

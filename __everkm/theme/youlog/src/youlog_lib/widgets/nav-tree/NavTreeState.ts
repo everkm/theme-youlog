@@ -4,7 +4,7 @@ import { createStore } from "solid-js/store";
  * 导航树节点接口
  * 定义树节点的基本结构
  */
-export interface NavItem {
+interface NavItem {
   /** 节点唯一标识符 */
   nodeId: string;
   /** 节点标题 */
@@ -20,7 +20,7 @@ export interface NavItem {
 /**
  * 导航树状态接口
  */
-export interface NavTreeStateData {
+interface NavTreeStateData {
   /** 树形结构数据 */
   tree: NavItem[];
   /** 展开的节点ID集合 */
@@ -34,7 +34,7 @@ export interface NavTreeStateData {
 /**
  * 导航树配置接口
  */
-export interface NavTreeConfig {
+interface NavTreeConfig {
   /** 是否自动展开当前路径 */
   autoExpandCurrentPath: boolean;
   /** 是否启用breadcrumb切换功能 */
@@ -115,7 +115,7 @@ class PathMatcher {
  * 导航树状态管理类
  * 负责管理导航树的所有状态和业务逻辑
  */
-export class NavTreeState {
+class NavTreeState {
   private store: ReturnType<typeof createStore<NavTreeStateData>>;
   private config: NavTreeConfig;
 
@@ -559,7 +559,10 @@ export class NavTreeState {
   }
 }
 
-export type PathMatchPredicateFn = (
+type PathMatchPredicateFn = (
   currentPath: string,
   targetPath: string,
 ) => boolean;
+
+export type { NavItem, NavTreeStateData, NavTreeConfig, PathMatchPredicateFn };
+export { NavTreeState };

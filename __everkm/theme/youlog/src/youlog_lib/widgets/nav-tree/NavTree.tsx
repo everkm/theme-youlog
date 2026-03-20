@@ -6,7 +6,7 @@ import "./NavTree.css";
 /**
  * 导航树组件属性接口
  */
-export interface NavTreeProps {
+interface NavTreeProps {
   /** 导航树状态管理器 */
   state: NavTreeState;
   /** 自定义CSS类名 */
@@ -102,7 +102,7 @@ const TreeNode: Component<{
                   const siblings = currentNode().children || [];
                   const hasSiblingWithChildren = siblings.some(
                     (sibling) =>
-                      sibling.children && sibling.children.length > 0
+                      sibling.children && sibling.children.length > 0,
                   );
                   return (
                     <TreeNode
@@ -127,7 +127,7 @@ const TreeNode: Component<{
  * 导航树组件
  * 纯视图组件，负责渲染导航树
  */
-export const NavTree: Component<NavTreeProps> = (props) => {
+const NavTree: Component<NavTreeProps> = (props) => {
   const rootNodes = createMemo(() => props.state.getRootNodes());
   let navElement: HTMLElement | undefined;
 
@@ -147,7 +147,7 @@ export const NavTree: Component<NavTreeProps> = (props) => {
             // 检查根节点层是否至少有一个有子节点
             const rootNodesList = rootNodes();
             const hasSiblingWithChildren = rootNodesList.some(
-              (sibling) => sibling.children && sibling.children.length > 0
+              (sibling) => sibling.children && sibling.children.length > 0,
             );
             return (
               <TreeNode
@@ -165,5 +165,5 @@ export const NavTree: Component<NavTreeProps> = (props) => {
   );
 };
 
-export default NavTree;
-
+export { NavTree };
+export type { NavTreeProps };

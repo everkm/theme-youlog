@@ -12,7 +12,7 @@ import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
 import { installImgSwipe } from "../youlog_lib/widgets/image-swipe/imgSwipe";
-import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
+import { installSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
 import { installAppHeader } from "utils/app_header";
 import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
 import { installPageQrcode } from "youlog_lib/widgets/page-qrcode";
@@ -52,7 +52,7 @@ function install() {
     "breadcrumb",
   ) as HTMLElement | null;
   if (sidebarNavTreeContainer) {
-    initSidebarNavTree2({
+    installSidebarNavTree2({
       container: sidebarNavTreeContainer,
       breadcrumbRoot: breadcrumbEl ?? undefined,
     });

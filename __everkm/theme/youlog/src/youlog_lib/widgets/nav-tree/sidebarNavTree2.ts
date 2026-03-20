@@ -383,7 +383,7 @@ class TreeScanner {
   }
 }
 
-export interface SidebarNavTreeOptions {
+interface SidebarNavTreeOptions {
   /**
    * 导航树所在的容器元素（原先的 #sidebar-nav-tree）
    */
@@ -399,7 +399,7 @@ export interface SidebarNavTreeOptions {
   breadcrumbTitleSelector?: string;
 }
 
-export function initSidebarNavTree2(options: SidebarNavTreeOptions): void {
+function installSidebarNavTree2(options: SidebarNavTreeOptions): void {
   const {
     container,
     breadcrumbRoot,
@@ -432,6 +432,7 @@ export function initSidebarNavTree2(options: SidebarNavTreeOptions): void {
   container.classList.remove("invisible");
 }
 
+// Just for test
 export {
   TreeScanner,
   TreeConverter,
@@ -439,4 +440,6 @@ export {
   NavTreeManager,
   BreadcrumbManager,
 };
-export { MarkdownTreeParser } from "./markdownTreeParser";
+
+export { installSidebarNavTree2 };
+export type { SidebarNavTreeOptions };

@@ -3,8 +3,9 @@ import {
   TreeStructureValidator,
   TreeConverter,
   TreeScanner,
-  MarkdownTreeParser,
 } from "./sidebarNavTree2";
+
+import { MarkdownTreeParser } from "./markdownTreeParser";
 
 describe("TreeStructureValidator", () => {
   let container: HTMLDivElement;
@@ -341,7 +342,7 @@ describe("MarkdownTreeParser", () => {
       expect(items[0].children).toHaveLength(1);
       expect(items[0].children![0].title).toBe("页面2");
       expect(items[0].children![0].url).toMatch(
-        /^https?:\/\/localhost(:\d+)?\/page2$/
+        /^https?:\/\/localhost(:\d+)?\/page2$/,
       );
     });
 
@@ -388,7 +389,7 @@ describe("MarkdownTreeParser", () => {
       container.innerHTML = html;
       const ul = container.querySelector("ul")!;
       const items = parser.parse(ul);
-      
+
       expect(items).toHaveLength(2);
       expect(items[0].title).toBe("页面1");
       expect(items[0].url).toMatch(/^https?:\/\/localhost(:\d+)?\/page1$/);
