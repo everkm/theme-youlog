@@ -61,7 +61,9 @@ function install() {
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
   installLazyImg("#article-main");
-  initNavMenu(document.getElementById("header-nav") as HTMLElement);
+  initNavMenu(document.getElementById("header-nav") as HTMLElement, {
+    mobileMenuContainerSelector: "#mobile-menu-container",
+  });
   installKeywordHighlighter("#article-main");
   installYoulogPrint();
   installDcardUse("#article-main");

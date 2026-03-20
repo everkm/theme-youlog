@@ -81,33 +81,58 @@ function initDesktopMenu(
   render(() => <FloatingMenu items={menuData} />, container);
 }
 
-function initMobileMenu(menuData: MenuItem[]): void {
-  const mobileMenuContainer = document.getElementById("mobile-menu-container");
-  if (!mobileMenuContainer) return;
+function initMobileMenu(
+  mobileMenuContainerSelector: string,
+  menuData: MenuItem[],
+): void {
+  const mobileMenuContainer = document.querySelector(
+    mobileMenuContainerSelector,
+  );
+  if (!mobileMenuContainer) {
+    console.error("nav_menu: mobileMenuContainer is required");
+    return;
+  }
   render(
     () => <MobileNavController menuData={menuData} />,
     mobileMenuContainer,
   );
 }
 
-function createNavMenu(navContainer: HTMLElement, menuData: MenuItem[]): void {
+function createNavMenu(
+  navContainer: HTMLElement,
+  menuData: MenuItem[],
+  mobileMenuContainerSelector?: string,
+): void {
   initDesktopMenu(navContainer, menuData);
-  initMobileMenu(menuData);
+
+  if (mobileMenuContainerSelector) {
+    initMobileMenu(mobileMenuContainerSelector, menuData);
+  }
+}
+
+interface NavMenuOptions {
+  menuItemsProcessor?: (menuItems: MenuItem[]) => MenuItem[];
+  mobileMenuContainerSelector?: string;
 }
 
 function initNavMenu(
   navContainer: HTMLElement,
-  menuItemsProcessor?: (menuItems: MenuItem[]) => MenuItem[],
+  options: NavMenuOptions = {},
 ): void {
-  onMount(() => {
-    if (!navContainer) return;
-    navContainer.classList.remove("invisible");
-    let menuData = parseMenuData(navContainer);
-    if (menuItemsProcessor) {
-      menuData = menuItemsProcessor(menuData);
-    }
-    createNavMenu(navContainer, menuData);
-  });
+  if (!navContainer) {
+    console.error("nav_menu: navContainer is required");
+    return;
+  }
+
+  navContainer.classList.remove("invisible");
+
+  let menuData = parseMenuData(navContainer);
+  if (options.menuItemsProcessor) {
+    menuData = options.menuItemsProcessor(menuData);
+  }
+
+  createNavMenu(navContainer, menuData, options.mobileMenuContainerSelector);
 }
 
 export { createNavMenu, initNavMenu };
+export type { NavMenuOptions };
