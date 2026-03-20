@@ -1,4 +1,4 @@
-import { getCurrentLang } from "youlog_lib/core/i18n";
+import { getCurrentLang } from "../../core/i18n";
 
 interface PrismProps {
   isCN?: boolean;
