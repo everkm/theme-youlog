@@ -17,7 +17,7 @@ import { installAppHeader } from "utils/app_header";
 import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
 import { installPageQrcode } from "youlog_lib/widgets/page-qrcode";
 import { installYoulogPrint } from "youlog_lib/widgets/print-page";
-import { initTheme } from "layout/theme";
+import { installTheme } from "layout/theme";
 import { installDcardUse } from "youlog_lib/dcard";
 import { installPrism } from "youlog_lib/widgets/prism";
 import { installKatex } from "youlog_lib/widgets/katex";
@@ -85,7 +85,7 @@ function init() {
   // 初始化页面二维码
   installPageQrcode();
 
-  initTheme();
+  installTheme();
 }
 
 init();

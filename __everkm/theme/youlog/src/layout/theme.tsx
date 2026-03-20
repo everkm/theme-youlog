@@ -24,7 +24,7 @@ function toggleDarkMode(): void {
 const [isDark, setIsDark] = createSignal(
   localStorage.getItem("color-theme") === "dark" ||
     (!localStorage.getItem("color-theme") &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
+      window.matchMedia("(prefers-color-scheme: dark)").matches),
 );
 
 // 监听暗黑模式变化并更新DOM和localStorage
@@ -136,13 +136,13 @@ const ThemeSettings: Component<ThemeSettingsProps> = (props) => {
   ];
 
   const [fontFamily, setFontFamily] = createSignal(
-    localStorage.getItem("youlog-font-family") || fontOptions[0].value
+    localStorage.getItem("youlog-font-family") || fontOptions[0].value,
   );
   const [fontSize, setFontSize] = createSignal(
-    Number(localStorage.getItem("youlog-font-size")) || DEFAULT_FONT_SIZE
+    Number(localStorage.getItem("youlog-font-size")) || DEFAULT_FONT_SIZE,
   );
   const [lineHeight, setLineHeight] = createSignal(
-    Number(localStorage.getItem("youlog-line-height")) || DEFAULT_LINE_HEIGHT
+    Number(localStorage.getItem("youlog-line-height")) || DEFAULT_LINE_HEIGHT,
   );
 
   // 临时值，用于实时预览
@@ -354,12 +354,12 @@ const openThemeSetting = () => {
 
   settingsComponent = render(
     () => <ThemeSettings onClose={cleanup} />,
-    settingsRoot!
+    settingsRoot!,
   );
 };
 
-function initTheme() {
-  console.log("initTheme");
+function installTheme() {
+  console.log("installTheme");
 
   youlogRegister({
     openThemeSetting: openThemeSetting,
@@ -368,7 +368,7 @@ function initTheme() {
 
   document.addEventListener("DOMContentLoaded", () => {
     const openThemeSettingButton = document.querySelector<HTMLButtonElement>(
-      "[data-el='open-theme-setting']"
+      "[data-el='open-theme-setting']",
     );
     if (openThemeSettingButton) {
       openThemeSettingButton.addEventListener("click", () => {
@@ -383,4 +383,4 @@ function initTheme() {
   // });
 }
 
-export { initTheme };
+export { installTheme };
