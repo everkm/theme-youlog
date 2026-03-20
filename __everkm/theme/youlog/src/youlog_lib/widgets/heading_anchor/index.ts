@@ -1,4 +1,4 @@
-import { showToast } from "youlog_lib/toast";
+import { showToast } from "../../toast";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 
 function initHeadingAnchor(bodySelector: string): void {
