@@ -6,6 +6,7 @@ import {
   EVENT_PAGE_LOADED,
   EVENT_PAGE_LOAD_BEFORE,
   PAGE_LOADING_CLASS,
+  EVENT_PAGE_UPDATE_BEFORE,
 } from "./constants";
 
 let lastFullUrl: string | null = null;
@@ -15,9 +16,7 @@ function getCurrentFullUrl(): string {
     return "";
   }
   return (
-    window.location.pathname +
-    window.location.search +
-    window.location.hash
+    window.location.pathname + window.location.search + window.location.hash
   );
 }
 
@@ -61,8 +60,24 @@ async function loadPageContent(url: string): Promise<boolean> {
       });
     };
 
-    syncElementsByDataAttribute();
+    // 阶段1: 通知订阅者即将更新 DOM，让其完成清理（如销毁旧组件、移除监听器）
+    document.dispatchEvent(
+      new CustomEvent(EVENT_PAGE_UPDATE_BEFORE, {
+        bubbles: true,
+        composed: true,
+      }),
+    );
 
+    // 阶段2: 等待一帧，确保订阅者的清理工作（含 rAF 回调）执行完毕后，再替换 DOM
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        syncElementsByDataAttribute();
+        resolve();
+      });
+    });
+
+    // 阶段3: DOM 已替换完成，等待浏览器完成布局计算后再滚动到顶部
+    // FIXME: 滚动到顶部需要参数化
     requestAnimationFrame(() => {
       setTimeout(() => {
         document.getElementById("body-main")?.scrollTo({

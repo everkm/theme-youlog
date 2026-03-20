@@ -7,7 +7,6 @@ import {
   Show,
   onMount,
 } from "solid-js";
-import { render } from "solid-js/web";
 
 // 垂直高度的间距
 export const VERTICAL_PADDING = 20;
@@ -179,6 +178,7 @@ export function MobileToc(props: MobileTocProps) {
   });
 
   // 监听emitter事件
+  // 不需要 update 事件, 因为每次更新都会重建。
   createEffect(() => {
     const emitter = props.emitter;
     if (!emitter) return;
@@ -189,32 +189,10 @@ export function MobileToc(props: MobileTocProps) {
       setStopSync(true);
     };
 
-    // 监听更新事件 - 页面加载后触发，重新解析内容并恢复滚动同步
-    const onUpdate = () => {
-      // console.log("TOC: 更新内容并恢复滚动同步 mobile");
-      // 重新解析文章内容
-      const articleElement = document.querySelector<HTMLElement>(
-        props.articleSelector || "#article-main",
-      );
-      if (articleElement) {
-        const items = parseTocItems(
-          articleElement,
-          props.headingSelector || HEADING_SELECTOR,
-        );
-        setTocItems(items);
-      } else {
-        setTocItems([]);
-      }
-      // 启用滚动同步
-      setStopSync(false);
-    };
-
     emitter.on("stop", onStop);
-    emitter.on("update", onUpdate);
 
     cleanUpCallback = () => {
       emitter.off("stop", onStop);
-      emitter.off("update", onUpdate);
     };
   });
 
@@ -360,7 +338,7 @@ export function MobileToc(props: MobileTocProps) {
             {/* <span class="toc-mobile-header-label">当前位置:</span> */}
           </div>
           <div class="toc-mobile-header-title">
-            {activeTocItem()?.text || props.title || "目录"}
+            {activeTocItem()?.text || props.title}
           </div>
           <svg
             class={`toc-mobile-header-arrow ${showToc() ? "rotate-180" : ""}`}
@@ -747,17 +725,4 @@ export function TableOfContents(props: TocProps) {
       </>
     </Show>
   );
-}
-
-/**
- * 初始化TOC，将其渲染到指定容器
- */
-export function initTableOfContents(
-  container: HTMLElement,
-  options: TocProps = {},
-) {
-  if (!container) return;
-
-  // 使用Solid.js渲染TOC组件
-  render(() => <TableOfContents {...options} />, container);
 }

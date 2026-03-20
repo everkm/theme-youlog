@@ -25,21 +25,24 @@ import { initHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { initFootnoteBackButton } from "youlog_lib/widgets/footnote";
 
 function init() {
-  installToc({
-    tocSelector: "#toc",
-    articleSelector: "#article-main",
-    headingSelector: "h1, h2, h3, h4",
-    headerSelector: "header",
-    offset: 10,
-    highlightParents: true,
-    title: "目录",
-    enableMobileToc: true,
-    scrollContainer: document.getElementById("body-main") || undefined,
-    onAfterGoto: (id: string, anchorName?: string) => {
-      const hash = anchorName || id;
-      history.pushState(null, "", `#${hash}`);
-    },
-  });
+  const bodyMain = document.getElementById("body-main") as HTMLElement;
+  if (bodyMain) {
+    installToc({
+      tocSelector: "#toc",
+      articleSelector: "#article-main",
+      headingSelector: "h1, h2, h3, h4",
+      headerSelector: "header",
+      offset: 10,
+      highlightParents: true,
+      title: "目录",
+      enableMobileToc: true,
+      scrollContainerSelector: "#body-main",
+      onAfterGoto: (id: string, anchorName?: string) => {
+        const hash = anchorName || id;
+        history.pushState(null, "", `#${hash}`);
+      },
+    });
+  }
 
   // 初始化导航树
   const sidebarNavTreeContainer = document.getElementById(
@@ -84,5 +87,15 @@ function init() {
 
   initTheme();
 }
+
+// (function () {
+//   if (document.readyState === "loading") {
+//     document.addEventListener("DOMContentLoaded", () => {
+//       init();
+//     });
+//   } else {
+//     init();
+//   }
+// })();
 
 init();
