@@ -1,1 +1,1 @@
-export { initYoulogPrint } from "./youlogPrint";
+export { installYoulogPrint } from "./youlogPrint";
