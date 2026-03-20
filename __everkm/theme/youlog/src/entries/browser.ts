@@ -11,7 +11,7 @@ import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
-import { initImgSwipe } from "../youlog_lib/widgets/image-swipe";
+import { installImgSwipe } from "../youlog_lib/widgets/image-swipe/imgSwipe";
 import { initSidebarNavTree2 } from "../youlog_lib/widgets/nav-tree";
 import { initAppHeader } from "utils/app_header";
 import { installKeywordHighlighter } from "youlog_lib/widgets/keyword-highlighter";
@@ -77,7 +77,7 @@ function init() {
   }
 
   // 初始化图片预览
-  initImgSwipe("#article-main");
+  installImgSwipe("#article-main");
 
   // 初始化应用头部
   initAppHeader();

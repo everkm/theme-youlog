@@ -5,8 +5,7 @@ import {
 import PhotoSwipeLightbox from "photoswipe/lightbox";
 import "photoswipe/style.css";
 
-let currentCleanupFn: (() => void) | null = null;
-let lightbox: PhotoSwipeLightbox | null = null;
+type CleanupFunction = (() => void) | null;
 
 interface IImgSwipeItem {
   width: number;
@@ -14,17 +13,12 @@ interface IImgSwipeItem {
   src: string;
 }
 
-function setup(selector: string) {
-  if (currentCleanupFn) {
-    currentCleanupFn();
-    currentCleanupFn = null;
-  }
-
+function initImgSwipe(selector: string): CleanupFunction {
   const box = document.querySelector<HTMLElement>(selector);
-  if (!box) return;
+  if (!box) return null;
 
   const images = box.querySelectorAll<HTMLImageElement>("img");
-  if (images.length === 0) return;
+  if (images.length === 0) return null;
 
   const imgList: IImgSwipeItem[] = [];
   images.forEach((image) => {
@@ -38,44 +32,53 @@ function setup(selector: string) {
     }
   });
 
-  lightbox = new PhotoSwipeLightbox({
+  if (imgList.length === 0) return null;
+
+  const lightbox = new PhotoSwipeLightbox({
     dataSource: imgList,
     pswpModule: () => import("photoswipe"),
   });
   lightbox.init();
 
-  currentCleanupFn = () => {
+  const clickHandler = (event: MouseEvent) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+
+    const index = parseInt(target.getAttribute("data-pswp-index") || "-1");
+    if (index === -1) return;
+    lightbox.loadAndOpen(index);
+  };
+
+  box.addEventListener("click", clickHandler);
+
+  return () => {
+    box.removeEventListener("click", clickHandler);
     lightbox?.destroy();
-    lightbox = null;
   };
 }
 
-function imageClickHandleAgent(selector: string) {
-  const box = document.querySelector<HTMLElement>(selector);
-  if (!box) return;
+function installImgSwipe(bodySelector: string): void {
+  let currentCleanupFn: CleanupFunction = null;
 
-  box.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    if (target.tagName === "IMG") {
-      const index = parseInt(target.getAttribute("data-pswp-index") || "-1");
-      if (index === -1) return;
-      lightbox?.loadAndOpen(index);
-    }
-  });
-}
-
-export function initImgSwipe(bodySelector: string) {
-  document.addEventListener("DOMContentLoaded", () => {
-    setup(bodySelector);
-    imageClickHandleAgent(bodySelector);
-  });
-  document.addEventListener(EVENT_PAGE_LOADED, () => {
-    setup(bodySelector);
-  });
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  const cleanup = () => {
     if (currentCleanupFn) {
       currentCleanupFn();
       currentCleanupFn = null;
     }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    currentCleanupFn = initImgSwipe(bodySelector);
+  });
+
+  document.addEventListener(EVENT_PAGE_LOADED, () => {
+    cleanup();
+    currentCleanupFn = initImgSwipe(bodySelector);
+  });
+
+  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+    cleanup();
   });
 }
+
+export { initImgSwipe, installImgSwipe };

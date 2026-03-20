@@ -1,1 +1,1 @@
-export { initImgSwipe } from "./imgSwipe";
+export { initImgSwipe, installImgSwipe } from "./imgSwipe";
