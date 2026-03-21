@@ -658,6 +658,12 @@
   line-height: 1.6;
 }
 
+.markdown-body hr.footnote-definitions-separator {
+  margin-top: 4rem !important;
+  margin-bottom: 1.5rem !important;
+  padding: 0 !important;
+}
+
 .markdown-body .footnote-definition-label {
   font-family: var(--font-serif);
   font-weight: var(--base-text-weight-semibold, 600);
