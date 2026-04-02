@@ -134,17 +134,32 @@ function parseTocItems(
 function itemLevelJustify(items: TocItem[]) {
   if (items.length === 0) return items;
 
+  let working = items;
+
+  // 首项为 H1 且全文仅有一个 H1（多为页面主标题）时，从目录中忽略该条
+  const h1Count = items.filter((item) => item.level === 1).length;
+  if (items[0].level === 1 && h1Count === 1) {
+    const droppedId = items[0].id;
+    working = items
+      .slice(1)
+      .map((item) =>
+        item.parentId === droppedId ? { ...item, parentId: undefined } : item,
+      );
+  }
+
+  if (working.length === 0) return working;
+
   // 找到最小级别
-  const minLevel = Math.min(...items.map((item) => item.level));
+  const minLevel = Math.min(...working.map((item) => item.level));
 
   // 如果最小级别已经是1，则不需要调整
-  if (minLevel === 1) return items;
+  if (minLevel === 1) return working;
 
   // 计算需要向上提升的级别数
   const levelOffset = minLevel - 1;
 
   // 将所有项目的级别向上提升
-  return items.map((item) => ({
+  return working.map((item) => ({
     ...item,
     level: item.level - levelOffset,
   }));

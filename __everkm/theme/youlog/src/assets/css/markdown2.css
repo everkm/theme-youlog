@@ -93,6 +93,8 @@
   color: var(--fgColor-default);
   background-color: transparent;
   text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
 
   a,
   h1,
