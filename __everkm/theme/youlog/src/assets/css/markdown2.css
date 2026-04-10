@@ -71,6 +71,15 @@
 
 /* ─── .markdown-body ─────────────────────────────────────────────────────── */
 
+/* CJK（zh/ja/ko）：仅正文内段落、列表项、引用块两端对齐；lang|= 覆盖各语言 BCP 47 前缀 */
+html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
+  .markdown-body
+  :is(p, li, blockquote) {
+  text-align: justify;
+  text-align-last: left;
+  hyphens: none;
+}
+
 .markdown-body {
   /* Reset github vars that might conflict */
   -ms-text-size-adjust: 100%;
@@ -92,10 +101,7 @@
   line-height: 1.8;
   color: var(--fgColor-default);
   background-color: transparent;
-  text-align: justify;
-  text-align-last: left;
-  hyphens: auto;
-
+ 
   a,
   h1,
   h2,
