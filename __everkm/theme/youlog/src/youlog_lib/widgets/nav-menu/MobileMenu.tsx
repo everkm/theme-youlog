@@ -7,7 +7,7 @@ interface AccordionItemProps {
 }
 
 const AccordionItem = (props: AccordionItemProps) => {
-  const [isOpen, setIsOpen] = createSignal(props.item.active || false);
+  const [isOpen, setIsOpen] = createSignal(false); //props.item.active || false);
   const level = () => props.level || 0;
   const hasChildren = () =>
     props.item.children && props.item.children.length > 0;

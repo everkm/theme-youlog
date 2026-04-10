@@ -725,7 +725,7 @@ function TableOfContents(props: TocProps) {
 
             // 动态计算class名称
             const getClassName = () => {
-              let className = "toc-link";
+              let className = "toc-link truncate";
 
               // 根据级别添加样式
               if (item.level === 1) className += " toc-link-h1";
