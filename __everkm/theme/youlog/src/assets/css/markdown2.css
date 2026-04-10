@@ -312,7 +312,6 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 }
 
 .markdown-body pre {
-  background-color: var(--bgColor-muted);
   border: 1px solid var(--borderColor-default);
   border-radius: 6px;
   font-size: 0.84em;
@@ -325,6 +324,11 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
   max-width: 100%;
   word-wrap: normal;
   position: relative;
+}
+
+/* 仅无语法高亮（无 language-*）的代码块使用浅色底，避免与高亮主题冲突 */
+.markdown-body pre:not([class*="language-"]) {
+  background-color: var(--bgColor-neutral-muted);
 }
 
 /* pre 内部有 code 时（代码块）不显示边框 */
