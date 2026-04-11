@@ -207,10 +207,20 @@ interface TocResult {
   options: RequiredTocOptions;
 }
 
-function initToc(customOptions?: TocOptions): TocResult {
+function initToc(customOptions?: TocOptions): TocResult | undefined {
   const options = getMergedOptions(customOptions);
   let mobileTocCleanup: undefined | (() => void);
   const tocEmitter = mitt<TocEvents>();
+
+  // check target selector is valid
+  const targetSelector = options.tocSelector;
+  if (!targetSelector) {
+    return undefined;
+  }
+  const targetElement = document.querySelector(targetSelector);
+  if (!targetElement) {
+    return undefined;
+  }
 
   generateToc(options, tocEmitter);
   if (options.enableMobileToc) {
@@ -231,7 +241,11 @@ function installToc(options?: TocOptions): void {
 }
 
 function doSetupToc(options?: TocOptions): void {
-  let { tocEmitter, mobileTocCleanup, options: tocOptions } = initToc(options);
+  const result = initToc(options);
+  if (!result) {
+    return;
+  }
+  let { tocEmitter, mobileTocCleanup, options: tocOptions } = result;
 
   document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
     tocEmitter.emit("stop");
