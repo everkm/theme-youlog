@@ -53,6 +53,7 @@ function getMergedOptions(customOptions?: TocOptions): RequiredTocOptions {
 }
 
 const DEFAULT_HEADER_HEIGHT = 0;
+const TOPBAR_OFFSET = -1;
 
 function resolveScrollContainer(selector: string): HTMLElement | null {
   const normalized = selector.trim().toLowerCase();
@@ -103,7 +104,7 @@ function initMobileToc(
   if (!mobileTocContainer) {
     mobileTocContainer = document.createElement("div");
     mobileTocContainer.id = "mobile-toc-indicator";
-    mobileTocContainer.style.top = `${headerHeight + 2}px`;
+    mobileTocContainer.style.top = `calc(var(--topbar-height, 0px) + ${TOPBAR_OFFSET}px)`;
     mobileTocContainer.style.position = "sticky";
     mobileTocContainer.style.zIndex = "5";
     if (article.firstChild) {
@@ -113,23 +114,29 @@ function initMobileToc(
     }
   }
 
-  if (mobileTocContainer) {
-    return render(
-      () => (
-        <MobileToc
-          articleSelector={articleSelector}
-          headingSelector={headingSelector}
-          headerHeight={headerHeight}
-          offset={offset}
-          highlightParents={highlightParents}
-          title={title}
-          emitter={tocEmitter}
-          scrollContainer={scrollContainer}
-        />
-      ),
-      mobileTocContainer,
-    );
+  if (!mobileTocContainer) {
+    return undefined;
   }
+
+  const disposeMobileToc = render(
+    () => (
+      <MobileToc
+        articleSelector={articleSelector}
+        headingSelector={headingSelector}
+        headerHeight={headerHeight}
+        offset={offset}
+        highlightParents={highlightParents}
+        title={title}
+        emitter={tocEmitter}
+        scrollContainer={scrollContainer}
+      />
+    ),
+    mobileTocContainer,
+  );
+
+  return () => {
+    disposeMobileToc();
+  };
 }
 
 function generateToc(
@@ -164,23 +171,16 @@ function generateToc(
   tocContainer.innerHTML = "";
   const header = document.querySelector<HTMLElement>(headerSelector);
   const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
-  const stickyTop = headerHeight + VERTICAL_PADDING;
 
   tocContainer.classList.remove("hidden", "mobile-active", "mobile-child");
   tocContainer.classList.add("lg:sticky", "hidden", "lg:block");
-  tocContainer.style.top = `${stickyTop}px`;
+  tocContainer.style.top = `calc(var(--topbar-height, ${headerHeight}px) + ${TOPBAR_OFFSET + VERTICAL_PADDING}px)`;
   tocContainer.style.scrollBehavior = "smooth";
 
   const callbackHeadersHeight = () => {
     const h = document.querySelector<HTMLElement>(headerSelector);
     return [h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT];
   };
-  const topBarHeights = callbackHeadersHeight();
-  document.documentElement.style.setProperty(
-    "--topbar-height",
-    `${topBarHeights.reduce((a, b) => a + b, 0)}px`,
-  );
-
   render(
     () => (
       <TableOfContents
