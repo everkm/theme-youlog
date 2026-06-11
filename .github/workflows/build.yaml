@@ -129,9 +129,11 @@ jobs:
         ENDPOINT="https://0348638eaf8921e9cbdad2df98ea51f2.r2.cloudflarestorage.com"
         aws s3 cp "__everkm/theme/youlog/youlog-${{ env.VERSION }}.zip" \
           "${S3_PREFIX}/youlog-${{ env.VERSION }}.zip" \
+          --content-type application/zip \
           --endpoint-url "${ENDPOINT}"
         aws s3 cp "__everkm/theme/youlog/meta.json" \
           "${S3_PREFIX}/meta.json" \
+          --content-type "application/json; charset=utf-8" \
           --endpoint-url "${ENDPOINT}"
 
     - name: Upload to Qiniu
@@ -145,9 +147,12 @@ jobs:
         ENDPOINT="https://s3.cn-south-1.qiniucs.com"
         aws s3 cp "__everkm/theme/youlog/youlog-${{ env.VERSION }}.zip" \
           "${S3_PREFIX}/youlog-${{ env.VERSION }}.zip" \
+          --content-type application/zip \
           --endpoint-url "${ENDPOINT}"
         aws s3 cp "__everkm/theme/youlog/meta.json" \
           "${S3_PREFIX}/meta.json" \
+          --content-type "application/json; charset=utf-8" \
+          --cache-control "public, max-age=31536000, no-transform" \
           --endpoint-url "${ENDPOINT}"
       
     - name: Create Release
