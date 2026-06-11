@@ -48,7 +48,11 @@ bundle: build
 	# 打包
 	mkdir .dist
 	mv $(DIST_DIR) .dist/youlog
-	cd .dist && zip -r ../youlog.zip youlog
+	@ZIP_NAME="youlog.zip"; \
+	if [ -n "$${EVERKM_VERSION}" ]; then \
+		ZIP_NAME="youlog-$${EVERKM_VERSION}.zip"; \
+	fi; \
+	cd .dist && zip -r ../$$ZIP_NAME youlog; \
 	rm -rf .dist
 
 
