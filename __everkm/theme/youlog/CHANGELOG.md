@@ -70,5 +70,5 @@
 - 移除 NavTree 中的 `markdown_body`
 
 
-## v0.4.3 ()
-- `markdown_body` 使用 `justify` 对齐
+## v0.4.3 (2026-04-10)
+- `.markdown-body` 在 CJK 语言（zh/ja/ko）下对段落、列表项、引用块使用两端对齐（justify）
