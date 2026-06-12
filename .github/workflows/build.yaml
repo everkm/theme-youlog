@@ -158,8 +158,6 @@ jobs:
             --check-hash \
             --rescan-local=true
 
-        echo "https://ekmp-assets.everkm.com/themes/everkm/youlog/${{ env.VERSION }}/youlog-${{ env.VERSION }}.zip" >> cdn-refresh.txt
-        echo "https://ekmp-assets.everkm.com/themes/everkm/youlog/${{ env.VERSION }}/meta.json" >> cdn-refresh.txt
         echo "https://ekmp-assets.everkm.cn/themes/everkm/youlog/${{ env.VERSION }}/youlog-${{ env.VERSION }}.zip" >> cdn-refresh.txt
         echo "https://ekmp-assets.everkm.cn/themes/everkm/youlog/${{ env.VERSION }}/meta.json" >> cdn-refresh.txt
         cat cdn-refresh.txt
