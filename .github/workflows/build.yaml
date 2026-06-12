@@ -1,7 +1,5 @@
 name: Theme Release
 
-
-
 on:
   push:
     tags:
@@ -10,166 +8,79 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - uses: pnpm/action-setup@v4
-      name: Install pnpm
-      with:
-        version: 10
-        run_install: false
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+          run_install: false
 
-    - name: Get pnpm store directory
-      shell: bash
-      run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    - uses: actions/cache@v4
-      name: Setup pnpm cache
-      with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-
-    
-    - name: packages install
-      run: |
-        cd __everkm
-        make pnpm-install
-        cd theme/youlog
-        make fe-install
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-    - name: dist pages
-      if: startsWith(github.ref, 'refs/tags/pages@v')
-      run: |
-        cd __everkm && make dist
+      - name: packages install
+        run: |
+          cd __everkm
+          make pnpm-install
+          cd theme/youlog
+          make fe-install
 
-    - uses: stefanzweifel/git-auto-commit-action@v5
-      if: startsWith(github.ref, 'refs/tags/pages@v')
-      with:
-        commit_message: "${{ github.ref }} dist results, sha: ${{ github.sha }}"
-        branch: refs/heads/pages
-        repository: __everkm/dist/
-        status_options: '--untracked-files=normal'
-        add_options: '--force'
-        push_options: '--force'
-        skip_dirty_check: true    
-        skip_fetch: true    
-        skip_checkout: true
-        disable_globbing: true
-        create_branch: true
+      - name: dist pages
+        if: startsWith(github.ref, 'refs/tags/pages@v')
+        run: |
+          cd __everkm && make dist
 
-    - name: build theme
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        export EVERKM_VERSION=$(echo ${{ github.ref }} | sed -n 's/refs\/tags\/v\(.*\)/\1/p')
-        echo "VERSION=$EVERKM_VERSION" >> $GITHUB_ENV
-        cd __everkm/theme/youlog && make bundle
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        if: startsWith(github.ref, 'refs/tags/pages@v')
+        with:
+          commit_message: "${{ github.ref }} dist results, sha: ${{ github.sha }}"
+          branch: refs/heads/pages
+          repository: __everkm/dist/
+          status_options: '--untracked-files=normal'
+          add_options: '--force'
+          push_options: '--force'
+          skip_dirty_check: true
+          skip_fetch: true
+          skip_checkout: true
+          disable_globbing: true
+          create_branch: true
 
-    - name: Generate meta.json
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        pip install pyyaml
-        python3 << 'SCRIPT'
-        import json
-        import os
-        import yaml
+      - name: build theme
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          export EVERKM_VERSION=$(echo ${{ github.ref }} | sed -n 's/refs\/tags\/v\(.*\)/\1/p')
+          echo "VERSION=$EVERKM_VERSION" >> $GITHUB_ENV
+          cd __everkm/theme/youlog && make bundle
 
-        ver = os.environ["VERSION"]
-        theme_yaml = "__everkm/theme/youlog/everkm-theme.yaml"
-        with open(theme_yaml) as f:
-            theme = yaml.safe_load(f)
-
-        meta = {}
-        for key in ("name", "owner", "demo", "description", "cover", "screenshots"):
-            if key in theme and theme[key] is not None:
-                meta[key] = theme[key]
-
-        meta["version"] = ver
-        meta["download_urls"] = [
-            f"https://ekmp-assets.everkm.com/themes/everkm/youlog/{ver}/youlog-{ver}.zip",
-            f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/v{ver}/youlog-{ver}.zip",
-            f"https://ekmp-assets.everkm.cn/themes/everkm/youlog/{ver}/youlog-{ver}.zip",
-        ]
-
-        out = "__everkm/theme/youlog/meta.json"
-        with open(out, "w") as f:
-            json.dump(meta, f, indent=2, ensure_ascii=False)
-            f.write("\n")
-        print(json.dumps(meta, indent=2, ensure_ascii=False))
-        SCRIPT
-      env:
-        VERSION: ${{ env.VERSION }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-
-    - name: Upload to Cloudflare R2
-      if: startsWith(github.ref, 'refs/tags/v')
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.CF_S3_AK }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_S3_SK }}
-        AWS_DEFAULT_REGION: auto
-      run: |
-        S3_PREFIX="s3://ekmp-assets/themes/everkm/youlog/${{ env.VERSION }}"
-        ENDPOINT="https://0348638eaf8921e9cbdad2df98ea51f2.r2.cloudflarestorage.com"
-        aws s3 cp "__everkm/theme/youlog/youlog-${{ env.VERSION }}.zip" \
-          "${S3_PREFIX}/youlog-${{ env.VERSION }}.zip" \
-          --endpoint-url "${ENDPOINT}"
-        aws s3 cp "__everkm/theme/youlog/meta.json" \
-          "${S3_PREFIX}/meta.json" \
-          --endpoint-url "${ENDPOINT}"
-
-    - name: Setup qshell
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: foxundermoon/setup-qshell@v5
-      with:
-        version: "2.16.0"
-
-    - name: Upload to Qiniu
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        UPLOAD_DIR="qiniu-upload"
-        mkdir -p "${UPLOAD_DIR}"
-        cp "__everkm/theme/youlog/youlog-${{ env.VERSION }}.zip" "${UPLOAD_DIR}/"
-        cp "__everkm/theme/youlog/meta.json" "${UPLOAD_DIR}/"
-
-        qshell account ${{ secrets.QINIU_ACCESS_KEY }} ${{ secrets.QINIU_SECRET_KEY }} ekmp -w
-        qshell qupload2 \
-            --src-dir="${UPLOAD_DIR}/" \
-            --key-prefix="themes/everkm/youlog/${{ env.VERSION }}/" \
-            --bucket=ekmp-assets \
-            --thread-count 2 \
-            --overwrite \
-            --check-hash \
-            --rescan-local=true
-
-        echo "https://ekmp-assets.everkm.cn/themes/everkm/youlog/${{ env.VERSION }}/youlog-${{ env.VERSION }}.zip" >> cdn-refresh.txt
-        echo "https://ekmp-assets.everkm.cn/themes/everkm/youlog/${{ env.VERSION }}/meta.json" >> cdn-refresh.txt
-        cat cdn-refresh.txt
-        qshell cdnrefresh -i cdn-refresh.txt
-      
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/v')
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        body: TODO New Release.
-        draft: false
-        prerelease: true
-        files: |
-          __everkm/theme/youlog/youlog-${{ env.VERSION }}.zip
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          body: TODO New Release.
+          draft: false
+          prerelease: true
+          files: |
+            __everkm/theme/youlog/youlog-${{ env.VERSION }}.zip
