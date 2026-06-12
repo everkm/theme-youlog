@@ -4,7 +4,7 @@
 set_latest_release.py
 
 将 theme 仓库中指定的 GitHub Release 从 prerelease 晋升为正式 latest 版本。
-优先从 CHANGELOG.md 读取对应版本说明；找不到 changelog 时回退 git log 摘要。
+从 CHANGELOG.md 读取对应版本说明；文件不存在或缺少版本条目时中止。
 
 依赖：Python 3.10+、GitHub CLI（`gh`）。
 
@@ -39,15 +39,6 @@ def parse_changelog_section(changelog_path: Path, version: str) -> str:
     if not body:
         raise SystemExit(f"CHANGELOG.md section for v{version} is empty")
     return body
-
-
-def git_log_summary(tag: str) -> str:
-    log = subprocess.check_output(
-        ["git", "log", "-5", "--pretty=format:- %s"],
-        text=True,
-        cwd=Path(__file__).resolve().parents[1],
-    )
-    return log.strip() or f"Release {tag}"
 
 
 def promote_release(repo: str, tag: str, body: str) -> None:
@@ -103,11 +94,9 @@ def main() -> int:
 
     version = tag[1:] if tag.startswith("v") else tag
     changelog_path = args.changelog
-    if changelog_path.is_file():
-        body = parse_changelog_section(changelog_path, version)
-    else:
-        print(f"[WARN] changelog not found at {changelog_path}, falling back to git log")
-        body = git_log_summary(tag)
+    if not changelog_path.is_file():
+        raise SystemExit(f"CHANGELOG not found at {changelog_path}")
+    body = parse_changelog_section(changelog_path, version)
 
     print(f"[INFO] promoting {args.repo} {tag} to latest release")
     promote_release(args.repo, tag, body)
