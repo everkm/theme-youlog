@@ -15,7 +15,8 @@ import chokidar from "chokidar";
 const isDev = process.argv.includes("--dev");
 const isWatch = process.argv.includes("--watch") || isDev;
 const isDevMode = isDev || process.env.NODE_ENV !== "production";
-const isSSR = process.argv.includes("--ssr") || process.env.SSR === "true";
+const isJsRender =
+  process.argv.includes("--jsrender") || process.env.JSRENDER === "true";
 
 let basePrefix = trimSlash(
   process.env.BASE_PREFIX ? `${process.env.BASE_PREFIX}` : ""
@@ -127,9 +128,9 @@ const entryPoints = [
   },
 ];
 
-// SSR 入口点配置
-const ssrEntryPoint = {
-  in: "src/entries/ssr.ts",
+// JSRender 入口点配置（产物 everkm-render.js，供 everkm-publish 调用）
+const jsRenderEntryPoint = {
+  in: "src/entries/jsrender.ts",
   out: "everkm-render",
 };
 
@@ -189,14 +190,14 @@ function getClientBuildOptions() {
   };
 }
 
-// SSR 构建配置
-function getSSRBuildOptions() {
+// JSRender 构建配置（Solid generate:"ssr" 为编译选项，非运行时 SSR 服务）
+function getJsRenderBuildOptions() {
   return {
     entryPoints: {
-      [ssrEntryPoint.out]: ssrEntryPoint.in,
+      [jsRenderEntryPoint.out]: jsRenderEntryPoint.in,
     },
     bundle: true,
-    outfile: `${distBaseDir}/../templates/${ssrEntryPoint.out}.js`,
+    outfile: `${distBaseDir}/../templates/${jsRenderEntryPoint.out}.js`,
     metafile: true,
     minify: false,
     sourcemap: false,
@@ -338,52 +339,47 @@ async function buildClientBundle() {
   }
 }
 
-// ==================== SSR Bundle 构建 ====================
+// ==================== JSRender Bundle 构建 ====================
 
 /**
- * 构建 SSR bundle
+ * 构建 JSRender bundle（everkm-render.js）
  */
-async function buildSSRBundle() {
+async function buildJsRenderBundle() {
   // 确保输出目录存在
-  const ssrDir = path.dirname(`${distBaseDir}/../templates/${ssrEntryPoint.out}.js`);
-  mkdirSync(ssrDir, { recursive: true });
+  const renderDir = path.dirname(
+    `${distBaseDir}/../templates/${jsRenderEntryPoint.out}.js`
+  );
+  mkdirSync(renderDir, { recursive: true });
 
-  const ssrOptions = getSSRBuildOptions();
+  const renderOptions = getJsRenderBuildOptions();
 
   if (isWatch) {
-    // Watch 模式
-    const ssrCtx = await esbuild.context(ssrOptions);
+    const renderCtx = await esbuild.context(renderOptions);
 
-    // 初始构建
     try {
-      await ssrCtx.rebuild();
-      console.log("SSR bundle: Initial build succeeded");
-      console.log("SSR Output:", ssrOptions.outfile);
+      await renderCtx.rebuild();
+      console.log("JSRender bundle: Initial build succeeded");
+      console.log("JSRender output:", renderOptions.outfile);
     } catch (error) {
-      console.error("SSR bundle: Initial build failed:", error);
+      console.error("JSRender bundle: Initial build failed:", error);
     }
 
-    // 设置文件监听
-    // 注意：只使用 chokidar 监听，不启动 esbuild watch，避免重复触发
     setupFileWatcher(async () => {
       try {
-        await ssrCtx.rebuild();
-        console.log("SSR bundle: Rebuild succeeded");
+        await renderCtx.rebuild();
+        console.log("JSRender bundle: Rebuild succeeded");
       } catch (error) {
-        console.error("SSR bundle: Rebuild failed:", error);
+        console.error("JSRender bundle: Rebuild failed:", error);
       }
     });
 
-    // 不启动 esbuild watch，因为已经使用 chokidar 手动触发 rebuild
-    // 这样可以避免重复触发
-    console.log("SSR bundle: Watching for changes (using chokidar)...");
-    
-    return ssrCtx;
+    console.log("JSRender bundle: Watching for changes (using chokidar)...");
+
+    return renderCtx;
   } else {
-    // 生产模式：一次性构建
-    const result = await esbuild.build(ssrOptions);
-    console.log("SSR bundle: Build completed successfully!");
-    console.log("SSR Output:", ssrOptions.outfile);
+    await esbuild.build(renderOptions);
+    console.log("JSRender bundle: Build completed successfully!");
+    console.log("JSRender output:", renderOptions.outfile);
     return null;
   }
 }
@@ -395,53 +391,46 @@ async function buildSSRBundle() {
  */
 async function main() {
   try {
-    if (isSSR) {
-      // SSR 模式：同时构建客户端和 SSR bundle
-      console.log("Building SSR bundle...");
-      
-      if (isWatch) {
-        // Watch 模式：同时监听两个构建
-        const clientCtx = await esbuild.context(getClientBuildOptions());
-        const ssrCtx = await esbuild.context(getSSRBuildOptions());
+    if (isJsRender) {
+      // JSRender 模式：同时构建 Client 与 everkm-render.js
+      console.log("Building JSRender bundle...");
 
-        // 初始构建
+      if (isWatch) {
+        const clientCtx = await esbuild.context(getClientBuildOptions());
+        const renderCtx = await esbuild.context(getJsRenderBuildOptions());
+
         try {
-          await Promise.all([clientCtx.rebuild(), ssrCtx.rebuild()]);
-          console.log("Initial build succeeded (both client and SSR)");
-          console.log("SSR Output:", getSSRBuildOptions().outfile);
+          await Promise.all([clientCtx.rebuild(), renderCtx.rebuild()]);
+          console.log("Initial build succeeded (client + JSRender)");
+          console.log("JSRender output:", getJsRenderBuildOptions().outfile);
         } catch (error) {
           console.error("Initial build failed:", error);
         }
 
-        // 设置文件监听（同时触发两个构建）
-        // 注意：只使用 chokidar 监听，不启动 esbuild watch，避免重复触发
         setupFileWatcher(async () => {
           try {
-            await Promise.all([clientCtx.rebuild(), ssrCtx.rebuild()]);
-            console.log("Rebuild succeeded (both client and SSR)");
+            await Promise.all([clientCtx.rebuild(), renderCtx.rebuild()]);
+            console.log("Rebuild succeeded (client + JSRender)");
           } catch (error) {
             console.error("Rebuild failed:", error);
           }
         });
 
-        // 不启动 esbuild watch，因为已经使用 chokidar 手动触发 rebuild
-        // 这样可以避免重复触发导致 manifest 被写入两次
         console.log("Watching for changes (using chokidar)...");
       } else {
-        // 生产模式：一次性构建
         await Promise.all([
           esbuild.build(getClientBuildOptions()),
-          esbuild.build(getSSRBuildOptions())
+          esbuild.build(getJsRenderBuildOptions()),
         ]);
-        console.log("Build completed successfully (both client and SSR)!");
-        console.log("SSR Output:", getSSRBuildOptions().outfile);
+        console.log("Build completed successfully (client + JSRender)!");
+        console.log("JSRender output:", getJsRenderBuildOptions().outfile);
         process.exit(0);
       }
     } else {
-      // 普通模式：只构建客户端 bundle
-      console.log("Building client bundle (not SSR)...");
+      // 仅 Client：浏览器端 bundle
+      console.log("Building client bundle only...");
       await buildClientBundle();
-      
+
       if (!isWatch) {
         process.exit(0);
       }

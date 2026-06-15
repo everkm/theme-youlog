@@ -7,8 +7,8 @@
   "scripts": {
     "build": "NODE_ENV=production node build.js",
     "dev": "node build.js --watch",
-    "build:ssr": "SSR=true NODE_ENV=production node build.js",
-    "dev:ssr": "SSR=true node build.js --watch",
+    "build:jsrender": "JSRENDER=true NODE_ENV=production node build.js",
+    "dev:jsrender": "JSRENDER=true node build.js --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"

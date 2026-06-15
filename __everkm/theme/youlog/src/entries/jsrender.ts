@@ -1,4 +1,4 @@
-// SSR 入口：renderPage 从 pages，renderDcard 从 dcard
+// JSRender 入口：供 everkm-publish 调用，与 Tera 对等的 JS 渲染层
 import { renderPage } from "../pages";
 import { renderDcard } from "../dcard";
 
@@ -7,4 +7,3 @@ function ping() {
 }
 
 export { ping, renderPage, renderDcard };
-

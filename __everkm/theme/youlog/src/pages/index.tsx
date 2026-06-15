@@ -15,7 +15,7 @@ async function renderPage(compName: string, props: any) {
         throw new Error(`Page ${compName} not found`);
     }
   });
-  // 在 SSR 阶段直接注入 CSS 与 JS
+  // 在 JSRender 阶段直接注入 CSS 与 JS
   const cssYoulog =
     everkm.assets(props.request_id, { type: "css", section: "youlog" }) || "";
   const cssSearch =
