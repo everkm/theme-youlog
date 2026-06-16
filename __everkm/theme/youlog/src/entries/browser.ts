@@ -7,7 +7,7 @@ import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
 import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
-import { installAjaxPageLoad, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
+import { initPageAjax, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
@@ -60,7 +60,7 @@ function install() {
   installKeywordHighlighter("#article-main");
   installYoulogPrint();
   installDcardUse("#article-main");
-  installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
+  initPageAjax({ scrollContainerSelector: "#body-main" });
   installHeadingAnchor("#article-main");
   installFootnoteBackButton("#article-main");
 

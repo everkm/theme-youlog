@@ -1,6 +1,6 @@
 import {
   EVENT_PAGE_LOADED,
-  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_BEFORE_UPDATE,
 } from "../page-ajax/constants";
 
 const PLACEHOLDER_DEFAULT_WIDTH = 300;
@@ -132,7 +132,7 @@ function installLazyImg(bodySelector: string) {
     currentCleanupFn = initLazyImg(bodySelector);
   };
 
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     cleanup();
   });
 

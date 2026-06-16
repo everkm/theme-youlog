@@ -1,6 +1,6 @@
 import { installDcard } from "./dcard";
 import {
-  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
 } from "../widgets/page-ajax/constants";
 
@@ -26,7 +26,7 @@ function installDcardUse(bodySelector: string) {
     uninstallDcard = initDcardUse(bodySelector);
   });
 
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     uninstallDcard?.();
   });
 

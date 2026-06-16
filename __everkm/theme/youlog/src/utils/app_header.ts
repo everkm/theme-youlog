@@ -1,5 +1,5 @@
 import {
-  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
 } from "../youlog_lib/widgets/page-ajax/constants";
 import { debounce } from "throttle-debounce";
@@ -46,7 +46,7 @@ function watchAppHeader(): void {
     toggleAppName(isIntersecting);
   });
 
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     toggleAppName(true);
     isWorking = false;
   });

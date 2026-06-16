@@ -1,5 +1,5 @@
 import {
-  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
 } from "../page-ajax/constants";
 import PhotoSwipeLightbox from "photoswipe/lightbox";
@@ -77,7 +77,7 @@ function installImgSwipe(bodySelector: string): void {
     currentCleanupFn = initImgSwipe(bodySelector);
   });
 
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     cleanup();
   });
 }

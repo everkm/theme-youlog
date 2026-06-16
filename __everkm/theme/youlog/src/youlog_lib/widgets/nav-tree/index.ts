@@ -8,8 +8,8 @@
  * - `solid-js` — `NavTree` 组件渲染（`solid-js/web` 的 `render`）
  *
  * ## 依赖（youlog_lib 内）
- * - `page-ajax/constants` — `EVENT_PAGE_LOADED`、`EVENT_PAGE_UPDATE_BEFORE`
- *   （与站内 AJAX 导航协作；**未安装 page-ajax 时仍可在整页加载场景使用**，但不会响应 AJAX 后动态出现的侧栏）
+ * - `page-ajax` — `ProcessedRegistry` 登记容器 + `pjax:*` 事件协作
+ *   （**未安装 page-ajax 时仍可在整页加载场景使用**，但不会响应 AJAX 后动态出现的侧栏）
  *
  * ## 前提条件（DOM / SSR）
  *
@@ -22,10 +22,12 @@
  *
  * ## 与 page-ajax 的协作
  *
- * - `page-update-before`：清理已脱离文档的 NavTree 状态，避免 morph 后引用悬空节点。
- * - `page-loaded`：重新查询 `#sidebar-nav-tree`；若存在未转换的 `ul`/`ol` 则执行 `TreeScanner.scanContainer`。
- * - `anchor-navigate`：hash 变化后刷新当前页高亮（不重建树）。
- * - 布局壳 morph（`data-ajax-layout` 变化）后，侧栏可能从无到有，**必须**依赖上述 `page-loaded` 路径完成初始化。
+ * - 首次 mount：`data-processed="nav-tree"` + `processedRegistry.register("#sidebar-nav-tree")`（在 scan 之前）。
+ * - `pjax:before-update`：清理已脱离文档的 NavTree 状态，避免 morph 后引用悬空节点。
+ * - `pjax:page-loaded`：未注册（侧栏新出现）则 mount；已注册（morph 已保留子树）仅刷新高亮。
+ * - `pjax:widget:reprocess`：nav 文件变化时用新 SSR HTML 重建树。
+ * - `pjax:widget:teardown`：侧栏在新页面消失时清理状态。
+ * - `pjax:anchor-navigate`：hash 变化后刷新当前页高亮（不重建树）。
  *
  * ## 用法
  *

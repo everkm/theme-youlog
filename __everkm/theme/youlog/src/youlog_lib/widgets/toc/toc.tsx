@@ -9,8 +9,7 @@ import type { TocProps } from "./TableOfContents";
 import { render } from "solid-js/web";
 import {
   EVENT_PAGE_LOADED,
-  EVENT_PAGE_LOAD_BEFORE,
-  EVENT_PAGE_UPDATE_BEFORE,
+  EVENT_BEFORE_UPDATE,
 } from "../page-ajax/constants";
 import mitt, { Emitter } from "mitt";
 import { resolveScrollContainer, type ScrollContainer } from "../../core/scrollAnchor";
@@ -254,11 +253,8 @@ function doSetupToc(options?: TocOptions): void {
   }
   let { tocEmitter, mobileTocCleanup, options: tocOptions } = result;
 
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     tocEmitter.emit("stop");
-  });
-
-  document.addEventListener(EVENT_PAGE_UPDATE_BEFORE, () => {
     if (mobileTocCleanup) {
       mobileTocCleanup();
       mobileTocCleanup = undefined;

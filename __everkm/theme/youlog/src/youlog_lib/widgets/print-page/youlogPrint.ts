@@ -1,6 +1,6 @@
 import { youlogRegister, getShortPageUrl } from "../../core";
 import {
-  EVENT_PAGE_LOAD_BEFORE,
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
 } from "../page-ajax/constants";
 
@@ -41,8 +41,8 @@ function installYoulogPrint(selector: string = PAGE_URL_SELECTOR) {
     initYoulogPrint(selector);
   });
 
-  // 在页面 AJAX 加载前清空页面URL
-  document.addEventListener(EVENT_PAGE_LOAD_BEFORE, () => {
+  // 在页面 AJAX 更新前清空页面URL
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     clearPageUrl(document.querySelector<HTMLElement>(selector));
   });
 

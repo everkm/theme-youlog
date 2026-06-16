@@ -3,17 +3,13 @@
  * 模块说明、依赖、前提条件与更新日志见同目录 `index.ts`。
  */
 import {
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
-  EVENT_PAGE_UPDATE_BEFORE,
   EVENT_ANCHOR_NAVIGATE,
-  NAV_TREE_SELECTOR,
+  EVENT_WIDGET_REPROCESS,
+  EVENT_WIDGET_TEARDOWN,
 } from "../page-ajax/constants";
-import {
-  captureRawNavMarkup,
-  getNavFingerprint,
-  hasNavTreeUi,
-  markNavTreeSource,
-} from "../page-ajax/navTreeSync";
+import { processedRegistry } from "../page-ajax/processedRegistry";
 import { NavTreeState } from "./NavTreeState";
 import { NavTree } from "./NavTree";
 import { render } from "solid-js/web";
@@ -426,114 +422,92 @@ interface SidebarNavTreeOptions {
   breadcrumbTitleSelector?: string;
 }
 
-const BREADCRUMB_SELECTOR = "#breadcrumb";
+const WIDGET_ID = "nav-tree";
+const WIDGET_SEL = "#sidebar-nav-tree";
 const NAV_TREE_HIGHLIGHT_DELAY_MS = 150;
 
-let lastMountedNavFingerprint: string | null = null;
+let installed = false;
 
-function hasRawNavLists(container: HTMLElement): boolean {
-  return !!container.querySelector(":scope > ul, :scope > ol");
+function scheduleHighlight(): void {
+  setTimeout(
+    () => NavTreeManager.getInstance().refreshHighlight(),
+    NAV_TREE_HIGHLIGHT_DELAY_MS,
+  );
 }
 
-function clearNavTreeUi(container: HTMLElement): void {
-  container
-    .querySelectorAll(":scope > .nav-tree-container")
-    .forEach((el) => el.remove());
-}
+/**
+ * 发现并初始化侧栏导航树。
+ * register() 必须在 TreeScanner.scanContainer 之前调用，保证 registry 记录的 hash 是原始 SSR HTML。
+ */
+function mount(): void {
+  const container = document.querySelector(WIDGET_SEL) as HTMLElement | null;
+  if (!container) return;
 
-function shouldRebuildNavTree(
-  container: HTMLElement,
-  fingerprint: string,
-): boolean {
-  if (!hasNavTreeUi(container) && hasRawNavLists(container)) return true;
-  if (fingerprint && fingerprint !== lastMountedNavFingerprint) return true;
-  return false;
-}
-
-function scheduleNavHighlight(navTreeManager: NavTreeManager): void {
-  setTimeout(() => navTreeManager.refreshHighlight(), NAV_TREE_HIGHLIGHT_DELAY_MS);
-}
-
-function mountSidebarNavTree(
-  breadcrumbTitleSelector: string = "[data-nav-title]",
-): void {
-  const navTreeManager = NavTreeManager.getInstance();
-  navTreeManager.clearStaleStates();
-  TreeConverter.pruneConvertedElements();
-
-  const container = document.querySelector(
-    NAV_TREE_SELECTOR,
-  ) as HTMLElement | null;
-  const breadcrumb = document.querySelector(
-    BREADCRUMB_SELECTOR,
-  ) as HTMLElement | null;
-
-  navTreeManager.setBreadcrumbRoot(breadcrumb);
-  navTreeManager.setBreadcrumbTitleSelector(breadcrumbTitleSelector);
-
-  if (!container) {
-    lastMountedNavFingerprint = null;
-    scheduleNavHighlight(navTreeManager);
-    return;
+  if (!processedRegistry.has(WIDGET_ID)) {
+    container.setAttribute("data-processed", WIDGET_ID);
+    processedRegistry.register(WIDGET_ID, container, WIDGET_SEL);
   }
 
-  const fingerprint = getNavFingerprint(container);
-
-  if (shouldRebuildNavTree(container, fingerprint)) {
-    clearNavTreeUi(container);
-    navTreeManager.unregisterContainer(container);
-
-    if (hasRawNavLists(container)) {
-      const rawMarkup = captureRawNavMarkup(container);
-      markNavTreeSource(container, rawMarkup);
-      TreeScanner.scanContainer(container);
-      lastMountedNavFingerprint = fingerprint;
-    } else {
-      warn_log(
-        "nav fingerprint changed but container has no raw ul/ol to convert",
-        fingerprint,
-      );
-      lastMountedNavFingerprint = fingerprint;
-    }
-  }
-
+  TreeScanner.scanContainer(container);
   container.classList.remove("invisible");
-  scheduleNavHighlight(navTreeManager);
+  scheduleHighlight();
 }
-
-let sidebarNavTreeInstalled = false;
 
 function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
-  const { breadcrumbTitleSelector = "[data-nav-title]" } = options;
+  if (installed) {
+    mount();
+    return;
+  }
+  installed = true;
 
   log("sidebarNavTree2: init SidebarNavTree2...");
-  const navTreeManager = NavTreeManager.getInstance();
+  const { breadcrumbTitleSelector = "[data-nav-title]" } = options;
+  const manager = NavTreeManager.getInstance();
+  manager.setBreadcrumbTitleSelector(breadcrumbTitleSelector);
   BreadcrumbManager.setupClickHandler(
-    navTreeManager,
+    manager,
     options.breadcrumbRoot ?? undefined,
     breadcrumbTitleSelector,
   );
 
-  if (sidebarNavTreeInstalled) {
-    mountSidebarNavTree(breadcrumbTitleSelector);
-    return;
-  }
-  sidebarNavTreeInstalled = true;
-
-  mountSidebarNavTree(breadcrumbTitleSelector);
-
-  document.addEventListener(EVENT_PAGE_UPDATE_BEFORE, () => {
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     NavTreeManager.getInstance().clearStaleStates();
     TreeConverter.pruneConvertedElements();
   });
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    mountSidebarNavTree(breadcrumbTitleSelector);
+    if (!processedRegistry.has(WIDGET_ID)) {
+      mount();
+    } else {
+      // nav-tree 未变化（hash 匹配，morph 已保留子树），仅刷新当前页高亮
+      scheduleHighlight();
+    }
   });
 
-  document.addEventListener(EVENT_ANCHOR_NAVIGATE, () => {
-    scheduleNavHighlight(NavTreeManager.getInstance());
+  document.addEventListener(EVENT_WIDGET_REPROCESS, (e: Event) => {
+    const { widgetId, newHtml, container } = (e as CustomEvent).detail;
+    if (widgetId !== WIDGET_ID || !container) return;
+
+    // 清理旧状态后用新 SSR HTML 重建
+    NavTreeManager.getInstance().unregisterContainer(container as HTMLElement);
+    TreeConverter.pruneConvertedElements();
+
+    (container as HTMLElement).innerHTML = newHtml;
+    TreeScanner.scanContainer(container as HTMLElement);
+    (container as HTMLElement).classList.remove("invisible");
+    scheduleHighlight();
   });
+
+  document.addEventListener(EVENT_WIDGET_TEARDOWN, (e: Event) => {
+    const { widgetId } = (e as CustomEvent).detail;
+    if (widgetId !== WIDGET_ID) return;
+    NavTreeManager.getInstance().clearStaleStates();
+    TreeConverter.clearConvertedElements();
+  });
+
+  document.addEventListener(EVENT_ANCHOR_NAVIGATE, scheduleHighlight);
+
+  mount();
 }
 
 // Just for test

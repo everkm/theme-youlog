@@ -1,485 +1,304 @@
 /**
- * page-ajax 实现。
+ * page-ajax 引擎实现（结构透明的 PJAX）。
+ *
+ * 引擎对页面结构零感知：除 `#page-shell`（morph 入口）外不含任何具体内容 selector。
+ * 受保护的 widget 容器通过 `data-processed` + ProcessedRegistry 自行登记。
+ *
  * 模块说明、依赖、前提条件与更新日志见同目录 `index.ts`。
  */
-import ky from "ky";
 import { Idiomorph } from "idiomorph";
-import "./nprogress_custom.css";
 import nProgress from "nprogress";
+import "./nprogress_custom.css";
+import { processedRegistry } from "./processedRegistry";
+import { hashHtml } from "./htmlHash";
+import { buildSkipCallbacks } from "./morphCallbacks";
+import { getOrFetch, prefetch } from "./prefetchCache";
 import {
-  EVENT_PAGE_NAVIGATE,
+  EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
-  EVENT_PAGE_LOAD_BEFORE,
-  PAGE_LOADING_CLASS,
-  EVENT_PAGE_UPDATE_BEFORE,
-  PAGE_SHELL_SELECTOR,
-  PAGE_SHELL_ATTR,
-  PAGE_HEAD_ATTR,
-  NAV_TREE_SELECTOR,
-  NAV_TREE_FINGERPRINT_ATTR,
-  NAV_TREE_SOURCE_MARKUP_ATTR,
-  NAV_TREE_SOURCE_TEXT_ATTR,
-  AJAX_ELEMENT_NAV_TREE,
   EVENT_ANCHOR_NAVIGATE,
+  EVENT_NAVIGATE,
+  EVENT_WIDGET_REPROCESS,
+  EVENT_WIDGET_TEARDOWN,
+  PAGE_SHELL_SELECTOR,
+  PAGE_HEAD_ATTR,
+  PAGE_LOADING_CLASS,
 } from "./constants";
-import {
-  markNavTreeSource,
-  navTreeNeedsUpdate,
-} from "./navTreeSync";
-import {
-  getHashFromUrl,
-  resolveScrollContainer,
-  scrollContainerToTop,
-  scrollToHash,
-} from "../../core/scrollAnchor";
 
-let lastFullUrl: string | null = null;
+// ── Options ───────────────────────────────────────────────
 
-export interface PjaxOptions {
+export interface PageAjaxOptions {
   /** 导航完成后滚动到顶部的滚动容器 CSS 选择器 */
   scrollContainerSelector?: string;
 }
 
-export type RequiredPjaxOptions = Required<PjaxOptions>;
+type RequiredOptions = Required<PageAjaxOptions>;
 
-type PageUpdateMode = "elements" | "shell" | "reload";
+// ── Head 兼容性 ────────────────────────────────────────────
 
-function getMergedOptions(opts: PjaxOptions): RequiredPjaxOptions {
-  return {
-    scrollContainerSelector: opts.scrollContainerSelector ?? "#body-main",
-  };
+function isHeadCompatible(newDoc: Document): boolean {
+  const current = document.documentElement.getAttribute(PAGE_HEAD_ATTR);
+  const next = newDoc.documentElement.getAttribute(PAGE_HEAD_ATTR);
+  // 任一方未标记时不触发整页刷新（降级兼容旧模板）
+  if (!current || !next) return true;
+  return current === next;
 }
 
-function getCurrentFullUrl(): string {
-  if (typeof window === "undefined") {
-    return "";
-  }
-  return (
-    window.location.pathname + window.location.search + window.location.hash
-  );
+// ── Hash 导航检测 ─────────────────────────────────────────
+
+function isSamePathHashChange(currentHref: string, nextHref: string): boolean {
+  const stripHash = (u: string) => u.split("#")[0];
+  return stripHash(currentHref) === stripHash(nextHref) && currentHref !== nextHref;
 }
 
-function setupPageLoading() {
-  nProgress.configure({
-    showSpinner: false,
-    minimum: 0.1,
-    speed: 200,
-    trickleSpeed: 100,
-  });
+function getUrlHash(url: string): string {
+  const idx = url.indexOf("#");
+  return idx >= 0 ? url.slice(idx + 1) : "";
 }
 
-function getHeadFingerprint(doc: Document): string | null {
-  return doc.documentElement.getAttribute(PAGE_HEAD_ATTR);
-}
+// ── 滚动 ───────────────────────────────────────────────────
 
-function getShellElement(doc: Document): Element | null {
-  return doc.querySelector(PAGE_SHELL_SELECTOR);
-}
-
-function getShellFingerprint(shell: Element | null): string | null {
-  return shell?.getAttribute(PAGE_SHELL_ATTR) ?? null;
-}
-
-function resolveUpdateMode(doc: Document): PageUpdateMode {
-  const currentHead = getHeadFingerprint(document);
-  const nextHead = getHeadFingerprint(doc);
-  if (currentHead && nextHead && currentHead !== nextHead) {
-    return "reload";
-  }
-
-  const currentShell = getShellElement(document);
-  const nextShell = getShellElement(doc);
-  if (!currentShell || !nextShell) {
-    return "elements";
-  }
-
-  const currentLayout = getShellFingerprint(currentShell);
-  const nextLayout = getShellFingerprint(nextShell);
-  if (currentLayout === nextLayout) {
-    return "elements";
-  }
-
-  return "shell";
-}
-
-function syncElementStyleAndClass(current: Element, next: Element) {
-  if (next.hasAttribute("style")) {
-    current.setAttribute("style", next.getAttribute("style")!);
-  } else {
-    current.removeAttribute("style");
-  }
-  if (next.hasAttribute("class")) {
-    current.setAttribute("class", next.getAttribute("class")!);
-  } else {
-    current.removeAttribute("class");
-  }
-}
-
-/** @returns 是否实际写入了新 markup */
-function syncNavTreeMarkup(current: Element, next: Element): boolean {
-  if (!navTreeNeedsUpdate(current, next)) {
-    return false;
-  }
-
-  const nextMarkup = next.innerHTML.trim();
-  current.querySelectorAll(":scope > .nav-tree-container").forEach((el) => {
-    el.remove();
-  });
-  current.innerHTML = nextMarkup;
-  markNavTreeSource(current as HTMLElement, nextMarkup);
-
-  if (next.hasAttribute(NAV_TREE_FINGERPRINT_ATTR)) {
-    current.setAttribute(
-      NAV_TREE_FINGERPRINT_ATTR,
-      next.getAttribute(NAV_TREE_FINGERPRINT_ATTR)!,
-    );
-  } else {
-    current.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
-  }
-
-  return true;
-}
-
-function syncElementsByDataAttribute(doc: Document) {
-  const currentElements = document.querySelectorAll("[data-ajax-element]");
-
-  currentElements.forEach((currentElement) => {
-    const elementId = currentElement.getAttribute("data-ajax-element");
-    if (!elementId) {
-      console.warn("元素缺少 data-ajax-element 值:", currentElement);
-      return;
-    }
-
-    const nextElement = doc.querySelector(
-      `[data-ajax-element="${elementId}"]`,
-    );
-
-    if (nextElement) {
-      if (elementId === AJAX_ELEMENT_NAV_TREE) {
-        const navUpdated = syncNavTreeMarkup(currentElement, nextElement);
-        if (navUpdated) {
-          syncElementStyleAndClass(currentElement, nextElement);
-        }
-      } else {
-        syncElementStyleAndClass(currentElement, nextElement);
-        currentElement.innerHTML = nextElement.innerHTML;
-      }
-    } else {
-      currentElement.innerHTML = "";
-      if (elementId === AJAX_ELEMENT_NAV_TREE) {
-        currentElement.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
-        currentElement.removeAttribute(NAV_TREE_SOURCE_MARKUP_ATTR);
-        currentElement.removeAttribute(NAV_TREE_SOURCE_TEXT_ATTR);
-      }
-    }
-  });
-}
-
-function syncPageTitle(doc: Document) {
-  const nextTitle = doc.querySelector('[data-ajax-element="title"]');
-  if (!nextTitle?.textContent) return;
-
-  document.title = nextTitle.textContent;
-  const currentTitle = document.querySelector('[data-ajax-element="title"]');
-  if (currentTitle) {
-    currentTitle.textContent = nextTitle.textContent;
-  }
-}
-
-/**
- * shell morph 前将侧栏导航树还原为 SSR 原始 HTML。
- * Idiomorph 无法正确 morph 已转换的 .nav-tree-container，会导致树内容陈旧。
- */
-function syncNavTreeBeforeShellMorph(doc: Document) {
-  const current = document.querySelector(NAV_TREE_SELECTOR);
-  const next = doc.querySelector(NAV_TREE_SELECTOR);
-
-  if (!current) return;
-
-  if (!next) {
-    current.innerHTML = "";
-    current.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
-    current.removeAttribute(NAV_TREE_SOURCE_MARKUP_ATTR);
-    current.removeAttribute(NAV_TREE_SOURCE_TEXT_ATTR);
-    return;
-  }
-
-  if (!navTreeNeedsUpdate(current, next)) {
-    return;
-  }
-
-  syncNavTreeMarkup(current, next);
-}
-
-function morphPageShell(doc: Document) {
-  const currentShell = getShellElement(document);
-  const nextShell = getShellElement(doc);
-  if (!currentShell || !nextShell) return;
-
-  syncNavTreeBeforeShellMorph(doc);
-  Idiomorph.morph(currentShell, nextShell);
-}
-
-function dispatchAnchorNavigate(): void {
+function dispatchAnchorNavigate(hash: string): void {
   document.dispatchEvent(
     new CustomEvent(EVENT_ANCHOR_NAVIGATE, {
+      detail: { hash },
       bubbles: true,
       composed: true,
     }),
   );
 }
 
-/** 锚点导航后通知依赖 hash 的 widget（如 nav-tree 高亮） */
+/** 锚点导航后通知依赖 hash 的 widget（如 nav-tree 高亮）。供外部 TOC 点击等场景调用。 */
 function notifyAnchorNavigate(): void {
-  dispatchAnchorNavigate();
+  dispatchAnchorNavigate(getUrlHash(window.location.href));
 }
 
-function scrollAfterNavigation(url: string, opts: RequiredPjaxOptions) {
-  const hash = getHashFromUrl(url);
+function scrollAfterNavigation(url: string, opts: RequiredOptions): void {
+  const hash = getUrlHash(url);
   requestAnimationFrame(() => {
-    setTimeout(() => {
-      const scrollContainer = resolveScrollContainer(
-        opts.scrollContainerSelector,
-      );
-      if (!scrollContainer) return;
-
-      if (hash) {
-        scrollToHash(hash, scrollContainer, { behavior: "auto" });
-        dispatchAnchorNavigate();
+    if (hash) {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "auto" });
+      dispatchAnchorNavigate(hash);
+    } else {
+      const container = document.querySelector(opts.scrollContainerSelector);
+      if (container) {
+        container.scrollTop = 0;
       } else {
-        scrollContainerToTop(scrollContainer, "smooth");
+        window.scrollTo({ top: 0 });
       }
-    }, 30);
+    }
   });
 }
 
-function scrollToInitialHash(opts: RequiredPjaxOptions) {
-  const hash = getHashFromUrl(window.location.href);
+/** 首屏（含整页刷新落地）若 URL 带 hash，滚动到对应锚点 */
+function scrollToInitialHash(): void {
+  const hash = getUrlHash(window.location.href);
   if (!hash) return;
+  const run = () =>
+    requestAnimationFrame(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "auto" });
+    });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run, { once: true });
+  } else {
+    run();
+  }
+}
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const scrollContainer = resolveScrollContainer(
-        opts.scrollContainerSelector,
-      );
-      if (!scrollContainer) return;
-      scrollToHash(hash, scrollContainer, { behavior: "auto" });
-    }, 50);
+// ── Prefetch 绑定 ─────────────────────────────────────────
+
+function bindPrefetch(): void {
+  document.addEventListener("mouseover", (e) => {
+    const link = (e.target as Element | null)?.closest<HTMLAnchorElement>("a[href]");
+    if (!link || !isInternalLink(link)) return;
+    const timer = setTimeout(() => prefetch(link.href), 80);
+    link.addEventListener("mouseleave", () => clearTimeout(timer), { once: true });
   });
 }
 
-async function applyPageUpdate(
-  doc: Document,
-  mode: PageUpdateMode,
-  opts: RequiredPjaxOptions,
-): Promise<boolean> {
-  if (mode === "reload") {
-    return false;
-  }
+// ── 核心 morph ────────────────────────────────────────────
 
-  document.dispatchEvent(
-    new CustomEvent(EVENT_PAGE_UPDATE_BEFORE, {
-      bubbles: true,
-      composed: true,
-    }),
-  );
+/** @returns 是否成功 morph；false 表示缺少 #page-shell，调用方应回退整页刷新 */
+function morphPageShell(newDoc: Document): boolean {
+  const current = document.querySelector(PAGE_SHELL_SELECTOR);
+  const next = newDoc.querySelector(PAGE_SHELL_SELECTOR);
+  if (!current || !next) return false;
 
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      if (mode === "shell") {
-        morphPageShell(doc);
-      } else {
-        syncElementsByDataAttribute(doc);
-      }
-      syncPageTitle(doc);
-      resolve();
-    });
+  // skipIds = 当前已注册 widget；beforeNodeMorphed 命中 oldNode 上的 data-processed 即跳过整棵子树。
+  // 无需镜像 data-processed 到新文档（回调只看当前 DOM 的 oldNode）。
+  const skipIds = new Set(processedRegistry.getAll().keys());
+
+  Idiomorph.morph(current, next, {
+    callbacks: buildSkipCallbacks(skipIds),
   });
-
   return true;
 }
 
-async function loadPageContent(
-  url: string,
-  opts: RequiredPjaxOptions,
-): Promise<boolean> {
+// ── Reprocess 检测 ────────────────────────────────────────
+
+function reprocessContainers(newDoc: Document): void {
+  for (const [id, entry] of processedRegistry.getAll()) {
+    // 用 registry 中存储的 selector 查找，而非 data-processed（新文档无此属性）
+    const newEl = newDoc.querySelector(entry.selector);
+
+    if (!newEl) {
+      const container = entry.el.deref();
+      // morph 已将该容器从 DOM 移除（id 不在新旧交集，走 idiomorph 默认 removeNode）。
+      // 传入 container 引用（已脱离 DOM）供 widget teardown handler 做 JS 层清理。
+      document.dispatchEvent(
+        new CustomEvent(EVENT_WIDGET_TEARDOWN, {
+          detail: { widgetId: id, container },
+        }),
+      );
+      processedRegistry.delete(id);
+      continue;
+    }
+
+    const newHash = hashHtml(newEl.innerHTML);
+    if (entry.hash === newHash) continue; // 内容未变，widget 增强状态完整保留
+
+    const container = entry.el.deref();
+    if (!container) {
+      processedRegistry.delete(id);
+      continue;
+    }
+
+    // dispatchEvent 同步执行：widget handler 运行后 container.innerHTML = newHtml 已完成
+    document.dispatchEvent(
+      new CustomEvent(EVENT_WIDGET_REPROCESS, {
+        detail: { widgetId: id, newHtml: newEl.innerHTML, container },
+      }),
+    );
+
+    // 以新文档的原始 HTML hash 更新记录，保持 hash 与 SSR HTML 形式一致
+    processedRegistry.updateHash(id, newHash);
+  }
+}
+
+// ── 导航主流程 ────────────────────────────────────────────
+
+let navigating = false;
+
+async function handleNavigation(url: string, opts: RequiredOptions): Promise<void> {
+  if (navigating) return;
+
+  // Hash-only 变化：不发请求，直接滚动 + 通知
+  if (isSamePathHashChange(window.location.href, url)) {
+    window.history.pushState(null, "", url);
+    scrollAfterNavigation(url, opts);
+    return;
+  }
+
+  navigating = true;
   try {
+    document.dispatchEvent(new CustomEvent(EVENT_BEFORE_UPDATE));
     document.body.classList.add(PAGE_LOADING_CLASS);
     nProgress.start();
 
-    const response = await ky.get(url).text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(response, "text/html");
-    const mode = resolveUpdateMode(doc);
+    let newDoc: Document;
+    try {
+      newDoc = await getOrFetch(url);
+    } catch {
+      window.location.href = url;
+      return;
+    }
 
-    return await applyPageUpdate(doc, mode, opts);
-  } catch (error) {
-    console.error("加载页面失败:", error);
-    return false;
+    if (!isHeadCompatible(newDoc)) {
+      window.location.href = url;
+      return;
+    }
+
+    // #page-shell 缺失（异常模板）→ 整页刷新兜底，避免"导航成功但页面未变"
+    if (!morphPageShell(newDoc)) {
+      window.location.href = url;
+      return;
+    }
+
+    document.title = newDoc.title;
+    window.history.pushState(null, "", url);
+    reprocessContainers(newDoc);
+    document.dispatchEvent(new CustomEvent(EVENT_PAGE_LOADED, { detail: { url } }));
+    scrollAfterNavigation(url, opts);
   } finally {
+    navigating = false;
     nProgress.done();
     document.body.classList.remove(PAGE_LOADING_CLASS);
   }
 }
 
-function isOnlyHashChange(oldUrl: string, newUrl: string): boolean {
-  const stripHash = (url: string) => url.split("#")[0];
-  return stripHash(oldUrl) === stripHash(newUrl);
-}
+// ── 初始化 ────────────────────────────────────────────────
 
-function dispatchPageLoaded(url: string) {
-  document.dispatchEvent(
-    new CustomEvent(EVENT_PAGE_LOADED, {
-      detail: { url },
-      bubbles: true,
-      composed: true,
-    }),
-  );
-}
+function initPageAjax(options: PageAjaxOptions = {}): void {
+  const opts: RequiredOptions = {
+    scrollContainerSelector: options.scrollContainerSelector ?? "#body-main",
+  };
 
-async function handleNavigation(
-  url: string,
-  opts: RequiredPjaxOptions,
-): Promise<void> {
-  try {
-    if (lastFullUrl && isOnlyHashChange(lastFullUrl, url)) {
-      lastFullUrl = url;
-      window.history.pushState(null, document.title, url);
-      scrollAfterNavigation(url, opts);
-      return;
-    }
-
-    document.dispatchEvent(
-      new CustomEvent(EVENT_PAGE_LOAD_BEFORE, { detail: { url } }),
-    );
-
-    const success = await loadPageContent(url, opts);
-    if (success) {
-      lastFullUrl = url;
-      window.history.pushState(null, document.title, url);
-      scrollAfterNavigation(url, opts);
-      requestAnimationFrame(() => {
-        dispatchPageLoaded(url);
-      });
-    } else {
-      window.location.href = url;
-    }
-  } catch (error) {
-    console.error("页面导航处理错误:", error);
-    window.location.href = url;
-  }
-}
-
-async function handlePopState(opts: RequiredPjaxOptions): Promise<void> {
-  try {
-    const currentUrl = getCurrentFullUrl();
-
-    if (lastFullUrl && isOnlyHashChange(lastFullUrl, currentUrl)) {
-      lastFullUrl = currentUrl;
-      scrollAfterNavigation(currentUrl, opts);
-      return;
-    }
-
-    const success = await loadPageContent(currentUrl, opts);
-    if (success) {
-      dispatchPageLoaded(currentUrl);
-      lastFullUrl = currentUrl;
-      scrollAfterNavigation(currentUrl, opts);
-    } else {
-      window.location.reload();
-    }
-  } catch (error) {
-    console.error("历史记录导航错误:", error);
-    window.location.reload();
-  }
-}
-
-function shouldHandleLink(element: HTMLElement | null): boolean {
-  if (!element || element.tagName !== "A") return false;
-
-  let href = (element as HTMLAnchorElement).getAttribute("href") || "";
-  if (href.startsWith("javascript:")) {
-    return false;
-  }
-
-  if (href.length === 0) {
-    return true;
-  }
-
-  if (href.startsWith("#") || href.startsWith("mailto:")) {
-    return false;
-  }
-
-  const hrefFull = new URL(href, window.location.href);
-
-  if (href.startsWith("http:") || href.startsWith("https:")) {
-    const currentOrigin = window.location.origin;
-    if (currentOrigin !== hrefFull.origin) {
-      return false;
-    }
-  }
-
-  href = hrefFull.pathname;
-
-  let capturePrefix = (window as any).__everkm_base_url || "/";
-  if (!capturePrefix.endsWith("/")) {
-    capturePrefix = capturePrefix + "/";
-  }
-
-  const isBeginWithBaseUrl = href.startsWith(capturePrefix);
-  if (!isBeginWithBaseUrl) {
-    return false;
-  }
-
-  return isBeginWithBaseUrl;
-}
-
-function installAjaxPageLoad(opts: PjaxOptions) {
-  const mergedOpts = getMergedOptions(opts);
-  setupPageLoading();
+  nProgress.configure({ showSpinner: false, minimum: 0.1, speed: 200, trickleSpeed: 100 });
 
   if ("scrollRestoration" in history) {
     history.scrollRestoration = "manual";
   }
 
-  lastFullUrl = getCurrentFullUrl();
+  bindPrefetch();
+  bindLinkInterceptor(opts);
+  bindPopState(opts);
+  bindProgrammaticNavigate(opts);
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      scrollToInitialHash(mergedOpts);
-    });
-  } else {
-    scrollToInitialHash(mergedOpts);
-  }
+  // 首屏带 #anchor 进入时滚动到锚点
+  scrollToInitialHash();
+}
 
+function bindLinkInterceptor(opts: RequiredOptions): void {
   document.addEventListener(
     "click",
-    (event) => {
-      const path = event.composedPath() as HTMLElement[];
-      const linkElement = path.find(
-        (el) => el instanceof HTMLElement && el.tagName === "A",
-      ) as HTMLAnchorElement | undefined;
-
-      if (!linkElement) return;
-      if (linkElement.hasAttribute("data-no-ajax")) return;
-
-      if (shouldHandleLink(linkElement)) {
-        event.preventDefault();
-        const href = linkElement.getAttribute("href") as string;
-        handleNavigation(href, mergedOpts);
-      }
+    (e) => {
+      // 用 composedPath 兼容 shadow DOM / 内嵌结构
+      const link = e
+        .composedPath()
+        .find((n): n is HTMLAnchorElement => n instanceof HTMLAnchorElement);
+      if (!link || link.hasAttribute("data-no-ajax")) return;
+      // 修饰键 / 非左键 / download 交给浏览器默认行为
+      if (
+        e.defaultPrevented ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        link.hasAttribute("download")
+      )
+        return;
+      if (!isInternalLink(link)) return;
+      e.preventDefault();
+      handleNavigation(link.href, opts);
     },
     { capture: true, passive: false },
   );
+}
 
+function bindPopState(opts: RequiredOptions): void {
   window.addEventListener("popstate", () => {
-    handlePopState(mergedOpts);
-  });
-
-  window.addEventListener(EVENT_PAGE_NAVIGATE, (event: Event) => {
-    const customEvent = event as CustomEvent<{ url: string }>;
-    handleNavigation(customEvent.detail.url, mergedOpts);
+    handleNavigation(window.location.href, opts);
   });
 }
 
-export { installAjaxPageLoad, notifyAnchorNavigate };
+function bindProgrammaticNavigate(opts: RequiredOptions): void {
+  window.addEventListener(EVENT_NAVIGATE, (e: Event) => {
+    const url = (e as CustomEvent<{ url: string }>).detail?.url;
+    if (url) handleNavigation(url, opts);
+  });
+}
+
+function isInternalLink(link: HTMLAnchorElement): boolean {
+  const rawHref = link.getAttribute("href") ?? "";
+  // 排除 javascript: / mailto: / tel: 等非导航协议
+  if (/^(javascript|mailto|tel):/i.test(rawHref)) return false;
+  if (link.target === "_blank") return false;
+  if (link.hostname !== window.location.hostname) return false;
+  // 检查 __everkm_base_url 路径前缀
+  const base: string = (window as any).__everkm_base_url ?? "/";
+  const prefix = base.endsWith("/") ? base : base + "/";
+  return link.pathname.startsWith(prefix);
+}
+
+export { initPageAjax, notifyAnchorNavigate };

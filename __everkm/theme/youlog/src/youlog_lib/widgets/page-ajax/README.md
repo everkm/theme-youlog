@@ -7,33 +7,34 @@
 ## 快速接入
 
 ```ts
-import { installAjaxPageLoad } from "youlog_lib/widgets/page-ajax";
+import { initPageAjax } from "youlog_lib/widgets/page-ajax";
 
-installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
+initPageAjax({ scrollContainerSelector: "#body-main" });
 ```
 
-## SSR 必配（分级导航）
+## SSR 必配
 
-主题侧需输出布局与 head 指纹（youlog 主题参考 `src/utils/ajaxLayout.ts`）：
+引擎对页面结构零感知，仅依赖两个标记（head 指纹由 `src/utils/ajaxLayout.ts` 生成）：
 
 ```html
 <html data-ajax-head="code=1|katex=0|custom_css=1">
   <body>
-    <div id="page-shell" data-ajax-layout="page=book|stack=0|nav=1|...">
-      <!-- 布局内容 -->
+    <div id="page-shell">
+      <!-- 布局内容；morph 入口 -->
     </div>
   </body>
 </html>
 ```
 
-内容块继续使用 `data-ajax-element="title"` 等标记做快路径同步。
+需在 morph 间保留增强状态的 widget，其容器必须带**稳定唯一 `id`**，并自行 `data-processed` + `processedRegistry.register`。
 
-## 生命周期
+## 生命周期（`pjax:*`）
 
 其它 widget 应：
 
-1. `page-update-before` — 清理
-2. `page-loaded` — 重新初始化
-3. `anchor-navigate` — hash 导航后刷新高亮（如 nav-tree）；**不**触发 `page-loaded`
+1. `pjax:before-update` — 清理（fetch 前派发）
+2. `pjax:page-loaded` — 重新初始化
+3. `pjax:widget:reprocess` / `pjax:widget:teardown` — 受保护容器内容变化 / 消失
+4. `pjax:anchor-navigate` — hash 导航后刷新高亮（如 nav-tree）；**不**触发 `page-loaded`
 
-详见 `index.ts` 中的事件表。
+详见 `index.ts` 中的契约说明。
