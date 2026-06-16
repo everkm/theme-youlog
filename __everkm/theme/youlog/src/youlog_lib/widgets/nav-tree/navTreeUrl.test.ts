@@ -27,4 +27,21 @@ describe("isNavUrlMatch", () => {
       isNavUrlMatch("/doc/page#%E4%B8%AD%E6%96%87", "/doc/page#中文"),
     ).toBe(true);
   });
+
+  it("matches directory index variants", () => {
+    expect(isNavUrlMatch("/a/index.html", "/a/")).toBe(true);
+    expect(isNavUrlMatch("/a/", "/a/index.html")).toBe(true);
+  });
+
+  it("does not treat bare path as directory index", () => {
+    expect(isNavUrlMatch("/a", "/a/")).toBe(false);
+    expect(isNavUrlMatch("/a/", "/a")).toBe(false);
+    expect(isNavUrlMatch("/a", "/a/index.html")).toBe(false);
+    expect(isNavUrlMatch("/a/index.html", "/a")).toBe(false);
+  });
+
+  it("matches root index variants", () => {
+    expect(isNavUrlMatch("/index.html", "/")).toBe(true);
+    expect(isNavUrlMatch("/", "/index.html")).toBe(true);
+  });
 });

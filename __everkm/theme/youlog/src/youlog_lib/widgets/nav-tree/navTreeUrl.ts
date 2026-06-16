@@ -8,6 +8,14 @@ function normalizeHash(hash: string): string {
   }
 }
 
+/** 目录首页等价：仅 `/a/index.html` 与 `/a/` 互认；无尾斜杠的 `/a` 不参与等价。 */
+function normalizePathname(pathname: string): string {
+  if (pathname.endsWith("/index.html")) {
+    return pathname.slice(0, -"/index.html".length) + "/";
+  }
+  return pathname;
+}
+
 /**
  * 判断导航链接是否与当前地址匹配（含 hash / search）。
  * pathname 一致时：导航项带 hash 则要求 hash 一致；导航项无 hash 则视为页面级链接（当前 URL 可带任意 hash）。
@@ -21,7 +29,7 @@ export function isNavUrlMatch(currentUrl: string, targetUrl: string): boolean {
 
     if (
       current.origin !== target.origin ||
-      current.pathname !== target.pathname ||
+      normalizePathname(current.pathname) !== normalizePathname(target.pathname) ||
       current.search !== target.search
     ) {
       return false;
