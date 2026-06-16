@@ -1,5 +1,5 @@
 import { Component, Show } from "solid-js";
-import { formatDate } from "../utils";
+import { formatDate, getDisplayFlag } from "../utils";
 import Breadcrumb from "./Breadcrumb";
 import PrevNextLinks from "./PrevNextLinks";
 import PageNavigation from "./PageNavigation";
@@ -27,6 +27,7 @@ interface ArticleContentProps {
 interface DocMetaProps {
   doc: PostItem;
   configValue: (path: string, defaultValue?: any) => any;
+  showPrint: boolean;
 }
 
 const DocMeta: Component<DocMetaProps> = (props) => {
@@ -59,7 +60,9 @@ const DocMeta: Component<DocMetaProps> = (props) => {
             </div>
           </Show>
 
-          <PrintPage className="hidden md:flex items-center print:hidden" />
+          <Show when={props.showPrint}>
+            <PrintPage className="hidden md:flex items-center print:hidden" />
+          </Show>
         </div>
       </Show>
       <div class="h-6 w-full print:hidden"></div>
@@ -74,6 +77,16 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
     ' class="opacity-0 math math-',
   );
 
+  const showPrint = () =>
+    getDisplayFlag(props.pageContext.config, props.doc?.meta, "print", true);
+  const showPageQrcode = () =>
+    getDisplayFlag(
+      props.pageContext.config,
+      props.doc?.meta,
+      "page_qrcode",
+      true
+    );
+
   // const hasKatex = htmlContent.includes("math math-");
   // const hasCodeBlock = htmlContent.includes('<pre><code class="language-');
 
@@ -82,10 +95,12 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
       <Breadcrumb navs={props.pageContext.breadcrumbs || []} />
 
       <div id="page-main">
-        <div class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm">
-          <div>{props.configValue("site.name")}</div>
-          <div class="font-sans" data-el="page-url"></div>
-        </div>
+        <Show when={showPrint()}>
+          <div class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm">
+            <div>{props.configValue("site.name")}</div>
+            <div class="font-sans" data-el="page-url"></div>
+          </div>
+        </Show>
         <h1
           id="article-title"
           data-ajax-element="article-title"
@@ -94,7 +109,11 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           {props.doc?.title || "无标题"}
         </h1>
 
-        <DocMeta doc={props.doc} configValue={props.configValue} />
+        <DocMeta
+          doc={props.doc}
+          configValue={props.configValue}
+          showPrint={showPrint()}
+        />
 
         <article
           id="article-main"
@@ -108,7 +127,9 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           />
         </article>
 
-        <PageQrcode />
+        <Show when={showPageQrcode()}>
+          <PageQrcode />
+        </Show>
       </div>
 
       <PageNavigation pageNav={props.pageNav} />

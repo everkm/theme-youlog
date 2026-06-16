@@ -32,3 +32,36 @@ export function getConfigValue(
   }
   return value;
 }
+
+function coerceBoolean(value: unknown, defaultValue: boolean): boolean {
+  if (value === undefined || value === null) return defaultValue;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "false" || normalized === "0" || normalized === "no") {
+      return false;
+    }
+    if (normalized === "true" || normalized === "1" || normalized === "yes") {
+      return true;
+    }
+  }
+  return Boolean(value);
+}
+
+/**
+ * 读取布局显示开关，front matter 优先于全局 config
+ */
+export function getDisplayFlag(
+  config: Record<string, any>,
+  docMeta: Record<string, any> | undefined,
+  key: string,
+  defaultValue = true
+): boolean {
+  if (docMeta && docMeta[key] !== undefined && docMeta[key] !== null) {
+    return coerceBoolean(docMeta[key], defaultValue);
+  }
+  return coerceBoolean(
+    getConfigValue(config, `layout.${key}`, defaultValue),
+    defaultValue
+  );
+}
