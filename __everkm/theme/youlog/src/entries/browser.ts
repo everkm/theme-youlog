@@ -45,19 +45,8 @@ function install() {
     },
   });
 
-  // 初始化导航树
-  const sidebarNavTreeContainer = document.getElementById(
-    "sidebar-nav-tree",
-  ) as HTMLElement | null;
-  const breadcrumbEl = document.getElementById(
-    "breadcrumb",
-  ) as HTMLElement | null;
-  if (sidebarNavTreeContainer) {
-    installSidebarNavTree2({
-      container: sidebarNavTreeContainer,
-      breadcrumbRoot: breadcrumbEl ?? undefined,
-    });
-  }
+  // 初始化导航树（侧栏可能随 AJAX 导航动态出现）
+  installSidebarNavTree2();
 
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");

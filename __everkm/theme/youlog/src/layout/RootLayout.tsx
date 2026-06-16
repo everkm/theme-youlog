@@ -1,6 +1,7 @@
 import { Component, Show } from "solid-js";
 import { Katex } from "youlog_lib/widgets/katex/ssr";
 import { Prism } from "youlog_lib/widgets/prism/ssr";
+import { buildAjaxHeadFingerprint } from "../utils/ajaxLayout";
 
 const RootLayout: Component<{ context: PageContext; children?: any }> = (
   props,
@@ -21,8 +22,10 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
   const hasCodeHighlight = features.code_highlight ?? true;
   const hasKatex = features.katex_formula ?? false;
 
+  const ajaxHeadFingerprint = buildAjaxHeadFingerprint(cfg);
+
   return (
-    <html lang={lang} class="light">
+    <html lang={lang} class="light" data-ajax-head={ajaxHeadFingerprint}>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

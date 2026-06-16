@@ -1,5 +1,6 @@
 import { Component, Show } from "solid-js";
 import { getConfigValue } from "../utils";
+import { buildAjaxPageFingerprint } from "../utils/ajaxLayout";
 import Sidebar from "../layout/Sidebar";
 import TopHeader from "../layout/TopHeader";
 import ArticleContent from "../layout/ArticleContent";
@@ -127,8 +128,20 @@ const BookPage: Component<BookPageProps> = (props) => {
     />
   );
 
+  const ajaxPageFingerprint = buildAjaxPageFingerprint({
+    page: "book",
+    stack: stackLayout,
+    hasNav: !!navDoc,
+    config,
+    docMeta: doc?.meta,
+  });
+
   return (
-    <div class={stackLayout ? "flex flex-col h-dvh" : "flex h-dvh"}>
+    <div
+      id="page-shell"
+      data-ajax-layout={ajaxPageFingerprint}
+      class={stackLayout ? "flex flex-col h-dvh" : "flex h-dvh"}
+    >
       {stackLayout ? (
         <>
           {topHeader}

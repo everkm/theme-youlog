@@ -1,4 +1,7 @@
-import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
+import {
+  EVENT_PAGE_LOADED,
+  EVENT_PAGE_UPDATE_BEFORE,
+} from "../page-ajax/constants";
 import { NavTreeState } from "./NavTreeState";
 import { NavTree } from "./NavTree";
 import { render } from "solid-js/web";
@@ -41,6 +44,8 @@ class DOMUtils {
 }
 
 class BreadcrumbManager {
+  private static clickHandlerBound = false;
+
   static getBreadcrumbPath(
     breadcrumbRoot?: HTMLElement | null,
     titleSelector: string = "[data-nav-title]",
@@ -58,19 +63,21 @@ class BreadcrumbManager {
     breadcrumbRoot?: HTMLElement | null,
     titleSelector: string = "[data-nav-title]",
   ): void {
-    const breadcrumb = breadcrumbRoot ?? document.getElementById("breadcrumb");
-    if (!breadcrumb) {
-      warn_log("breadcrumb element not found");
-      return;
-    }
-    breadcrumb.addEventListener("click", (e: MouseEvent) => {
+    if (this.clickHandlerBound) return;
+    this.clickHandlerBound = true;
+
+    document.addEventListener("click", (e: MouseEvent) => {
+      const breadcrumb = document.getElementById("breadcrumb");
+      if (!breadcrumb || !(e.target instanceof Node)) return;
+      if (!breadcrumb.contains(e.target)) return;
+
       const target = e.target as HTMLElement;
       log("breadcrumb click, target:", target);
       const parentA = target.closest("a");
       if (!(parentA && parentA.href.startsWith("javascript:"))) return;
       try {
         const breadcrumbPath = this.getBreadcrumbPath(
-          breadcrumbRoot,
+          breadcrumb,
           titleSelector,
         );
         if (breadcrumbPath.length === 0) {
@@ -303,6 +310,14 @@ class NavTreeManager {
     this.updateNavHighlight();
   }
 
+  clearStaleStates(): void {
+    for (const element of [...this.navTreeStates.keys()]) {
+      if (!document.contains(element)) {
+        this.navTreeStates.delete(element);
+      }
+    }
+  }
+
   toggleByTextPath(textPath: string[]): void {
     if (!textPath || textPath.length === 0) return;
     this.navTreeStates.forEach((navTreeState) => {
@@ -348,7 +363,11 @@ class TreeConverter {
         scrollToActiveLink: true,
         scrollDelay: 100,
       });
-      NavTreeManager.getInstance().registerNavTreeState(element, navTreeState);
+      const navTreeHost = element.parentElement ?? element;
+      NavTreeManager.getInstance().registerNavTreeState(
+        navTreeHost,
+        navTreeState,
+      );
       const container = document.createElement("div");
       container.className = "nav-tree-container";
       render(() => NavTree({ state: navTreeState }), container);
@@ -369,6 +388,14 @@ class TreeConverter {
   static clearConvertedElements(): void {
     this.convertedElements.clear();
   }
+
+  static pruneConvertedElements(): void {
+    for (const element of [...this.convertedElements]) {
+      if (!document.contains(element)) {
+        this.convertedElements.delete(element);
+      }
+    }
+  }
 }
 
 class TreeScanner {
@@ -387,7 +414,7 @@ interface SidebarNavTreeOptions {
   /**
    * 导航树所在的容器元素（原先的 #sidebar-nav-tree）
    */
-  container: HTMLElement;
+  container?: HTMLElement | null;
   /**
    * 面包屑根元素（原先的 #breadcrumb），可选
    */
@@ -399,37 +426,73 @@ interface SidebarNavTreeOptions {
   breadcrumbTitleSelector?: string;
 }
 
-function installSidebarNavTree2(options: SidebarNavTreeOptions): void {
-  const {
-    container,
-    breadcrumbRoot,
-    breadcrumbTitleSelector = "[data-nav-title]",
-  } = options;
+const SIDEBAR_NAV_TREE_SELECTOR = "#sidebar-nav-tree";
+const BREADCRUMB_SELECTOR = "#breadcrumb";
+
+function needsNavTreeInit(container: HTMLElement): boolean {
+  if (container.querySelector(".nav-tree-container")) return false;
+  return !!container.querySelector(":scope > ul, :scope > ol");
+}
+
+function mountSidebarNavTree(
+  breadcrumbTitleSelector: string = "[data-nav-title]",
+): void {
+  const navTreeManager = NavTreeManager.getInstance();
+  navTreeManager.clearStaleStates();
+  TreeConverter.pruneConvertedElements();
+
+  const container = document.querySelector(
+    SIDEBAR_NAV_TREE_SELECTOR,
+  ) as HTMLElement | null;
+  const breadcrumb = document.querySelector(
+    BREADCRUMB_SELECTOR,
+  ) as HTMLElement | null;
+
+  navTreeManager.setBreadcrumbRoot(breadcrumb);
+  navTreeManager.setBreadcrumbTitleSelector(breadcrumbTitleSelector);
 
   if (!container) {
-    error_log("sidebarNavTree2: container element is required");
+    navTreeManager.refreshHighlight();
     return;
   }
 
-  log("sidebarNavTree2: init SidebarNavTree2...");
-  const navTreeManager = NavTreeManager.getInstance();
-  navTreeManager.setBreadcrumbRoot(breadcrumbRoot ?? null);
-  navTreeManager.setBreadcrumbTitleSelector(breadcrumbTitleSelector);
-
-  TreeScanner.scanContainer(container);
-  BreadcrumbManager.setupClickHandler(
-    navTreeManager,
-    breadcrumbRoot ?? undefined,
-    breadcrumbTitleSelector,
-  );
-  requestAnimationFrame(() => navTreeManager.refreshHighlight());
-
-  document.addEventListener(EVENT_PAGE_LOADED, () => {
-    if (container) TreeScanner.scanContainer(container);
-    navTreeManager.refreshHighlight();
-  });
+  if (needsNavTreeInit(container)) {
+    TreeScanner.scanContainer(container);
+  }
 
   container.classList.remove("invisible");
+  requestAnimationFrame(() => navTreeManager.refreshHighlight());
+}
+
+let sidebarNavTreeInstalled = false;
+
+function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
+  const { breadcrumbTitleSelector = "[data-nav-title]" } = options;
+
+  log("sidebarNavTree2: init SidebarNavTree2...");
+  const navTreeManager = NavTreeManager.getInstance();
+  BreadcrumbManager.setupClickHandler(
+    navTreeManager,
+    options.breadcrumbRoot ?? undefined,
+    breadcrumbTitleSelector,
+  );
+
+  if (sidebarNavTreeInstalled) {
+    mountSidebarNavTree(breadcrumbTitleSelector);
+    return;
+  }
+  sidebarNavTreeInstalled = true;
+
+  mountSidebarNavTree(breadcrumbTitleSelector);
+
+  document.addEventListener(EVENT_PAGE_UPDATE_BEFORE, () => {
+    NavTreeManager.getInstance().clearStaleStates();
+    TreeConverter.pruneConvertedElements();
+  });
+
+  document.addEventListener(EVENT_PAGE_LOADED, () => {
+    mountSidebarNavTree(breadcrumbTitleSelector);
+  });
 }
 
 // Just for test

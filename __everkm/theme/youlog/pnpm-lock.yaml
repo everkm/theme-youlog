@@ -26,6 +26,9 @@ importers:
       dayjs:
         specifier: ^1.11.18
         version: 1.11.18
+      idiomorph:
+        specifier: ^0.7.4
+        version: 0.7.4
       ky:
         specifier: ^1.8.1
         version: 1.8.1
@@ -1457,6 +1460,9 @@ packages:
     engines: {node: ^10 || ^12 || >= 14}
     peerDependencies:
       postcss: ^8.1.0
+
+  idiomorph@0.7.4:
+    resolution: {integrity: sha512-uCdSpLo3uMfqOmrwXTpR1k/sq4sSmKC7l4o/LdJOEU+MMMq+wkevRqOQYn3lP7vfz9Mv+USBEqPvi0XhdL9ENw==}
 
   image-size@0.5.5:
     resolution: {integrity: sha512-6TDAlDPZxUFCv+fuOkIoXT/V/f3Qbq8e37p+YOiYrUv3v9cc3/6x78VdfPgFVaB9dZYeLUfKgHRebpkm/oP2VQ==}
@@ -3506,6 +3512,8 @@ snapshots:
   icss-utils@5.1.0(postcss@8.5.3):
     dependencies:
       postcss: 8.5.3
+
+  idiomorph@0.7.4: {}
 
   image-size@0.5.5:
     optional: true
