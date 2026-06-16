@@ -13,7 +13,7 @@ import {
   EVENT_PAGE_UPDATE_BEFORE,
 } from "../page-ajax/constants";
 import mitt, { Emitter } from "mitt";
-import { resolveScrollContainer, type ScrollContainer } from "../../../utils/scrollAnchor";
+import { resolveScrollContainer, type ScrollContainer } from "../../core/scrollAnchor";
 
 /** 合并默认后的完整配置（不含运行时解析的 tocContainer / scrollContainer / headerHeight / callbackHeadersHeight / emitter） */
 export type RequiredTocOptions = Omit<

@@ -1,3 +1,5 @@
+import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
+
 const DEFAULT_TOPBAR_HEIGHT = 0;
 
 function getTopbarHeight(selector: string): number {
@@ -50,7 +52,7 @@ function installTopbarHeightWatcher(selector = "header"): void {
     mount();
   }
 
-  document.addEventListener("page-loaded", mount);
+  document.addEventListener(EVENT_PAGE_LOADED, mount);
 }
 
 export { installTopbarHeightWatcher };

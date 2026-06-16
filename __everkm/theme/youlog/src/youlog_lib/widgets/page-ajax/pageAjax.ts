@@ -31,7 +31,7 @@ import {
   resolveScrollContainer,
   scrollContainerToTop,
   scrollToHash,
-} from "../../../utils/scrollAnchor";
+} from "../../core/scrollAnchor";
 
 let lastFullUrl: string | null = null;
 

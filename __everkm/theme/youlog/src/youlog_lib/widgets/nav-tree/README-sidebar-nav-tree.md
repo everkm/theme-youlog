@@ -2,6 +2,8 @@
 
 将侧栏 Markdown 导航转为交互式 `NavTree`。**主文档与更新日志以 [`index.ts`](./index.ts) 文件头注释为准。**
 
+跨项目复制与 AJAX 协作见 [`YOULOG_LIB_README.md` §3](../../YOULOG_LIB_README.md#3-使用注意事项)。
+
 ## 快速接入
 
 ```ts

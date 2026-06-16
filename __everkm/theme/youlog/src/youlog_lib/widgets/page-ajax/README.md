@@ -2,6 +2,8 @@
 
 站内无刷新导航（PJAX）。**主文档与更新日志以 [`index.ts`](./index.ts) 文件头注释为准。**
 
+跨项目复制、入口接线、SSR 约定与 widget 协作见 [`YOULOG_LIB_README.md` §3](../../YOULOG_LIB_README.md#3-使用注意事项)。
+
 ## 快速接入
 
 ```ts
@@ -32,5 +34,6 @@ installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
 
 1. `page-update-before` — 清理
 2. `page-loaded` — 重新初始化
+3. `anchor-navigate` — hash 导航后刷新高亮（如 nav-tree）；**不**触发 `page-loaded`
 
 详见 `index.ts` 中的事件表。

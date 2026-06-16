@@ -13,7 +13,7 @@ import {
   resolveAnchorTarget,
   scrollToElement,
   type ScrollContainer,
-} from "../../../utils/scrollAnchor";
+} from "../../core/scrollAnchor";
 
 // 垂直高度的间距
 const VERTICAL_PADDING = 20;
