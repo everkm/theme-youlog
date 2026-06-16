@@ -1,6 +1,7 @@
 import { Component, Show } from "solid-js";
 import { MenuIcon, SettingsIcon } from "./icons";
 import NavMenu from "../youlog_lib/widgets/nav-menu/ssr";
+import { hideStyle } from "../utils";
 
 interface TopHeaderProps {
   requestId: string;
@@ -70,13 +71,15 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
               >
                 {props.configValue("site.name")}
               </h1>
-              <h1
-                data-article-title-bar
-                data-ajax-element="article-title-bar"
-                class="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer hidden"
-              >
-                {props.doc?.title || "UNTITLED"}
-              </h1>
+              <div data-ajax-element="article-title-bar">
+                <h1
+                  data-article-title-bar
+                  style={hideStyle(!!props.doc?.meta?.hide_title)}
+                  class="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer hidden"
+                >
+                  {props.doc?.title || "UNTITLED"}
+                </h1>
+              </div>
             </div>
           </Show>
         </div>

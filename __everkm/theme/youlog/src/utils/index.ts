@@ -48,14 +48,20 @@ function coerceBoolean(value: unknown, defaultValue: boolean): boolean {
   return Boolean(value);
 }
 
+export function hideStyle(
+  hidden: boolean | undefined,
+): { display: "none" } | undefined {
+  return hidden ? { display: "none" } : undefined;
+}
+
 /**
- * 读取布局显示开关，front matter 优先于全局 config
+ * 读取布局隐藏开关，front matter 优先于全局 config
  */
-export function getDisplayFlag(
+export function getHideFlag(
   config: Record<string, any>,
   docMeta: Record<string, any> | undefined,
   key: string,
-  defaultValue = true
+  defaultValue = false
 ): boolean {
   if (docMeta && docMeta[key] !== undefined && docMeta[key] !== null) {
     return coerceBoolean(docMeta[key], defaultValue);

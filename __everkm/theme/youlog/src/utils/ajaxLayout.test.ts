@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildAjaxDocFingerprint,
   buildAjaxHeadFingerprint,
   buildAjaxLayoutFingerprint,
   buildAjaxPageFingerprint,
@@ -33,21 +32,16 @@ describe("ajaxLayout fingerprints", () => {
     );
   });
 
-  it("includes doc-level display flags", () => {
-    const fp = buildAjaxDocFingerprint(config, { print: false, page_qrcode: true });
-    expect(fp).toBe("print=0|qrcode=1");
-  });
-
-  it("combines layout and doc fingerprints", () => {
+  it("uses layout fingerprint for page shell", () => {
     const fp = buildAjaxPageFingerprint({
       page: "book",
       stack: false,
       hasNav: false,
       config,
-      docMeta: { print: true },
     });
-    expect(fp).toContain("page=book|stack=0|nav=0");
-    expect(fp).toContain(";print=1|qrcode=1");
+    expect(fp).toBe(
+      "page=book|stack=0|nav=0|sidebar_header=1|only_logo=1|algolia=1|header_nav=1",
+    );
   });
 
   it("builds head fingerprint for reload detection", () => {

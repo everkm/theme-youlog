@@ -60,18 +60,18 @@ config:
 |--------|------|--------|------|
 | `layout.only_display_logo` | boolean | `false` | 有 Logo 时仅显示图片，不显示站点名称 |
 | `layout.aisde_no_header` | boolean | `false` | 侧栏不显示站点 Header（Logo / 站点名）。注：配置键名为历史拼写 `aisde`，非 `aside` |
-| `layout.print` | boolean | `true` | 是否显示打印入口（元信息区 Print 按钮及打印页眉） |
-| `layout.page_qrcode` | boolean | `true` | 是否显示页面二维码（屏幕端与打印页底部） |
+| `layout.hide_print_button` | boolean | `false` | 为 `true` 时隐藏打印入口（元信息区 Print 按钮及打印页眉） |
+| `layout.hide_page_qrcode` | boolean | `false` | 为 `true` 时隐藏页面二维码（屏幕端与打印页底部） |
 
-以上 `print`、`page_qrcode` 也可在单篇文章 Front Matter 中设置（见下文），**文章级配置优先于全局 `layout` 配置**。
+以上 `hide_print_button`、`hide_page_qrcode` 也可在单篇文章 Front Matter 中设置（见下文），**文章级配置优先于全局 `layout` 配置**。
 
 示例：
 
 ```yaml
 config:
   layout:
-    print: true
-    page_qrcode: true
+    hide_print_button: false
+    hide_page_qrcode: false
 ```
 
 `stack=true` 时，站点 Header 会移至页面顶部顶栏左侧；侧栏内不再重复显示。
@@ -270,10 +270,12 @@ folders:
 |------|------|------|
 | `meta.description` | string | 页面 `<meta name="description">` |
 | `meta.keywords` | string | 页面 `<meta name="keywords">` |
-| `meta.hide_meta` | boolean | 为 `true` 时隐藏更新日期、永久地址等元信息行 |
+| `meta.hide_meta` | boolean | 为 `true` 时隐藏更新日期、永久地址等元信息行（默认 `false`） |
+| `meta.hide_toc` | boolean | 为 `true` 时隐藏页面目录（TOC）（默认 `false`） |
+| `meta.hide_title` | boolean | 为 `true` 时隐藏文章标题（默认 `false`） |
 | `meta.permalink` | string | 永久链接 slug，正文元信息区展示为 `https://{site.host}/{permalink}` |
-| `meta.print` | boolean | 是否显示打印入口；未设置时继承 `layout.print`（默认 `true`） |
-| `meta.page_qrcode` | boolean | 是否显示页面二维码；未设置时继承 `layout.page_qrcode`（默认 `true`） |
+| `meta.hide_print_button` | boolean | 为 `true` 时隐藏打印入口；未设置时继承 `layout.hide_print_button`（默认 `false`） |
+| `meta.hide_page_qrcode` | boolean | 为 `true` 时隐藏页面二维码；未设置时继承 `layout.hide_page_qrcode`（默认 `false`） |
 
 示例：
 
@@ -284,8 +286,8 @@ meta:
   description: 过滤器说明
   keywords: filter, everkm
   permalink: docs/builtin-filter
-  print: false
-  page_qrcode: false
+  hide_print_button: true
+  hide_page_qrcode: true
 ---
 ```
 

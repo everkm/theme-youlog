@@ -101,6 +101,16 @@ function syncElementsByDataAttribute(doc: Document) {
     );
 
     if (nextElement) {
+      if (nextElement.hasAttribute("style")) {
+        currentElement.setAttribute("style", nextElement.getAttribute("style")!);
+      } else {
+        currentElement.removeAttribute("style");
+      }
+      if (nextElement.hasAttribute("class")) {
+        currentElement.setAttribute("class", nextElement.getAttribute("class")!);
+      } else {
+        currentElement.removeAttribute("class");
+      }
       currentElement.innerHTML = nextElement.innerHTML;
     } else {
       currentElement.innerHTML = "";

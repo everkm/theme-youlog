@@ -87,17 +87,22 @@ const BookPage: Component<BookPageProps> = (props) => {
     <div class="flex-1">
       <div class="container mx-auto px-4 py-8 print:p-0">
         <div class="flex flex-col lg:flex-row">
-          <ArticleContent
-            requestId={requestId}
-            doc={doc}
-            pageContext={pageContext}
-            pageNav={pageNav}
-            configValue={configValue}
-            youlogPlatform={youlogPlatform}
-            youlogVersion={youlogVersion}
-            versionsUrl={versionsUrl}
-          />
-          <TOC />
+          <div
+            data-ajax-element="article-frame"
+            class={`w-full lg:w-3/4${doc?.meta?.hide_toc ? " lg:mx-auto" : ""}`}
+          >
+            <ArticleContent
+              requestId={requestId}
+              doc={doc}
+              pageContext={pageContext}
+              pageNav={pageNav}
+              configValue={configValue}
+              youlogPlatform={youlogPlatform}
+              youlogVersion={youlogVersion}
+              versionsUrl={versionsUrl}
+            />
+          </div>
+          <TOC hidden={!!doc?.meta?.hide_toc} />
         </div>
       </div>
     </div>
@@ -133,7 +138,6 @@ const BookPage: Component<BookPageProps> = (props) => {
     stack: stackLayout,
     hasNav: !!navDoc,
     config,
-    docMeta: doc?.meta,
   });
 
   return (

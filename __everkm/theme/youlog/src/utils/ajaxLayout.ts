@@ -1,18 +1,17 @@
-import { getConfigValue, getDisplayFlag } from "./index";
+import { getConfigValue } from "./index";
 
 export interface AjaxPageFingerprintInput {
   page: string;
   stack?: boolean;
   hasNav?: boolean;
   config: Record<string, any>;
-  docMeta?: Record<string, any>;
 }
 
 /**
  * 布局骨架指纹：影响 page-shell DOM 结构的配置
  */
 export function buildAjaxLayoutFingerprint(
-  input: Omit<AjaxPageFingerprintInput, "docMeta">,
+  input: AjaxPageFingerprintInput,
 ): string {
   const { page, stack = false, hasNav = false, config } = input;
   return [
@@ -26,23 +25,10 @@ export function buildAjaxLayoutFingerprint(
   ].join("|");
 }
 
-/**
- * 文档级显示开关指纹：影响 page-shell 内条件渲染块
- */
-export function buildAjaxDocFingerprint(
-  config: Record<string, any>,
-  docMeta?: Record<string, any>,
-): string {
-  return [
-    `print=${getDisplayFlag(config, docMeta, "print", true) ? 1 : 0}`,
-    `qrcode=${getDisplayFlag(config, docMeta, "page_qrcode", true) ? 1 : 0}`,
-  ].join("|");
-}
-
 export function buildAjaxPageFingerprint(
   input: AjaxPageFingerprintInput,
 ): string {
-  return `${buildAjaxLayoutFingerprint(input)};${buildAjaxDocFingerprint(input.config, input.docMeta)}`;
+  return buildAjaxLayoutFingerprint(input);
 }
 
 /**

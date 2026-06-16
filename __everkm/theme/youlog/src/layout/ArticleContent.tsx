@@ -1,5 +1,5 @@
 import { Component, Show } from "solid-js";
-import { formatDate, getDisplayFlag } from "../utils";
+import { formatDate, getHideFlag, hideStyle } from "../utils";
 import Breadcrumb from "./Breadcrumb";
 import PrevNextLinks from "./PrevNextLinks";
 import PageNavigation from "./PageNavigation";
@@ -27,44 +27,45 @@ interface ArticleContentProps {
 interface DocMetaProps {
   doc: PostItem;
   configValue: (path: string, defaultValue?: any) => any;
-  showPrint: boolean;
+  hidePrintButton: boolean;
 }
 
 const DocMeta: Component<DocMetaProps> = (props) => {
   return (
     <div id="doc-meta" data-ajax-element="doc-meta">
-      <Show when={!props.doc?.meta?.hide_meta}>
-        <div class="text-sm flex items-center gap-4 text-gray-500 dark:text-gray-400">
-          <div
-            class="flex items-center gap-0.5"
-            data-doc-update-at={props.doc?.updated_at?.toString()}
-          >
-            <span class="icon-[lets-icons--date-range-light] text-base"></span>
-            {formatDate(props.doc?.updated_at)}
-          </div>
-
-          <Show when={props.doc?.meta?.permalink}>
-            <div
-              class="flex items-center"
-              data-doc-meta-permalink={props.doc?.meta?.permalink}
-            >
-              <span class="icon-[uil--map-pin-alt] text-base"></span>
-              <a
-                href={`/${props.doc?.meta?.permalink}?__not_follow`}
-                target="_blank"
-                data-no-ajax
-              >
-                https://{props.configValue("site.host")}/
-                {props.doc?.meta?.permalink}
-              </a>
-            </div>
-          </Show>
-
-          <Show when={props.showPrint}>
-            <PrintPage className="hidden md:flex items-center print:hidden" />
-          </Show>
+      <div
+        style={hideStyle(!!props.doc?.meta?.hide_meta)}
+        class="text-sm flex items-center gap-4 text-gray-500 dark:text-gray-400"
+      >
+        <div
+          class="flex items-center gap-0.5"
+          data-doc-update-at={props.doc?.updated_at?.toString()}
+        >
+          <span class="icon-[lets-icons--date-range-light] text-base"></span>
+          {formatDate(props.doc?.updated_at)}
         </div>
-      </Show>
+
+        <Show when={props.doc?.meta?.permalink}>
+          <div
+            class="flex items-center"
+            data-doc-meta-permalink={props.doc?.meta?.permalink}
+          >
+            <span class="icon-[uil--map-pin-alt] text-base"></span>
+            <a
+              href={`/${props.doc?.meta?.permalink}?__not_follow`}
+              target="_blank"
+              data-no-ajax
+            >
+              https://{props.configValue("site.host")}/
+              {props.doc?.meta?.permalink}
+            </a>
+          </div>
+        </Show>
+
+        <div style={hideStyle(props.hidePrintButton)}>
+          <PrintPage className="hidden md:flex items-center print:hidden" />
+        </div>
+      </div>
       <div class="h-6 w-full print:hidden"></div>
     </div>
   );
@@ -77,42 +78,49 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
     ' class="opacity-0 math math-',
   );
 
-  const showPrint = () =>
-    getDisplayFlag(props.pageContext.config, props.doc?.meta, "print", true);
-  const showPageQrcode = () =>
-    getDisplayFlag(
+  const hidePrintButton = () =>
+    getHideFlag(
       props.pageContext.config,
       props.doc?.meta,
-      "page_qrcode",
-      true
+      "hide_print_button",
+      false
+    );
+  const hidePageQrcode = () =>
+    getHideFlag(
+      props.pageContext.config,
+      props.doc?.meta,
+      "hide_page_qrcode",
+      false
     );
 
-  // const hasKatex = htmlContent.includes("math math-");
-  // const hasCodeBlock = htmlContent.includes('<pre><code class="language-');
-
   return (
-    <div class="w-full lg:w-3/4 pr-0 lg:pl-4 lg:pr-8 print:w-full print:p-0 leading-relaxed relative print:static">
+    <div class="w-full pr-0 lg:pl-4 lg:pr-8 print:w-full print:p-0 leading-relaxed relative print:static">
       <Breadcrumb navs={props.pageContext.breadcrumbs || []} />
 
       <div id="page-main">
-        <Show when={showPrint()}>
-          <div class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm">
-            <div>{props.configValue("site.name")}</div>
-            <div class="font-sans" data-el="page-url"></div>
-          </div>
-        </Show>
-        <h1
-          id="article-title"
-          data-ajax-element="article-title"
-          class="text-[1.8em] font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
+        <div
+          data-ajax-element="print-header"
+          style={hideStyle(hidePrintButton())}
+          class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm"
         >
-          {props.doc?.title || "无标题"}
-        </h1>
+          <div>{props.configValue("site.name")}</div>
+          <div class="font-sans" data-el="page-url"></div>
+        </div>
+
+        <div data-ajax-element="article-title">
+          <h1
+            id="article-title"
+            style={hideStyle(!!props.doc?.meta?.hide_title)}
+            class="text-[1.8em] font-bold text-gray-900 dark:text-white text-center mb-4 !mt-0"
+          >
+            {props.doc?.title || "无标题"}
+          </h1>
+        </div>
 
         <DocMeta
           doc={props.doc}
           configValue={props.configValue}
-          showPrint={showPrint()}
+          hidePrintButton={hidePrintButton()}
         />
 
         <article
@@ -127,9 +135,11 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           />
         </article>
 
-        <Show when={showPageQrcode()}>
-          <PageQrcode />
-        </Show>
+        <div data-ajax-element="page-qrcode">
+          <div style={hideStyle(hidePageQrcode())}>
+            <PageQrcode />
+          </div>
+        </div>
       </div>
 
       <PageNavigation pageNav={props.pageNav} />
