@@ -13,6 +13,7 @@ import {
   EVENT_PAGE_UPDATE_BEFORE,
 } from "../page-ajax/constants";
 import mitt, { Emitter } from "mitt";
+import { resolveScrollContainer, type ScrollContainer } from "../../../utils/scrollAnchor";
 
 /** 合并默认后的完整配置（不含运行时解析的 tocContainer / scrollContainer / headerHeight / callbackHeadersHeight / emitter） */
 export type RequiredTocOptions = Omit<
@@ -55,25 +56,21 @@ function getMergedOptions(customOptions?: TocOptions): RequiredTocOptions {
 const DEFAULT_HEADER_HEIGHT = 0;
 const TOPBAR_OFFSET = -1;
 
-function resolveScrollContainer(selector: string): HTMLElement | null {
-  const normalized = selector.trim().toLowerCase();
-
-  // 在标准模式（有 DOCTYPE）下，真实滚动容器通常是 documentElement，而不是 body。
-  if (normalized === "body" || normalized === "html") {
-    return (
-      (document.scrollingElement as HTMLElement | null) ||
-      document.documentElement
-    );
+function queryWithinScrollContainer(
+  scrollContainer: ScrollContainer,
+  selector: string,
+): HTMLElement | null {
+  if (scrollContainer instanceof Window) {
+    return document.querySelector<HTMLElement>(selector);
   }
-
-  return document.querySelector<HTMLElement>(selector);
+  return scrollContainer.querySelector<HTMLElement>(selector);
 }
 
 function resolveHeaderInScrollContainer(
-  scrollContainer: HTMLElement,
+  scrollContainer: ScrollContainer,
   headerSelector: string,
 ): HTMLElement | null {
-  return scrollContainer.querySelector<HTMLElement>(headerSelector);
+  return queryWithinScrollContainer(scrollContainer, headerSelector);
 }
 
 function initMobileToc(
@@ -97,7 +94,7 @@ function initMobileToc(
     );
   }
 
-  const article = scrollContainer.querySelector<HTMLElement>(articleSelector);
+  const article = queryWithinScrollContainer(scrollContainer, articleSelector);
   if (!article) {
     throw new Error(
       `[initMobileToc] article not found: "${articleSelector}" under "${scrollContainerSelector}"`,
@@ -170,7 +167,7 @@ function generateToc(
     throw new Error(`${scrollContainerSelector} is not found`);
   }
 
-  const article = scrollContainer.querySelector<HTMLElement>(articleSelector);
+  const article = queryWithinScrollContainer(scrollContainer, articleSelector);
   if (!(tocContainer && article)) {
     throw new Error(`${tocSelector} or ${articleSelector} is not found`);
   }

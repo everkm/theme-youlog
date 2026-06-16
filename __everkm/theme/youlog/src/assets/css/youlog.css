@@ -3,6 +3,15 @@
   display: none !important;
 }
 
+/* 锚点滚动留白：stack 布局 header 在滚动容器外，仅需少量间距 */
+#page-shell[data-stack-layout="1"] {
+  --anchor-scroll-margin: 1.25rem;
+}
+
+#page-shell[data-stack-layout="0"] {
+  --anchor-scroll-margin: calc(var(--topbar-height, 3.5rem) + 1rem);
+}
+
 .mark-top {
   content: " ";
   @apply icon-[material-symbols--vertical-align-top-rounded] inline-block h-[0.7em] w-[0.7em];

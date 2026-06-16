@@ -110,7 +110,7 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
   h5,
   h6,
   .footnote-definition {
-    scroll-margin-top: 7rem;
+    scroll-margin-top: var(--anchor-scroll-margin, 5rem);
   }
 }
 

@@ -35,3 +35,22 @@ function initTopbarHeightWatcher(selector: string): () => void {
 }
 
 export { initTopbarHeightWatcher };
+
+function installTopbarHeightWatcher(selector = "header"): void {
+  let cleanup: (() => void) | undefined;
+
+  const mount = () => {
+    cleanup?.();
+    cleanup = initTopbarHeightWatcher(selector);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount, { once: true });
+  } else {
+    mount();
+  }
+
+  document.addEventListener("page-loaded", mount);
+}
+
+export { installTopbarHeightWatcher };

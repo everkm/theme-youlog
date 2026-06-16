@@ -23,8 +23,10 @@ import { installPrism } from "youlog_lib/widgets/prism";
 import { installKatex } from "youlog_lib/widgets/katex";
 import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
+import { installTopbarHeightWatcher } from "youlog_lib/widgets/topbar";
 
 function install() {
+  installTopbarHeightWatcher("header");
   installToc({
     tocSelector: "#toc",
     articleSelector: "#article-main",

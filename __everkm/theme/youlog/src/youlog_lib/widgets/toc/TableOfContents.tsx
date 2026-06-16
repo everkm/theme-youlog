@@ -7,16 +7,19 @@ import {
   Show,
   onMount,
 } from "solid-js";
+import {
+  getAnchorScrollOffset,
+  parseTopbarHeight,
+  resolveAnchorTarget,
+  scrollToElement,
+  type ScrollContainer,
+} from "../../../utils/scrollAnchor";
 
 // 垂直高度的间距
 const VERTICAL_PADDING = 20;
 
-/** 滚动目标：window 为整页滚动，否则为可滚动元素 */
-type TocScrollContainer = Window | HTMLElement;
-
-function getScrollTop(target: TocScrollContainer): number {
-  return target instanceof Window ? target.scrollY : target.scrollTop;
-}
+/** @deprecated 使用 ScrollContainer */
+type TocScrollContainer = ScrollContainer;
 
 // 定义TOC事件类型
 type TocEvents = {
@@ -227,16 +230,7 @@ function MobileToc(props: MobileTocProps) {
     cleanUpCallback?.();
   });
 
-  const getHeaderHeight = () => {
-    const h = parseInt(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--topbar-height")
-        .trim() || "0",
-    );
-
-    // console.log("getHeaderHeight", h);
-    return h;
-  };
+  const getHeaderHeight = () => parseTopbarHeight();
 
   // 检查是否在sticky状态
   const isSticky = () => {
@@ -272,13 +266,17 @@ function MobileToc(props: MobileTocProps) {
     // 计算总偏移量
     const totalOffset = getTotalOffset();
 
+    const scrollEl = props.scrollContainer;
+    const containerTop =
+      scrollEl instanceof Window ? 0 : scrollEl.getBoundingClientRect().top;
+
     // 找到当前可见的标题
     for (let i = tocItems().length - 1; i >= 0; i--) {
       const heading = document.getElementById(tocItems()[i].id);
       if (!heading) continue;
 
       const rect = heading.getBoundingClientRect();
-      if (rect.top - 20 <= totalOffset) {
+      if (rect.top - containerTop <= totalOffset) {
         setActiveId(tocItems()[i].id);
         return;
       }
@@ -540,10 +538,11 @@ function TableOfContents(props: TocProps) {
     if (stopSync()) return;
 
     const headerOffset = calculateHeaderHeight();
-    // 计算总偏移量
-    const totalOffset = headerOffset + 20; // 增加top 判断的阈值
+    const totalOffset = headerOffset + 20;
+    const scrollEl = props.scrollContainer;
+    const containerTop =
+      scrollEl instanceof Window ? 0 : scrollEl.getBoundingClientRect().top;
 
-    // 找到当前可见的标题
     const items = tocItems();
     for (let i = items.length - 1; i >= 0; i--) {
       const heading = document.getElementById(items[i].id);
@@ -553,61 +552,43 @@ function TableOfContents(props: TocProps) {
       }
 
       const rect = heading.getBoundingClientRect();
-      if (rect.top <= totalOffset) {
+      if (rect.top - containerTop <= totalOffset) {
         setActiveId(items[i].id);
         return;
       }
     }
   };
 
+  const getScrollOffset = () => {
+    if (props.callbackHeadersHeight !== null) {
+      const heights = props.callbackHeadersHeight();
+      return heights.reduce((sum, height) => sum + height, 0) + props.offset;
+    }
+    return getAnchorScrollOffset(props.scrollContainer, props.offset);
+  };
+
   // 滚动到指定标题
   const scrollToHeading = (id: string) => {
-    let targetHeading = document.getElementById(id);
+    const article = getArticleElement();
+    const targetHeading = resolveAnchorTarget(id, article ?? document);
     if (!targetHeading) {
-      const anchors = getArticleElement()?.querySelectorAll("a.heading-anchor");
-      if (anchors) {
-        for (const anchor of Array.from(anchors)) {
-          if (anchor.getAttribute("name") === id) {
-            targetHeading = anchor as HTMLElement;
-            break;
-          }
-        }
-      }
-
-      if (!targetHeading) {
-        console.error("TOC: targetHeading not found", id);
-        return;
-      }
+      console.error("TOC: targetHeading not found", id);
+      return;
     }
 
-    // 标记为TOC内部引起的滚动
     isScrollingToHeading = true;
 
-    const headerHeight = calculateHeaderHeight();
-
-    // 计算最终的偏移位置
-    const elementPosition = targetHeading.getBoundingClientRect().top;
-    const offsetPosition = getScrollTop(props.scrollContainer);
-    const totalOffset =
-      elementPosition + offsetPosition - headerHeight - props.offset;
-
-    // 平滑滚动到目标位置
-    const scrollElement = props.scrollContainer;
-    scrollElement.scrollTo({
-      top: totalOffset,
-      behavior: "smooth",
+    scrollToElement(targetHeading, props.scrollContainer, {
+      offset: getScrollOffset(),
+      behavior: "auto",
     });
-    // console.log("scrollToHeading", totalOffset, scrollElement);
 
-    // 更新活跃ID
     setActiveId(id);
 
-    // 滚动结束后取消标记
     setTimeout(() => {
       isScrollingToHeading = false;
     }, 1000);
 
-    // 回调
     let anchorName: string | undefined = undefined;
     const anchorEl = document
       .getElementById(id)

@@ -25,6 +25,12 @@ import {
   markNavTreeSource,
   navTreeNeedsUpdate,
 } from "./navTreeSync";
+import {
+  getHashFromUrl,
+  resolveScrollContainer,
+  scrollContainerToTop,
+  scrollToHash,
+} from "../../../utils/scrollAnchor";
 
 let lastFullUrl: string | null = null;
 
@@ -213,13 +219,36 @@ function morphPageShell(doc: Document) {
   Idiomorph.morph(currentShell, nextShell);
 }
 
-function scrollToTop(opts: RequiredPjaxOptions) {
+function scrollAfterNavigation(url: string, opts: RequiredPjaxOptions) {
+  const hash = getHashFromUrl(url);
   requestAnimationFrame(() => {
     setTimeout(() => {
-      document
-        .querySelector(opts.scrollContainerSelector)
-        ?.scrollTo({ top: 0, behavior: "smooth" });
+      const scrollContainer = resolveScrollContainer(
+        opts.scrollContainerSelector,
+      );
+      if (!scrollContainer) return;
+
+      if (hash) {
+        scrollToHash(hash, scrollContainer, { behavior: "auto" });
+      } else {
+        scrollContainerToTop(scrollContainer, "smooth");
+      }
     }, 30);
+  });
+}
+
+function scrollToInitialHash(opts: RequiredPjaxOptions) {
+  const hash = getHashFromUrl(window.location.href);
+  if (!hash) return;
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const scrollContainer = resolveScrollContainer(
+        opts.scrollContainerSelector,
+      );
+      if (!scrollContainer) return;
+      scrollToHash(hash, scrollContainer, { behavior: "auto" });
+    }, 50);
   });
 }
 
@@ -251,7 +280,10 @@ async function applyPageUpdate(
     });
   });
 
-  scrollToTop(opts);
+  scrollAfterNavigation(
+    window.location.pathname + window.location.search + window.location.hash,
+    opts,
+  );
   return true;
 }
 
@@ -301,6 +333,7 @@ async function handleNavigation(
     if (lastFullUrl && isOnlyHashChange(lastFullUrl, url)) {
       lastFullUrl = url;
       window.history.pushState(null, document.title, url);
+      scrollAfterNavigation(url, opts);
       return;
     }
 
@@ -330,6 +363,7 @@ async function handlePopState(opts: RequiredPjaxOptions): Promise<void> {
 
     if (lastFullUrl && isOnlyHashChange(lastFullUrl, currentUrl)) {
       lastFullUrl = currentUrl;
+      scrollAfterNavigation(currentUrl, opts);
       return;
     }
 
@@ -390,7 +424,19 @@ function installAjaxPageLoad(opts: PjaxOptions) {
   const mergedOpts = getMergedOptions(opts);
   setupPageLoading();
 
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
   lastFullUrl = getCurrentFullUrl();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      scrollToInitialHash(mergedOpts);
+    });
+  } else {
+    scrollToInitialHash(mergedOpts);
+  }
 
   document.addEventListener(
     "click",

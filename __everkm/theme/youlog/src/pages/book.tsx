@@ -144,6 +144,7 @@ const BookPage: Component<BookPageProps> = (props) => {
     <div
       id="page-shell"
       data-ajax-layout={ajaxPageFingerprint}
+      data-stack-layout={stackLayout ? "1" : "0"}
       class={stackLayout ? "flex flex-col h-dvh" : "flex h-dvh"}
     >
       {stackLayout ? (
