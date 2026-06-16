@@ -69,6 +69,13 @@ function resolveScrollContainer(selector: string): HTMLElement | null {
   return document.querySelector<HTMLElement>(selector);
 }
 
+function resolveHeaderInScrollContainer(
+  scrollContainer: HTMLElement,
+  headerSelector: string,
+): HTMLElement | null {
+  return scrollContainer.querySelector<HTMLElement>(headerSelector);
+}
+
 function initMobileToc(
   options: RequiredTocOptions,
   tocEmitter: Emitter<TocEvents>,
@@ -97,7 +104,7 @@ function initMobileToc(
     );
   }
 
-  const header = document.querySelector<HTMLElement>(headerSelector);
+  const header = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
   const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
 
   let mobileTocContainer = document.getElementById("mobile-toc-indicator");
@@ -169,16 +176,19 @@ function generateToc(
   }
 
   tocContainer.innerHTML = "";
-  const header = document.querySelector<HTMLElement>(headerSelector);
+  const header = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
   const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
+  const stickyTopOffset = TOPBAR_OFFSET + VERTICAL_PADDING;
 
   tocContainer.classList.remove("hidden", "mobile-active", "mobile-child");
   tocContainer.classList.add("lg:sticky", "hidden", "lg:block");
-  tocContainer.style.top = `calc(var(--topbar-height, ${headerHeight}px) + ${TOPBAR_OFFSET + VERTICAL_PADDING}px)`;
+  tocContainer.style.top = header
+    ? `calc(var(--topbar-height, ${headerHeight}px) + ${stickyTopOffset}px)`
+    : `${stickyTopOffset}px`;
   tocContainer.style.scrollBehavior = "smooth";
 
   const callbackHeadersHeight = () => {
-    const h = document.querySelector<HTMLElement>(headerSelector);
+    const h = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
     return [h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT];
   };
   render(
