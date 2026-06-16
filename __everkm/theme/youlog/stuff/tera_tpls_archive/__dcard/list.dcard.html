@@ -1,0 +1,80 @@
+{%import "icons.html" as icons%}
+
+
+{% set page_no =__qs.page | default(value=1) | int %}
+{% set page_size = page_size | default(value=6) %}
+{% set offset = (page_no - 1) * page_size %}
+{% set data = posts(dir=dir, recursive=include_subfolders | default(value=true), exclude_tags=exclude_tags | default(value=[]), offset=offset, limit=page_size) %}
+{% set items = data.items %}
+{% set total = data.total %}
+{% set page_count = total / page_size %}
+{% set page_count = page_count | round(method="ceil") %}
+<ol>
+    {% for doc in items %}
+    <li>
+        <a href="{{ doc.url_path | safe }}" target="_blank">{{doc.title}}</a>
+        {%if doc.weight > 0%}<span class="!text-red-500 mark-top"></span>{%endif%}
+        <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number">
+            {{doc.updated_at | date(format=config(key="date_format", default="%Y-%m-%d %H:%M"))}}
+            {% if doc.date != doc.updated_at %}<em class="text-gray-500 text-[90%]">{{t(text="updated")}}</em>{% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ol>
+
+{% if page_count > 1 %}
+<div class="space-x-6 flex !mt-10 text-normal items-center justify-center">
+    {% if page_no > 1 %}
+    <div class="flex items-center space-x-1">
+        {% if page_no == 2 %}
+        <a href="{{__page_path_base}}.html" class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_prev_icon()}}
+        </a>
+        {% elif page_no > 2 %}
+        <a href="{{__page_path_base}}.p{{page_no-1}}.html"
+            class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_prev_icon()}}
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# 跳转分页 #}
+    <div x-data="{
+    currentPage: {{ page_no }},
+    totalPages: {{ page_count }},
+    baseUrl: '{{ __page_path_base }}',
+    pageQuery: '{% if __env_is_preview %}{% endif %}',
+    goToPage() {
+      const page = parseInt(this.currentPage);
+      if (page >= 1 && page <= this.totalPages) {
+        let url;
+        if (page === 1) {
+          url = this.baseUrl + '.html';
+        } else {
+          url = this.baseUrl + '.p' + page + '.html';
+        }
+        window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } }));
+      }
+    }
+  }" x-init="currentPage = {{ page_no }}">
+        <select x-model="currentPage" @change="goToPage()"
+            class="text-gray-600 text-sm rounded pl-1 py-1 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <template x-for="page in totalPages" :key="page">
+                <option :value="page" :selected="page === {{ page_no }}" x-text="page + ' / ' + totalPages"></option>
+            </template>
+        </select>
+    </div>
+
+    {% if page_no * page_size < total %}
+    <div class="flex items-center space-x-1">
+        <a href="{{__page_path_base}}.p{{page_no+1}}.html"
+            class="flex items-center gap-0.5 p-1.5 rounded-md hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle-light transition-colors">
+            {{icons::navigate_next_icon()}}
+        </a>
+    </div>
+    {% endif %}
+
+
+</div>
+{% endif %}
