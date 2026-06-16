@@ -5,6 +5,7 @@
 import {
   EVENT_PAGE_LOADED,
   EVENT_PAGE_UPDATE_BEFORE,
+  EVENT_ANCHOR_NAVIGATE,
   NAV_TREE_SELECTOR,
 } from "../page-ajax/constants";
 import {
@@ -20,6 +21,7 @@ import {
   MarkdownTreeParser,
   DEFAULT_MARKDOWN_RULE,
 } from "./markdownTreeParser";
+import { isNavUrlMatch } from "./navTreeUrl";
 
 function log(message: string, ...args: any[]) {
   // console.log("sidebarNavTree2: " + message, ...args);
@@ -286,17 +288,7 @@ class NavTreeManager {
 
   private findActiveNode(navTreeState: NavTreeState): string | null {
     const currentUrl = window.location.href;
-    let activeNodeId = navTreeState.findActiveNode(
-      currentUrl,
-      (currentPath, targetPath) => {
-        const absTargetPath = new URL(targetPath, window.location.origin);
-        const absCurrentPath = new URL(currentPath, window.location.origin);
-        return (
-          absCurrentPath.pathname === absTargetPath.pathname &&
-          absCurrentPath.origin === absTargetPath.origin
-        );
-      },
-    );
+    let activeNodeId = navTreeState.findActiveNode(currentUrl, isNavUrlMatch);
     if (!activeNodeId)
       activeNodeId = this.findActiveNodeByBreadcrumb(navTreeState);
     return activeNodeId;
@@ -537,6 +529,10 @@ function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
     mountSidebarNavTree(breadcrumbTitleSelector);
+  });
+
+  document.addEventListener(EVENT_ANCHOR_NAVIGATE, () => {
+    scheduleNavHighlight(NavTreeManager.getInstance());
   });
 }
 

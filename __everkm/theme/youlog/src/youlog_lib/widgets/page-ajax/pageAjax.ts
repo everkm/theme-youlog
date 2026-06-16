@@ -20,6 +20,7 @@ import {
   NAV_TREE_SOURCE_MARKUP_ATTR,
   NAV_TREE_SOURCE_TEXT_ATTR,
   AJAX_ELEMENT_NAV_TREE,
+  EVENT_ANCHOR_NAVIGATE,
 } from "./constants";
 import {
   markNavTreeSource,
@@ -219,6 +220,20 @@ function morphPageShell(doc: Document) {
   Idiomorph.morph(currentShell, nextShell);
 }
 
+function dispatchAnchorNavigate(): void {
+  document.dispatchEvent(
+    new CustomEvent(EVENT_ANCHOR_NAVIGATE, {
+      bubbles: true,
+      composed: true,
+    }),
+  );
+}
+
+/** 锚点导航后通知依赖 hash 的 widget（如 nav-tree 高亮） */
+function notifyAnchorNavigate(): void {
+  dispatchAnchorNavigate();
+}
+
 function scrollAfterNavigation(url: string, opts: RequiredPjaxOptions) {
   const hash = getHashFromUrl(url);
   requestAnimationFrame(() => {
@@ -230,6 +245,7 @@ function scrollAfterNavigation(url: string, opts: RequiredPjaxOptions) {
 
       if (hash) {
         scrollToHash(hash, scrollContainer, { behavior: "auto" });
+        dispatchAnchorNavigate();
       } else {
         scrollContainerToTop(scrollContainer, "smooth");
       }
@@ -280,10 +296,6 @@ async function applyPageUpdate(
     });
   });
 
-  scrollAfterNavigation(
-    window.location.pathname + window.location.search + window.location.hash,
-    opts,
-  );
   return true;
 }
 
@@ -345,6 +357,7 @@ async function handleNavigation(
     if (success) {
       lastFullUrl = url;
       window.history.pushState(null, document.title, url);
+      scrollAfterNavigation(url, opts);
       requestAnimationFrame(() => {
         dispatchPageLoaded(url);
       });
@@ -371,6 +384,7 @@ async function handlePopState(opts: RequiredPjaxOptions): Promise<void> {
     if (success) {
       dispatchPageLoaded(currentUrl);
       lastFullUrl = currentUrl;
+      scrollAfterNavigation(currentUrl, opts);
     } else {
       window.location.reload();
     }
@@ -468,4 +482,4 @@ function installAjaxPageLoad(opts: PjaxOptions) {
   });
 }
 
-export { installAjaxPageLoad };
+export { installAjaxPageLoad, notifyAnchorNavigate };

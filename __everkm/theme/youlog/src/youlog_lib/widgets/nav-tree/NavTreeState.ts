@@ -376,26 +376,25 @@ class NavTreeState {
     predicate?: PathMatchPredicateFn,
   ): string | null {
     for (const item of items) {
+      // 先匹配子节点，避免父级「同页无 hash」链接抢占带 fragment 的子项
+      if (item.children) {
+        const childResult = this.findActiveNodeRecursive(
+          item.children,
+          currentPath,
+          predicate,
+        );
+        if (childResult) {
+          return childResult;
+        }
+      }
+
       if (item.url) {
         if (predicate) {
           if (predicate(currentPath, item.url)) {
             return item.nodeId;
           }
-        } else {
-          if (item.url === currentPath) {
-            return item.nodeId;
-          }
-        }
-      }
-
-      // 递归查找子节点
-      if (item.children) {
-        const childResult = this.findActiveNodeRecursive(
-          item.children,
-          currentPath,
-        );
-        if (childResult) {
-          return childResult;
+        } else if (item.url === currentPath) {
+          return item.nodeId;
         }
       }
     }

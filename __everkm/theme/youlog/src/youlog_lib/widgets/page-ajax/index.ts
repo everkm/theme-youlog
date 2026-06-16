@@ -28,7 +28,7 @@
  *
  * | 条件 | 行为 |
  * |------|------|
- * | 仅 hash 变化 | 不请求，只更新 history |
+ * | 仅 hash 变化 | 不请求；滚动到锚点；派发 `anchor-navigate` |
  * | `data-ajax-head` 不一致 | `location.href` 整页跳转 |
  * | 无 `#page-shell` | 回退：仅 `data-ajax-element` 同步（兼容旧模板） |
  * | `data-ajax-layout` 一致 | 快路径：`data-ajax-element` innerHTML 同步 |
@@ -39,6 +39,7 @@
  * - `page-load-before` — 即将发起请求（`detail.url`）
  * - `page-update-before` — 即将写入 DOM；widget 应在此销毁监听、清理第三方实例
  * - `page-loaded` — DOM 已更新且 `history.pushState` 完成（`detail.url`）
+ * - `anchor-navigate` — 锚点 / hash 导航完成（TOC、`pushState`、仅 hash 变化）；**不**触发 `page-loaded`
  * - `page-navigate` — 编程式导航：`window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } }))`
  *
  * ## 与其它 widget 的协作
@@ -56,17 +57,19 @@
  *
  * ## 更新日志
  *
+ * - 2026-06-16：`anchor-navigate` 与 `notifyAnchorNavigate()`；导航完成后在 `pushState` 之后滚动到 fragment。
  * - 2026-06-16：引入分级导航：`data-ajax-head` 不一致整页刷新；`data-ajax-layout` 一致走 element 快路径，
  *   不一致时对 `#page-shell` 做 idiomorph；新增 `PAGE_SHELL_*` / `PAGE_HEAD_ATTR` 常量；依赖 `idiomorph`。
  * - （更早）基于 `data-ajax-element` 的 PJAX 与 `page-*` 生命周期事件。
  */
 
-export { installAjaxPageLoad, type PjaxOptions } from "./pageAjax";
+export { installAjaxPageLoad, notifyAnchorNavigate, type PjaxOptions } from "./pageAjax";
 export {
   EVENT_PAGE_NAVIGATE,
   EVENT_PAGE_LOADED,
   EVENT_PAGE_LOAD_BEFORE,
   EVENT_PAGE_UPDATE_BEFORE,
+  EVENT_ANCHOR_NAVIGATE,
   PAGE_LOADING_CLASS,
   PAGE_SHELL_SELECTOR,
   PAGE_SHELL_ATTR,

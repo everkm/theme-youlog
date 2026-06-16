@@ -33,3 +33,5 @@ export const NAV_TREE_SOURCE_MARKUP_ATTR = "data-nav-source-markup";
 export const NAV_TREE_SOURCE_TEXT_ATTR = "data-nav-source-text";
 /** `data-ajax-element` 值：侧栏导航树（布局指纹相同时仍须同步 nav HTML） */
 export const AJAX_ELEMENT_NAV_TREE = "sidebar-nav-tree";
+/** 锚点 / hash 导航完成（pushState 或仅 hash 变化），不触发 page-loaded */
+export const EVENT_ANCHOR_NAVIGATE = "anchor-navigate";

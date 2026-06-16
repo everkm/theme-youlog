@@ -7,7 +7,7 @@ import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
 import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
-import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax";
+import { installAjaxPageLoad, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
@@ -41,6 +41,7 @@ function install() {
       const hash = anchorName || id;
       if (hash.length) {
         history.pushState(null, "", `#${hash}`);
+        notifyAnchorNavigate();
       } else {
         history.pushState(null, "", window.location.pathname);
       }

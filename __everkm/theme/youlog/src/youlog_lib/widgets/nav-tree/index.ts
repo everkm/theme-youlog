@@ -24,6 +24,7 @@
  *
  * - `page-update-before`：清理已脱离文档的 NavTree 状态，避免 morph 后引用悬空节点。
  * - `page-loaded`：重新查询 `#sidebar-nav-tree`；若存在未转换的 `ul`/`ol` 则执行 `TreeScanner.scanContainer`。
+ * - `anchor-navigate`：hash 变化后刷新当前页高亮（不重建树）。
  * - 布局壳 morph（`data-ajax-layout` 变化）后，侧栏可能从无到有，**必须**依赖上述 `page-loaded` 路径完成初始化。
  *
  * ## 用法
@@ -40,6 +41,7 @@
  *
  * ## 更新日志
  *
+ * - 2026-06-16：`isNavUrlMatch` hash 匹配（页面级链接兜底）；子节点优先；监听 `anchor-navigate` 刷新高亮。
  * - 2026-06-16：`installSidebarNavTree2()` 不再要求首屏存在 `#sidebar-nav-tree`；新增 `mountSidebarNavTree`，
  *   在 `page-loaded` 时重新发现容器并初始化；`navTreeStates` 以 `#sidebar-nav-tree` 为 key；
  *   面包屑点击改为 document 委托；`SidebarNavTreeOptions.container` 改为可选（保留兼容）。
