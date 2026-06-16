@@ -1,32 +1,36 @@
-# SidebarNavTree2 - 通用导航树转换器
+# SidebarNavTree2
 
-## 概述
+将侧栏 Markdown 导航转为交互式 `NavTree`。**主文档与更新日志以 [`index.ts`](./index.ts) 文件头注释为准。**
 
-`sidebarNavTree2.ts` 是 nav-tree widget 的一部分，能够自动扫描页面中符合特定结构的 `ul`/`ol` 元素，并将其转换为使用 SolidJS 的 `NavTree` 组件渲染的交互式导航树。
+## 快速接入
 
-## 功能特性
+```ts
+import { installSidebarNavTree2 } from "youlog_lib/widgets/nav-tree";
 
-- **自动扫描**: 自动扫描页面中所有可转换的树结构元素
-- **结构验证**: 严格验证 `ul`/`ol` 结构是否符合要求
-- **递归解析**: 递归解析嵌套的树结构为 `NavItem` 数据
-- **动态替换**: 使用 SolidJS 的 `NavTree` 组件替换原始渲染
-- **事件监听**: 监听页面加载事件，处理动态内容
-- **防重复转换**: 避免重复转换同一元素
-
-## 使用方法
-
-```typescript
-import { installSidebarNavTree2, TreeScanner, TreeConverter, TreeStructureValidator } from "youlog_lib";
-
+// 无条件调用（侧栏可随 AJAX 导航动态出现）
 installSidebarNavTree2();
-
-// 或手动扫描容器
-const container = document.getElementById("my-container");
-if (container) TreeScanner.scanContainer(container);
 ```
 
-## 注意事项
+## DOM 约定
 
-1. 只有完全符合要求的 `ul`/`ol` 结构才会被转换
-2. 已转换的元素会被标记，避免重复处理
-3. 需要容器 `#sidebar-nav-tree` 或手动调用 `TreeScanner.scanContainer(container)`
+```html
+<nav id="sidebar-nav-tree" class="invisible">
+  <ul>
+    <li>章节一<ul><li><a href="/doc/a">A</a></li></ul></li>
+  </ul>
+</nav>
+
+<div id="breadcrumb" data-ajax-element="breadcrumb">
+  <!-- 含 [data-nav-title] 的面包屑，可选 -->
+</div>
+```
+
+## 与 page-ajax
+
+启用站内 AJAX 时，**必须**同时安装 `page-ajax`；侧栏在 `page-loaded` 时自动 mount。
+
+未安装 page-ajax 时，仅首屏存在 `#sidebar-nav-tree` 的场景可正常工作。
+
+## 结构要求
+
+仅转换通过 `TreeStructureValidator` 的 `ul`/`ol`。详见 `markdownTreeParser.ts` 与 `DEFAULT_MARKDOWN_RULE`。

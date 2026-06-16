@@ -1,3 +1,7 @@
+/**
+ * page-ajax 实现。
+ * 模块说明、依赖、前提条件与更新日志见同目录 `index.ts`。
+ */
 import ky from "ky";
 import { Idiomorph } from "idiomorph";
 import "./nprogress_custom.css";

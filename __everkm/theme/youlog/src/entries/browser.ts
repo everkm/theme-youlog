@@ -7,7 +7,7 @@ import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
 import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
-import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax/pageAjax";
+import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";

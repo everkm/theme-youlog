@@ -1,3 +1,7 @@
+/**
+ * 侧栏导航树安装与 Markdown → NavTree 转换实现。
+ * 模块说明、依赖、前提条件与更新日志见同目录 `index.ts`。
+ */
 import {
   EVENT_PAGE_LOADED,
   EVENT_PAGE_UPDATE_BEFORE,
