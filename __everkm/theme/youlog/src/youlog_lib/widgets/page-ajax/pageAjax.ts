@@ -15,7 +15,16 @@ import {
   PAGE_SHELL_SELECTOR,
   PAGE_SHELL_ATTR,
   PAGE_HEAD_ATTR,
+  NAV_TREE_SELECTOR,
+  NAV_TREE_FINGERPRINT_ATTR,
+  NAV_TREE_SOURCE_MARKUP_ATTR,
+  NAV_TREE_SOURCE_TEXT_ATTR,
+  AJAX_ELEMENT_NAV_TREE,
 } from "./constants";
+import {
+  markNavTreeSource,
+  navTreeNeedsUpdate,
+} from "./navTreeSync";
 
 let lastFullUrl: string | null = null;
 
@@ -86,6 +95,44 @@ function resolveUpdateMode(doc: Document): PageUpdateMode {
   return "shell";
 }
 
+function syncElementStyleAndClass(current: Element, next: Element) {
+  if (next.hasAttribute("style")) {
+    current.setAttribute("style", next.getAttribute("style")!);
+  } else {
+    current.removeAttribute("style");
+  }
+  if (next.hasAttribute("class")) {
+    current.setAttribute("class", next.getAttribute("class")!);
+  } else {
+    current.removeAttribute("class");
+  }
+}
+
+/** @returns 是否实际写入了新 markup */
+function syncNavTreeMarkup(current: Element, next: Element): boolean {
+  if (!navTreeNeedsUpdate(current, next)) {
+    return false;
+  }
+
+  const nextMarkup = next.innerHTML.trim();
+  current.querySelectorAll(":scope > .nav-tree-container").forEach((el) => {
+    el.remove();
+  });
+  current.innerHTML = nextMarkup;
+  markNavTreeSource(current as HTMLElement, nextMarkup);
+
+  if (next.hasAttribute(NAV_TREE_FINGERPRINT_ATTR)) {
+    current.setAttribute(
+      NAV_TREE_FINGERPRINT_ATTR,
+      next.getAttribute(NAV_TREE_FINGERPRINT_ATTR)!,
+    );
+  } else {
+    current.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
+  }
+
+  return true;
+}
+
 function syncElementsByDataAttribute(doc: Document) {
   const currentElements = document.querySelectorAll("[data-ajax-element]");
 
@@ -101,19 +148,22 @@ function syncElementsByDataAttribute(doc: Document) {
     );
 
     if (nextElement) {
-      if (nextElement.hasAttribute("style")) {
-        currentElement.setAttribute("style", nextElement.getAttribute("style")!);
+      if (elementId === AJAX_ELEMENT_NAV_TREE) {
+        const navUpdated = syncNavTreeMarkup(currentElement, nextElement);
+        if (navUpdated) {
+          syncElementStyleAndClass(currentElement, nextElement);
+        }
       } else {
-        currentElement.removeAttribute("style");
+        syncElementStyleAndClass(currentElement, nextElement);
+        currentElement.innerHTML = nextElement.innerHTML;
       }
-      if (nextElement.hasAttribute("class")) {
-        currentElement.setAttribute("class", nextElement.getAttribute("class")!);
-      } else {
-        currentElement.removeAttribute("class");
-      }
-      currentElement.innerHTML = nextElement.innerHTML;
     } else {
       currentElement.innerHTML = "";
+      if (elementId === AJAX_ELEMENT_NAV_TREE) {
+        currentElement.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
+        currentElement.removeAttribute(NAV_TREE_SOURCE_MARKUP_ATTR);
+        currentElement.removeAttribute(NAV_TREE_SOURCE_TEXT_ATTR);
+      }
     }
   });
 }
@@ -129,11 +179,37 @@ function syncPageTitle(doc: Document) {
   }
 }
 
+/**
+ * shell morph 前将侧栏导航树还原为 SSR 原始 HTML。
+ * Idiomorph 无法正确 morph 已转换的 .nav-tree-container，会导致树内容陈旧。
+ */
+function syncNavTreeBeforeShellMorph(doc: Document) {
+  const current = document.querySelector(NAV_TREE_SELECTOR);
+  const next = doc.querySelector(NAV_TREE_SELECTOR);
+
+  if (!current) return;
+
+  if (!next) {
+    current.innerHTML = "";
+    current.removeAttribute(NAV_TREE_FINGERPRINT_ATTR);
+    current.removeAttribute(NAV_TREE_SOURCE_MARKUP_ATTR);
+    current.removeAttribute(NAV_TREE_SOURCE_TEXT_ATTR);
+    return;
+  }
+
+  if (!navTreeNeedsUpdate(current, next)) {
+    return;
+  }
+
+  syncNavTreeMarkup(current, next);
+}
+
 function morphPageShell(doc: Document) {
   const currentShell = getShellElement(document);
   const nextShell = getShellElement(doc);
   if (!currentShell || !nextShell) return;
 
+  syncNavTreeBeforeShellMorph(doc);
   Idiomorph.morph(currentShell, nextShell);
 }
 

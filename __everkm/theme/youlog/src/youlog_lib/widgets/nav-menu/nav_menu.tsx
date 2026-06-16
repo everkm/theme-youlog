@@ -1,5 +1,5 @@
-import { onMount } from "solid-js";
 import { render } from "solid-js/web";
+import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 import { FloatingMenu } from "./FloatingMenu";
 import { MobileNavController } from "./MobileNavController";
 
@@ -89,9 +89,9 @@ function initMobileMenu(
     mobileMenuContainerSelector,
   );
   if (!mobileMenuContainer) {
-    console.error("nav_menu: mobileMenuContainer is required");
     return;
   }
+  mobileMenuContainer.innerHTML = "";
   render(
     () => <MobileNavController menuData={menuData} />,
     mobileMenuContainer,
@@ -120,7 +120,6 @@ function initNavMenu(
   options: NavMenuOptions = {},
 ): void {
   if (!navContainer) {
-    console.error("nav_menu: navContainer is required");
     return;
   }
 
@@ -134,5 +133,32 @@ function initNavMenu(
   createNavMenu(navContainer, menuData, options.mobileMenuContainerSelector);
 }
 
-export { createNavMenu, initNavMenu };
+const HEADER_NAV_SELECTOR = "#header-nav";
+
+function mountNavMenu(options: NavMenuOptions = {}): void {
+  const navContainer = document.querySelector(
+    HEADER_NAV_SELECTOR,
+  ) as HTMLElement | null;
+  if (!navContainer) {
+    return;
+  }
+  initNavMenu(navContainer, options);
+}
+
+let navMenuInstalled = false;
+
+function installNavMenu(options: NavMenuOptions = {}): void {
+  mountNavMenu(options);
+
+  if (navMenuInstalled) {
+    return;
+  }
+  navMenuInstalled = true;
+
+  document.addEventListener(EVENT_PAGE_LOADED, () => {
+    mountNavMenu(options);
+  });
+}
+
+export { createNavMenu, initNavMenu, installNavMenu };
 export type { NavMenuOptions };

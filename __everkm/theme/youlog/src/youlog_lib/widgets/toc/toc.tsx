@@ -269,8 +269,16 @@ function doSetupToc(options?: TocOptions): void {
   });
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
-    tocEmitter.emit("update");
-    // console.log("TOC: EVENT_PAGE_LOADED");
+    const tocContainer = document.querySelector<HTMLElement>(
+      tocOptions.tocSelector,
+    );
+    if (!tocContainer) {
+      tocEmitter.emit("stop");
+      return;
+    }
+
+    // shell morph 或 data-ajax-element 同步后 #toc 已是新节点，需完整重挂 Solid 组件
+    generateToc(tocOptions, tocEmitter);
 
     if (tocOptions.enableMobileToc) {
       setTimeout(() => {

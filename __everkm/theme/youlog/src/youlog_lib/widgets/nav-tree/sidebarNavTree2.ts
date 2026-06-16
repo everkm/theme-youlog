@@ -5,7 +5,14 @@
 import {
   EVENT_PAGE_LOADED,
   EVENT_PAGE_UPDATE_BEFORE,
+  NAV_TREE_SELECTOR,
 } from "../page-ajax/constants";
+import {
+  captureRawNavMarkup,
+  getNavFingerprint,
+  hasNavTreeUi,
+  markNavTreeSource,
+} from "../page-ajax/navTreeSync";
 import { NavTreeState } from "./NavTreeState";
 import { NavTree } from "./NavTree";
 import { render } from "solid-js/web";
@@ -240,8 +247,8 @@ class NavTreeManager {
   constructor() {
     if (NavTreeManager.instance) return NavTreeManager.instance;
     NavTreeManager.instance = this;
-    this.setupEventListeners();
-    log("NavTreeManager initialized, listening event:", EVENT_PAGE_LOADED);
+    window.addEventListener("popstate", () => this.updateNavHighlight());
+    log("NavTreeManager initialized");
   }
 
   static getInstance(): NavTreeManager {
@@ -265,11 +272,8 @@ class NavTreeManager {
     this.navTreeStates.set(element, navTreeState);
   }
 
-  private setupEventListeners(): void {
-    document.addEventListener(EVENT_PAGE_LOADED, () =>
-      this.updateNavHighlight(),
-    );
-    window.addEventListener("popstate", () => this.updateNavHighlight());
+  unregisterContainer(container: HTMLElement): void {
+    this.navTreeStates.delete(container);
   }
 
   private updateNavHighlight(): void {
@@ -430,12 +434,32 @@ interface SidebarNavTreeOptions {
   breadcrumbTitleSelector?: string;
 }
 
-const SIDEBAR_NAV_TREE_SELECTOR = "#sidebar-nav-tree";
 const BREADCRUMB_SELECTOR = "#breadcrumb";
+const NAV_TREE_HIGHLIGHT_DELAY_MS = 150;
 
-function needsNavTreeInit(container: HTMLElement): boolean {
-  if (container.querySelector(".nav-tree-container")) return false;
+let lastMountedNavFingerprint: string | null = null;
+
+function hasRawNavLists(container: HTMLElement): boolean {
   return !!container.querySelector(":scope > ul, :scope > ol");
+}
+
+function clearNavTreeUi(container: HTMLElement): void {
+  container
+    .querySelectorAll(":scope > .nav-tree-container")
+    .forEach((el) => el.remove());
+}
+
+function shouldRebuildNavTree(
+  container: HTMLElement,
+  fingerprint: string,
+): boolean {
+  if (!hasNavTreeUi(container) && hasRawNavLists(container)) return true;
+  if (fingerprint && fingerprint !== lastMountedNavFingerprint) return true;
+  return false;
+}
+
+function scheduleNavHighlight(navTreeManager: NavTreeManager): void {
+  setTimeout(() => navTreeManager.refreshHighlight(), NAV_TREE_HIGHLIGHT_DELAY_MS);
 }
 
 function mountSidebarNavTree(
@@ -446,7 +470,7 @@ function mountSidebarNavTree(
   TreeConverter.pruneConvertedElements();
 
   const container = document.querySelector(
-    SIDEBAR_NAV_TREE_SELECTOR,
+    NAV_TREE_SELECTOR,
   ) as HTMLElement | null;
   const breadcrumb = document.querySelector(
     BREADCRUMB_SELECTOR,
@@ -456,16 +480,33 @@ function mountSidebarNavTree(
   navTreeManager.setBreadcrumbTitleSelector(breadcrumbTitleSelector);
 
   if (!container) {
-    navTreeManager.refreshHighlight();
+    lastMountedNavFingerprint = null;
+    scheduleNavHighlight(navTreeManager);
     return;
   }
 
-  if (needsNavTreeInit(container)) {
-    TreeScanner.scanContainer(container);
+  const fingerprint = getNavFingerprint(container);
+
+  if (shouldRebuildNavTree(container, fingerprint)) {
+    clearNavTreeUi(container);
+    navTreeManager.unregisterContainer(container);
+
+    if (hasRawNavLists(container)) {
+      const rawMarkup = captureRawNavMarkup(container);
+      markNavTreeSource(container, rawMarkup);
+      TreeScanner.scanContainer(container);
+      lastMountedNavFingerprint = fingerprint;
+    } else {
+      warn_log(
+        "nav fingerprint changed but container has no raw ul/ol to convert",
+        fingerprint,
+      );
+      lastMountedNavFingerprint = fingerprint;
+    }
   }
 
   container.classList.remove("invisible");
-  requestAnimationFrame(() => navTreeManager.refreshHighlight());
+  scheduleNavHighlight(navTreeManager);
 }
 
 let sidebarNavTreeInstalled = false;

@@ -22,3 +22,14 @@ export const PAGE_SHELL_SELECTOR = "#page-shell";
 export const PAGE_SHELL_ATTR = "data-ajax-layout";
 /** head 资源指纹属性，挂在 `<html>` 上 */
 export const PAGE_HEAD_ATTR = "data-ajax-head";
+
+/** 侧栏导航树容器选择器 */
+export const NAV_TREE_SELECTOR = "#sidebar-nav-tree";
+/** 导航树内容指纹，用于检测 nav 文档是否变化 */
+export const NAV_TREE_FINGERPRINT_ATTR = "data-nav-fingerprint";
+/** 已转换导航树对应的 SSR 源 markup，用于避免同 nav 下重复重建 */
+export const NAV_TREE_SOURCE_MARKUP_ATTR = "data-nav-source-markup";
+/** 已转换导航树的规范化文本，用于与 SSR 比较 */
+export const NAV_TREE_SOURCE_TEXT_ATTR = "data-nav-source-text";
+/** `data-ajax-element` 值：侧栏导航树（布局指纹相同时仍须同步 nav HTML） */
+export const AJAX_ELEMENT_NAV_TREE = "sidebar-nav-tree";

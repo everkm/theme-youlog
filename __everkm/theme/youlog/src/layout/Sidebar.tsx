@@ -69,6 +69,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
       {/* 导航菜单内容 */}
       <nav
         id="sidebar-nav-tree"
+        data-ajax-element="sidebar-nav-tree"
+        data-nav-fingerprint={props.navDoc?.path || ""}
         classList={{
           "flex-1 px-4 !bg-transparent nav-tree invisible overflow-y-auto my-scrollbar": true,
           "!py-0": !belowHeader(),

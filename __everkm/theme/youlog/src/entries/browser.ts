@@ -6,7 +6,7 @@ import "../assets/css/youlog.css";
 import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
-import { initNavMenu } from "../youlog_lib/widgets/nav-menu";
+import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { installAjaxPageLoad } from "../youlog_lib/widgets/page-ajax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
@@ -51,7 +51,7 @@ function install() {
   initDrawer("sidebar-nav");
   initSidebarResizer("sidebar-nav");
   installLazyImg("#article-main");
-  initNavMenu(document.getElementById("header-nav") as HTMLElement, {
+  installNavMenu({
     mobileMenuContainerSelector: "#mobile-menu-container",
   });
   installKeywordHighlighter("#article-main");
