@@ -53,3 +53,5 @@ preview:
 pnpm-install:
 	pnpm install
 
+set-latest:
+	make -f ../scripts/set_latest_release.mk youlog-latest
