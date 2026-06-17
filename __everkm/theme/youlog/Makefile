@@ -29,7 +29,7 @@ build: fe-clean
 	cp -r templates $(DIST_DIR)
 	cp assets-manifest.json $(DIST_DIR)
 	cp everkm-theme.yaml $(DIST_DIR)
-	cp __assets/* $(DIST_DIR)/assets/
+	cp assets/* $(DIST_DIR)/assets/
 	@if [ -d "screenshots" ]; then cp -r screenshots $(DIST_DIR)/; fi
 
 	# 将 everkm_version 写入 everkm-theme.yaml
