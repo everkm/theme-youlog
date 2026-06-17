@@ -2,10 +2,19 @@
  * 侧边栏宽度调整器
  * 实现拖动调整侧边栏宽度并持久化保存
  */
+import {
+  EVENT_BEFORE_UPDATE,
+  EVENT_PAGE_LOADED,
+} from "../page-ajax/constants";
+
+const RESIZER_ATTR = "data-sidebar-resizer";
+
 export class SidebarResizer {
   private sidebar: HTMLElement | null = null;
   private resizer: HTMLElement | null = null;
   private resizerHandle: HTMLElement | null = null;
+  private resizerAbort: AbortController | null = null;
+  private documentListenersBound = false;
   private minWidth: number = 200;
   private maxWidth: number = 600;
   private defaultWidth: number = 288;
@@ -20,9 +29,14 @@ export class SidebarResizer {
     this.sidebar = document.getElementById(this.sidebarId);
     if (!this.sidebar) return;
 
-    this.createResizer();
-    this.addEventListeners();
+    if (!this.resizer?.isConnected) {
+      this.removeResizer();
+      this.createResizer();
+      this.bindResizerListeners();
+    }
+
     this.setupSidebarWidthWithTailwind();
+    this.bindDocumentListenersOnce();
   }
 
   private setupSidebarWidthWithTailwind(): void {
@@ -30,14 +44,31 @@ export class SidebarResizer {
     this.sidebar.classList.add("lg:w-[var(--sidebar-width)]");
   }
 
+  private removeResizer(): void {
+    this.resizerAbort?.abort();
+    this.resizerAbort = null;
+    this.resizer?.remove();
+    this.resizer = null;
+    this.resizerHandle = null;
+  }
+
   private createResizer(): void {
     if (!this.sidebar) return;
 
+    const existing = this.sidebar.querySelector(`[${RESIZER_ATTR}]`);
+    if (existing instanceof HTMLElement) {
+      this.resizer = existing;
+      this.resizerHandle = existing.querySelector("[data-sidebar-resizer-handle]");
+      if (this.resizerHandle instanceof HTMLElement) return;
+    }
+
     this.resizer = document.createElement("div");
+    this.resizer.setAttribute(RESIZER_ATTR, "");
     this.resizer.className =
       "absolute top-0 right-0 w-5 h-full cursor-ew-resize z-10 transition-opacity hidden lg:block";
 
     this.resizerHandle = document.createElement("div");
+    this.resizerHandle.setAttribute("data-sidebar-resizer-handle", "");
     this.resizerHandle.className =
       "absolute top-0 right-0 w-1 h-full bg-primary-200 dark:bg-primary-700 opacity-0 transition-all duration-200";
 
@@ -50,29 +81,52 @@ export class SidebarResizer {
     this.sidebar.appendChild(this.resizer);
   }
 
-  private addEventListeners(): void {
+  private bindResizerListeners(): void {
     if (!this.resizer || !this.sidebar || !this.resizerHandle) return;
 
-    this.resizer.addEventListener("mouseenter", () => this.showHighlight());
-    this.resizer.addEventListener("mouseleave", () => {
-      if (this.isDragging) return;
-      this.hideHighlight();
-    });
+    this.resizerAbort?.abort();
+    this.resizerAbort = new AbortController();
+    const { signal } = this.resizerAbort;
 
-    this.resizer.addEventListener("mousedown", (e) => {
-      this.startDrag(e.clientX);
-      document.body.classList.add("select-none");
-      document.body.style.cursor = "ew-resize";
+    this.resizer.addEventListener("mouseenter", () => this.showHighlight(), {
+      signal,
     });
+    this.resizer.addEventListener(
+      "mouseleave",
+      () => {
+        if (this.isDragging) return;
+        this.hideHighlight();
+      },
+      { signal },
+    );
+
+    this.resizer.addEventListener(
+      "mousedown",
+      (e) => {
+        this.startDrag(e.clientX);
+        document.body.classList.add("select-none");
+        document.body.style.cursor = "ew-resize";
+      },
+      { signal },
+    );
+
+    this.resizer.addEventListener(
+      "touchstart",
+      (e) => {
+        this.startDrag(e.touches[0].clientX);
+        e.preventDefault();
+      },
+      { signal },
+    );
+  }
+
+  private bindDocumentListenersOnce(): void {
+    if (this.documentListenersBound) return;
+    this.documentListenersBound = true;
 
     document.addEventListener("mousemove", (e) => {
       if (!this.isDragging) return;
       this.updateWidth(e.clientX);
-    });
-
-    this.resizer.addEventListener("touchstart", (e) => {
-      this.startDrag(e.touches[0].clientX);
-      e.preventDefault();
     });
 
     document.addEventListener("touchmove", (e) => {
@@ -88,10 +142,19 @@ export class SidebarResizer {
       document.body.classList.remove("select-none");
       document.body.style.cursor = "";
       this.endDrag();
-      if (this.resizer && !this.resizer.matches(":hover")) {
+      if (this.resizer?.isConnected && !this.resizer.matches(":hover")) {
         this.hideHighlight();
       }
     });
+  }
+
+  public cancelDrag(): void {
+    if (!this.isDragging) return;
+    document.body.classList.remove("select-none");
+    document.body.style.cursor = "";
+    this.isDragging = false;
+    this.hideHighlight();
+    this.hideTouchHint();
   }
 
   private showHighlight(): void {
@@ -131,7 +194,10 @@ export class SidebarResizer {
     if (!this.sidebar) return;
     const width = this.startWidth + (clientX - this.startX);
     const newWidth = Math.min(Math.max(width, this.minWidth), this.maxWidth);
-    document.documentElement.style.setProperty("--sidebar-width", `${newWidth}px`);
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      `${newWidth}px`,
+    );
   }
 
   private endDrag(): void {
@@ -152,7 +218,10 @@ export class SidebarResizer {
     if (savedWidth) {
       const width = parseInt(savedWidth, 10);
       if (!isNaN(width) && width >= this.minWidth && width <= this.maxWidth) {
-        document.documentElement.style.setProperty("--sidebar-width", `${width}px`);
+        document.documentElement.style.setProperty(
+          "--sidebar-width",
+          `${width}px`,
+        );
         validWidth = true;
       }
     }
@@ -160,8 +229,10 @@ export class SidebarResizer {
   }
 
   public resetWidth(): void {
-    if (!this.sidebar) return;
-    document.documentElement.style.setProperty("--sidebar-width", `${this.defaultWidth}px`);
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      `${this.defaultWidth}px`,
+    );
     localStorage.removeItem(this.storageKey);
   }
 }
@@ -169,7 +240,15 @@ export class SidebarResizer {
 export function initSidebarResizer(sidebarId: string): void {
   const resizer = new SidebarResizer(sidebarId);
   resizer.restoreWidth();
-  document.addEventListener("DOMContentLoaded", () => {
-    resizer.setup();
-  });
+
+  const runSetup = () => resizer.setup();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", runSetup);
+  } else {
+    runSetup();
+  }
+
+  document.addEventListener(EVENT_BEFORE_UPDATE, () => resizer.cancelDrag());
+  document.addEventListener(EVENT_PAGE_LOADED, runSetup);
 }
