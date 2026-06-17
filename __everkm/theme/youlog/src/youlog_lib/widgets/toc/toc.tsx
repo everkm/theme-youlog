@@ -72,6 +72,17 @@ function resolveHeaderInScrollContainer(
   return queryWithinScrollContainer(scrollContainer, headerSelector);
 }
 
+/** header 在滚动容器内时叠加 --topbar-height；stack 布局 header 在外则仅保留 offset */
+function resolveStickyTop(
+  header: HTMLElement | null,
+  headerHeight: number,
+  offset: number,
+): string {
+  return header
+    ? `calc(var(--topbar-height, ${headerHeight}px) + ${offset}px)`
+    : `${offset}px`;
+}
+
 function initMobileToc(
   options: RequiredTocOptions,
   tocEmitter: Emitter<TocEvents>,
@@ -107,9 +118,6 @@ function initMobileToc(
   if (!mobileTocContainer) {
     mobileTocContainer = document.createElement("div");
     mobileTocContainer.id = "mobile-toc-indicator";
-    mobileTocContainer.style.top = `calc(var(--topbar-height, 0px) + ${TOPBAR_OFFSET}px)`;
-    mobileTocContainer.style.position = "sticky";
-    mobileTocContainer.style.zIndex = "5";
     if (article.firstChild) {
       article.insertBefore(mobileTocContainer, article.firstChild);
     } else {
@@ -120,6 +128,15 @@ function initMobileToc(
   if (!mobileTocContainer) {
     return undefined;
   }
+
+  // 每次都重新应用：PJAX morph 会清除内联 style（容器无 data-processed 保护）
+  mobileTocContainer.style.top = resolveStickyTop(
+    header,
+    headerHeight,
+    TOPBAR_OFFSET,
+  );
+  mobileTocContainer.style.position = "sticky";
+  mobileTocContainer.style.zIndex = "5";
 
   const disposeMobileToc = render(
     () => (
@@ -178,9 +195,11 @@ function generateToc(
 
   tocContainer.classList.remove("hidden", "mobile-active", "mobile-child");
   tocContainer.classList.add("lg:sticky", "hidden", "lg:block");
-  tocContainer.style.top = header
-    ? `calc(var(--topbar-height, ${headerHeight}px) + ${stickyTopOffset}px)`
-    : `${stickyTopOffset}px`;
+  tocContainer.style.top = resolveStickyTop(
+    header,
+    headerHeight,
+    stickyTopOffset,
+  );
   tocContainer.style.scrollBehavior = "smooth";
 
   const callbackHeadersHeight = () => {
