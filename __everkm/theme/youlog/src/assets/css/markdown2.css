@@ -153,18 +153,6 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
   font-size: 1.375em;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border);
-  position: relative;
-}
-
-.markdown-body h2::before {
-  content: "";
-  position: absolute;
-  left: -1rem;
-  top: 0.2em;
-  bottom: 0.35em;
-  width: 3px;
-  background-color: var(--accent);
-  border-radius: 2px;
 }
 
 .markdown-body h3 {
@@ -237,6 +225,23 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 .markdown-body a:visited {
   color: var(--link);
   text-decoration-color: var(--link);
+}
+
+/* 链接内仅含 code 时，下划线不穿透 code 背景 */
+.markdown-body a:has(> code:only-child) {
+  text-decoration: none;
+}
+
+.markdown-body a:has(> code:only-child) code {
+  color: var(--link);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.markdown-body a:has(> code:only-child):hover code {
+  color: var(--link-hover);
+  border-color: var(--link-hover);
 }
 
 /* ── Inline text ───────────────────────────────────────────────────────────*/
@@ -880,21 +885,11 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
 
 /* Medium — 单栏布局，小屏起隐藏 TOC（仅大屏显示侧栏） */
-@media (max-width: 900px) {
-  .markdown-body h2::before {
-    left: -0.75rem;
-  }
-}
-
 /* Small */
 @media (max-width: 560px) {
   .markdown-body pre {
     font-size: 0.8em;
     padding: 0.875rem 1rem;
-  }
-
-  .markdown-body h2::before {
-    display: none;
   }
 }
 

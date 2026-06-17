@@ -43,6 +43,10 @@
   text-underline-offset: 4px;
 }
 
+#article-main a:has(> code:only-child) {
+  text-decoration: none;
+}
+
 .my-scrollbar {
   &::-webkit-scrollbar {
     @apply w-1.5;
