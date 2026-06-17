@@ -14,6 +14,11 @@ import { hashHtml } from "./htmlHash";
 import { buildSkipCallbacks } from "./morphCallbacks";
 import { getOrFetch, prefetch } from "./prefetchCache";
 import {
+  resolveScrollContainer,
+  scrollToHash,
+  resolveAnchorTarget,
+} from "../../core/scrollAnchor";
+import {
   EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
   EVENT_ANCHOR_NAVIGATE,
@@ -76,16 +81,15 @@ function notifyAnchorNavigate(): void {
 function scrollAfterNavigation(url: string, opts: RequiredOptions): void {
   const hash = getUrlHash(url);
   requestAnimationFrame(() => {
+    const container = resolveScrollContainer(opts.scrollContainerSelector) ?? window;
     if (hash) {
-      document.getElementById(hash)?.scrollIntoView({ behavior: "auto" });
+      // 用 resolveAnchorTarget 解析：既匹配元素 id，也匹配 a.heading-anchor[name]（锚点名）
+      scrollToHash(hash, container, { behavior: "auto" });
       dispatchAnchorNavigate(hash);
+    } else if (container instanceof Window) {
+      container.scrollTo({ top: 0 });
     } else {
-      const container = document.querySelector(opts.scrollContainerSelector);
-      if (container) {
-        container.scrollTop = 0;
-      } else {
-        window.scrollTo({ top: 0 });
-      }
+      container.scrollTop = 0;
     }
   });
 }
@@ -96,7 +100,7 @@ function scrollToInitialHash(): void {
   if (!hash) return;
   const run = () =>
     requestAnimationFrame(() => {
-      document.getElementById(hash)?.scrollIntoView({ behavior: "auto" });
+      resolveAnchorTarget(hash)?.scrollIntoView({ behavior: "auto" });
     });
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", run, { once: true });
@@ -178,13 +182,21 @@ function reprocessContainers(newDoc: Document): void {
 // ── 导航主流程 ────────────────────────────────────────────
 
 let navigating = false;
+// 当前已渲染内容对应的 URL。popstate 时 window.location 已指向目标地址，
+// 故需用它（而非 window.location.href）判断是否仅 hash 变化。
+let renderedUrl = window.location.href;
 
-async function handleNavigation(url: string, opts: RequiredOptions): Promise<void> {
+async function handleNavigation(
+  url: string,
+  opts: RequiredOptions,
+  fromPopState = false,
+): Promise<void> {
   if (navigating) return;
 
-  // Hash-only 变化：不发请求，直接滚动 + 通知
-  if (isSamePathHashChange(window.location.href, url)) {
-    window.history.pushState(null, "", url);
+  // 相对「当前已渲染页面」仅 hash 变化：不发请求，直接滚动 + 通知
+  if (isSamePathHashChange(renderedUrl, url)) {
+    if (!fromPopState) window.history.pushState(null, "", url);
+    renderedUrl = url;
     scrollAfterNavigation(url, opts);
     return;
   }
@@ -215,7 +227,8 @@ async function handleNavigation(url: string, opts: RequiredOptions): Promise<voi
     }
 
     document.title = newDoc.title;
-    window.history.pushState(null, "", url);
+    if (!fromPopState) window.history.pushState(null, "", url);
+    renderedUrl = url;
     reprocessContainers(newDoc);
     document.dispatchEvent(new CustomEvent(EVENT_PAGE_LOADED, { detail: { url } }));
     scrollAfterNavigation(url, opts);
@@ -234,6 +247,8 @@ function initPageAjax(options: PageAjaxOptions = {}): void {
   };
 
   nProgress.configure({ showSpinner: false, minimum: 0.1, speed: 200, trickleSpeed: 100 });
+
+  renderedUrl = window.location.href;
 
   if ("scrollRestoration" in history) {
     history.scrollRestoration = "manual";
@@ -278,7 +293,7 @@ function bindLinkInterceptor(opts: RequiredOptions): void {
 
 function bindPopState(opts: RequiredOptions): void {
   window.addEventListener("popstate", () => {
-    handleNavigation(window.location.href, opts);
+    handleNavigation(window.location.href, opts, true);
   });
 }
 

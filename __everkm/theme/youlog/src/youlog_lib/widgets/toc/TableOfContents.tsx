@@ -730,6 +730,7 @@ function TableOfContents(props: TocProps) {
                   data-target={item.id}
                   data-level={item.level}
                   data-parent={item.parentId}
+                  data-no-ajax
                   onClick={(e) => {
                     e.preventDefault();
                     scrollToHeading(item.id);
