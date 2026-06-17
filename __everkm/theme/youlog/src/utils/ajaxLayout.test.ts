@@ -20,12 +20,22 @@ describe("ajaxLayout fingerprints", () => {
     custom_css: "/theme.css",
   };
 
+  const configValue = (path: string, defaultValue: any = undefined) => {
+    const keys = path.split("/");
+    let value: any = config;
+    for (const key of keys) {
+      value = value?.[key];
+      if (value === undefined) return defaultValue;
+    }
+    return value;
+  };
+
   it("builds stable layout fingerprint", () => {
     const fp = buildAjaxLayoutFingerprint({
       page: "book",
       stack: true,
       hasNav: true,
-      config,
+      configValue,
     });
     expect(fp).toBe(
       "page=book|stack=1|nav=1|sidebar_header=1|only_logo=1|algolia=1|header_nav=1",
@@ -37,7 +47,7 @@ describe("ajaxLayout fingerprints", () => {
       page: "book",
       stack: false,
       hasNav: false,
-      config,
+      configValue,
     });
     expect(fp).toBe(
       "page=book|stack=0|nav=0|sidebar_header=1|only_logo=1|algolia=1|header_nav=1",

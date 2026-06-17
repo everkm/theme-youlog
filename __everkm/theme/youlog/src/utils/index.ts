@@ -58,7 +58,7 @@ export function hideStyle(
  * 读取布局隐藏开关，front matter 优先于全局 config
  */
 export function getHideFlag(
-  config: Record<string, any>,
+  configValue: (path: string, defaultValue?: any) => any,
   docMeta: Record<string, any> | undefined,
   key: string,
   defaultValue = false
@@ -67,7 +67,7 @@ export function getHideFlag(
     return coerceBoolean(docMeta[key], defaultValue);
   }
   return coerceBoolean(
-    getConfigValue(config, `layout.${key}`, defaultValue),
+    configValue(`layout/${key}`, defaultValue),
     defaultValue
   );
 }

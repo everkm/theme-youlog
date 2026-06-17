@@ -90,22 +90,22 @@ interface CopyrightAndBeianProps {
 const CopyrightAndBeian: Component<CopyrightAndBeianProps> = (props) => {
   return (
     <div class="text-text-tertiary dark:text-text-tertiary text-sm text-center flex flex-wrap justify-center items-center gap-4">
-      <Show when={props.configValue("copyright")}>
+      <Show when={props.configValue("copyright", null)}>
         <span>
-          {props.configValue("copyright.from_year")
-            ? `©${props.configValue("copyright.from_year")}-${new Date().getFullYear()}`
+          {props.configValue("copyright/from_year", null)
+            ? `©${props.configValue("copyright/from_year", null)}-${new Date().getFullYear()}`
             : `©${new Date().getFullYear()}`}{" "}
-          <Show when={props.configValue("copyright.text")}>
+          <Show when={props.configValue("copyright/text", "")}>
             <Show
-              when={props.configValue("copyright.link")}
-              fallback={props.configValue("copyright.text")}
+              when={props.configValue("copyright/link", "")}
+              fallback={props.configValue("copyright/text", "")}
             >
               <a
-                href={props.configValue("copyright.link")}
+                href={props.configValue("copyright/link", "")}
                 target="_blank"
                 class="hover:text-text-secondary dark:hover:text-text-secondary transition-colors"
               >
-                {props.configValue("copyright.text")}
+                {props.configValue("copyright/text", "")}
               </a>
             </Show>
           </Show>
@@ -114,7 +114,7 @@ const CopyrightAndBeian: Component<CopyrightAndBeianProps> = (props) => {
 
       <Show
         when={
-          props.configValue("beian") && props.configValue("beian").length > 0
+          props.configValue("beian", []) && props.configValue("beian", []).length > 0
         }
       >
         <span>

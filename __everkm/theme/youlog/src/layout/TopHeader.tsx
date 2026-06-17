@@ -16,7 +16,7 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
   const showNavToggle = () => props.showNavToggle !== false;
   const stack = () => props.stack === true;
   const showSiteBranding = () =>
-    !props.configValue("layout.aisde_no_header", false);
+    !props.configValue("layout/aisde_no_header", false);
 
   return (
     <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 print:hidden">
@@ -39,23 +39,23 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
                 class="flex items-center gap-2 min-w-0"
               >
                 <Show
-                  when={props.configValue("site.logo")}
+                  when={props.configValue("site/logo", "")}
                   fallback={
                     <span class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                      {props.configValue("site.name")}
+                      {props.configValue("site/name")}
                     </span>
                   }
                 >
                   <img
                     src={everkm.asset_base_url(props.requestId, {
-                      url: String(props.configValue("site.logo")),
+                      url: String(props.configValue("site/logo", "")),
                     })}
-                    alt={String(props.configValue("site.name"))}
+                    alt={String(props.configValue("site/name"))}
                     class="h-7 w-auto"
                   />
-                  <Show when={!props.configValue("layout.only_display_logo")}>
+                  <Show when={!props.configValue("layout/only_display_logo", false)}>
                     <span class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                      {props.configValue("site.name")}
+                      {props.configValue("site/name")}
                     </span>
                   </Show>
                 </Show>
@@ -69,7 +69,7 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
                 data-app-name
                 class="text-lg font-semibold text-gray-900 dark:text-white truncate hidden-repeat-site-name"
               >
-                {props.configValue("site.name")}
+                {props.configValue("site/name")}
               </h1>
               <div data-ajax-element="article-title-bar">
                 <h1
@@ -85,21 +85,21 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
         </div>
 
         <div class="flex items-center space-x-4 flex-shrink-0">
-          <Show when={props.configValue("algolia_search")}>
+          <Show when={props.configValue("algolia_search", null)}>
             <x-in-search
-              app-id={props.configValue("algolia_search.app_id")}
-              api-key={props.configValue("algolia_search.api_key")}
-              index={props.configValue("algolia_search.index_name")}
-              site={props.configValue("algolia_search.site")}
+              app-id={props.configValue("algolia_search/app_id", "")}
+              api-key={props.configValue("algolia_search/api_key", "")}
+              index={props.configValue("algolia_search/index_name", "")}
+              site={props.configValue("algolia_search/site", "")}
               only-button="false"
             ></x-in-search>
           </Show>
 
-          <Show when={props.configValue("header_nav")}>
+          <Show when={props.configValue("header_nav", null)}>
             <div id="mobile-menu-container" class="md:hidden"></div>
           </Show>
 
-          <Show when={props.configValue("header_nav")}>
+          <Show when={props.configValue("header_nav", null)}>
             <nav class="hidden md:block invisible" id="header-nav">
               <NavMenu
                 items={props.configValue("header_nav", [])}

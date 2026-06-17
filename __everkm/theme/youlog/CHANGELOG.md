@@ -125,3 +125,8 @@
 - `scrollAnchor` 工具迁入 `youlog_lib/core`，TOC 与 page-ajax 共用，减少重复代码
 - widget 文档规范建立，各模块入口聚合到 `index.ts`，README 结构统一
 - `set_latest_release` 发布脚本强制校验 changelog，确保每次发布都有版本说明
+
+## v0.5.1 (2026-06-17)
+
+- 修复多语言站点下，站点名称、导航、页脚等配置未按当前语言正确显示的问题
+- 修复未配置可选功能（如 Algolia 搜索、有啥评论、版权信息等）时，页面可能渲染失败的问题

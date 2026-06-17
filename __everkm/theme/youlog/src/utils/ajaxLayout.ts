@@ -1,10 +1,8 @@
-import { getConfigValue } from "./index";
-
 export interface AjaxPageFingerprintInput {
   page: string;
   stack?: boolean;
   hasNav?: boolean;
-  config: Record<string, any>;
+  configValue: (path: string, defaultValue?: any) => any;
 }
 
 /**
@@ -13,15 +11,15 @@ export interface AjaxPageFingerprintInput {
 export function buildAjaxLayoutFingerprint(
   input: AjaxPageFingerprintInput,
 ): string {
-  const { page, stack = false, hasNav = false, config } = input;
+  const { page, stack = false, hasNav = false, configValue } = input;
   return [
     `page=${page}`,
     `stack=${stack ? 1 : 0}`,
     `nav=${hasNav ? 1 : 0}`,
-    `sidebar_header=${getConfigValue(config, "layout.aisde_no_header", false) ? 0 : 1}`,
-    `only_logo=${getConfigValue(config, "layout.only_display_logo", false) ? 1 : 0}`,
-    `algolia=${getConfigValue(config, "algolia_search") ? 1 : 0}`,
-    `header_nav=${getConfigValue(config, "header_nav") ? 1 : 0}`,
+    `sidebar_header=${configValue("layout/aisde_no_header", false) ? 0 : 1}`,
+    `only_logo=${configValue("layout/only_display_logo", false) ? 1 : 0}`,
+    `algolia=${configValue("algolia_search", null) ? 1 : 0}`,
+    `header_nav=${configValue("header_nav", null) ? 1 : 0}`,
   ].join("|");
 }
 

@@ -1,5 +1,4 @@
 import { Component, Show } from "solid-js";
-import { getConfigValue } from "../utils";
 import { buildAjaxPageFingerprint } from "../utils/ajaxLayout";
 import Sidebar from "../layout/Sidebar";
 import TopHeader from "../layout/TopHeader";
@@ -60,10 +59,12 @@ const BookPage: Component<BookPageProps> = (props) => {
       })
     : {};
 
-  // 获取配置项
-  const config = pageContext.config;
-  const configValue = (path: string, defaultValue: any = undefined) => {
-    return getConfigValue(config, path, defaultValue);
+  const configDefaultMissing = Symbol("configDefaultMissing");
+  const configValue = (path: string, defaultValue: any = configDefaultMissing) => {
+    if (defaultValue !== configDefaultMissing) {
+      return everkm.config(requestId, { key: path, default: defaultValue });
+    }
+    return everkm.config(requestId, { key: path });
   };
 
   // 获取 base URL
@@ -137,7 +138,7 @@ const BookPage: Component<BookPageProps> = (props) => {
     page: "book",
     stack: stackLayout,
     hasNav: !!navDoc,
-    config,
+    configValue,
   });
 
   return (

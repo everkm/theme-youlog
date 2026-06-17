@@ -7,8 +7,6 @@ import YoushaComment from "./YoushaComment";
 import Footer from "./Footer";
 import PageQrcode from "./PageQrcode";
 import PrintPage from "./PrintPage";
-import { Katex } from "youlog_lib/widgets/katex/ssr";
-import { Prism } from "youlog_lib/widgets/prism/ssr";
 
 interface ArticleContentProps {
   requestId: string;
@@ -56,7 +54,7 @@ const DocMeta: Component<DocMetaProps> = (props) => {
               target="_blank"
               data-no-ajax
             >
-              https://{props.configValue("site.host")}/
+              https://{props.configValue("site/host", "")}/
               {props.doc?.meta?.permalink}
             </a>
           </div>
@@ -80,14 +78,14 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
 
   const hidePrintButton = () =>
     getHideFlag(
-      props.pageContext.config,
+      props.configValue,
       props.doc?.meta,
       "hide_print_button",
       false
     );
   const hidePageQrcode = () =>
     getHideFlag(
-      props.pageContext.config,
+      props.configValue,
       props.doc?.meta,
       "hide_page_qrcode",
       false
@@ -103,7 +101,7 @@ const ArticleContent: Component<ArticleContentProps> = (props) => {
           style={hideStyle(hidePrintButton())}
           class="hidden print:flex print:items-center print:justify-between print:gap-2 text-gray-400 dark:text-gray-500 print:text-sm"
         >
-          <div>{props.configValue("site.name")}</div>
+          <div>{props.configValue("site/name")}</div>
           <div class="font-sans" data-el="page-url"></div>
         </div>
 

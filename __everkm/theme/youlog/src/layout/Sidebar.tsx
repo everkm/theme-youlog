@@ -26,7 +26,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       <Show
         when={
           !belowHeader() &&
-          !props.configValue("layout.aisde_no_header", false)
+          !props.configValue("layout/aisde_no_header", false)
         }
       >
         <div class="flex h-14 items-center justify-between px-2 md:px-4 bg-gray-50 dark:bg-gray-900 z-10">
@@ -36,23 +36,23 @@ const Sidebar: Component<SidebarProps> = (props) => {
             class="flex items-center gap-2"
           >
             <Show
-              when={props.configValue("site.logo")}
+              when={props.configValue("site/logo", "")}
               fallback={
                 <span class="text-lg font-medium">
-                  {props.configValue("site.name")}
+                  {props.configValue("site/name")}
                 </span>
               }
             >
               <img
                 src={everkm.asset_base_url(props.requestId, {
-                  url: String(props.configValue("site.logo")),
+                  url: String(props.configValue("site/logo", "")),
                 })}
-                alt={String(props.configValue("site.name"))}
+                alt={String(props.configValue("site/name"))}
                 class="h-7 w-auto"
               />
-              <Show when={!props.configValue("layout.only_display_logo")}>
+              <Show when={!props.configValue("layout/only_display_logo", false)}>
                 <span class="text-lg font-medium">
-                  {props.configValue("site.name")}
+                  {props.configValue("site/name")}
                 </span>
               </Show>
             </Show>
