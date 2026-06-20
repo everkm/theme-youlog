@@ -18,7 +18,8 @@ config:
   yousha: { ... }         # 有啥评论
   algolia_search: { ... } # 全文搜索
   header_nav: [ ... ]     # 顶栏导航
-  bottom_nav: [ ... ]      # 页脚链接
+  bottom_nav: [ ... ]     # 页脚链接
+  body_end_html: "..."    # 尾部追加的 HTML, 
 
 folders:
   "/docs/":

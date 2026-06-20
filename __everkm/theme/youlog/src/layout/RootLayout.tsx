@@ -17,6 +17,7 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
   const metaKeywords = (ctx.post?.meta?.keywords as string) || "";
   const themeColor = (cfg.theme_color as string) || undefined;
   const customCss = (cfg.custom_css as string) || undefined;
+  const customBodyEndHtml = (cfg.body_end_html as string) || undefined;
 
   const features = cfg.features || {};
   const hasCodeHighlight = features.code_highlight ?? true;
@@ -65,6 +66,9 @@ const RootLayout: Component<{ context: PageContext; children?: any }> = (
       </head>
       <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {props.children}
+        <Show when={!!customBodyEndHtml}>
+          <div innerHTML={customBodyEndHtml} />
+        </Show>
       </body>
     </html>
   );

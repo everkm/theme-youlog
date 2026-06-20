@@ -55,3 +55,6 @@ pnpm-install:
 
 set-latest:
 	make -f ../scripts/set_latest_release.mk youlog-latest
+
+install-everkm-publish:
+	pnpm install everkm-publish@latest
