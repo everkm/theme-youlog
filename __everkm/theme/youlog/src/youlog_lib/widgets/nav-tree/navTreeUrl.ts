@@ -9,7 +9,7 @@ function normalizeHash(hash: string): string {
 }
 
 /** 目录首页等价：仅 `/a/index.html` 与 `/a/` 互认；无尾斜杠的 `/a` 不参与等价。 */
-function normalizePathname(pathname: string): string {
+export function normalizePathname(pathname: string): string {
   if (pathname.endsWith("/index.html")) {
     return pathname.slice(0, -"/index.html".length) + "/";
   }

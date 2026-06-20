@@ -2,6 +2,10 @@ import { render } from "solid-js/web";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 import { FloatingMenu } from "./FloatingMenu";
 import { MobileNavController } from "./MobileNavController";
+import {
+  findBestMatchingHref,
+  isSameNavLink,
+} from "./navMenuUrl";
 
 export interface MenuItem {
   text: string;
@@ -14,14 +18,48 @@ export interface MenuItem {
 
 function parseMenuData(navElement: HTMLElement | null): MenuItem[] {
   if (!navElement) return [];
-  const rootUl = navElement.querySelector("ul");
+  const rootUl =
+    navElement.querySelector('[data-role="nav-menu"] ul') ??
+    navElement.querySelector("ul");
   if (!rootUl) return [];
-  return parseMenuItems(rootUl as HTMLElement);
+  const items = parseMenuItems(rootUl as HTMLElement);
+  applyActiveState(items, window.location.href);
+  return items;
+}
+
+function collectMenuLinks(items: MenuItem[]): string[] {
+  const links: string[] = [];
+  for (const item of items) {
+    if (item.link && item.link !== "#") {
+      links.push(item.link);
+    }
+    if (item.children) {
+      links.push(...collectMenuLinks(item.children));
+    }
+  }
+  return links;
+}
+
+function applyActiveState(items: MenuItem[], currentUrl: string): void {
+  const bestLink = findBestMatchingHref(currentUrl, collectMenuLinks(items));
+
+  function walk(menuItems: MenuItem[]): boolean {
+    let anyActive = false;
+    for (const item of menuItems) {
+      const selfActive =
+        bestLink !== null && isSameNavLink(item.link, bestLink);
+      const childActive = item.children ? walk(item.children) : false;
+      item.active = selfActive || childActive;
+      if (item.active) anyActive = true;
+    }
+    return anyActive;
+  }
+
+  walk(items);
 }
 
 function parseMenuItems(ul: HTMLElement): MenuItem[] {
   const items: MenuItem[] = [];
-  const currentPath = window.location.pathname;
   const listItems = ul.querySelectorAll(":scope > li");
 
   listItems.forEach((li) => {
@@ -30,9 +68,6 @@ function parseMenuItems(ul: HTMLElement): MenuItem[] {
 
     const href = link.getAttribute("href") || "#";
     const text = link.textContent?.trim() || "";
-    const isActive =
-      currentPath === href ||
-      (href !== "/" && currentPath.startsWith(href + "/"));
 
     let context: Record<string, unknown> = {};
     const contextAttr = link.getAttribute("data-nav-menu-context");
@@ -49,21 +84,12 @@ function parseMenuItems(ul: HTMLElement): MenuItem[] {
       text,
       link: href,
       newWindow: link.getAttribute("target") === "_blank",
-      active: isActive,
+      active: false,
     };
 
     const subUl = li.querySelector(":scope > ul");
     if (subUl) {
       item.children = parseMenuItems(subUl as HTMLElement);
-      if (
-        item.children.some(
-          (child) =>
-            child.active ||
-            (child.children && child.children.some((c) => c.active)),
-        )
-      ) {
-        item.active = true;
-      }
     }
     items.push(item);
   });

@@ -22,6 +22,7 @@ const MenuItemComponent = (props: MenuItemProps) => {
   const level = () => props.level || 0;
   const hasChildren = () =>
     props.item.children && props.item.children.length > 0;
+  const isHighlighted = () => props.item.active || isOpen();
 
   const updatePosition = () => {
     if (!isOpen() || !itemRef || !menuRef) return;
@@ -138,7 +139,7 @@ const MenuItemComponent = (props: MenuItemProps) => {
         class={`
           flex items-center whitespace-nowrap px-3 py-2 text-sm
           ${
-            isOpen()
+            isHighlighted()
               ? "text-brand-primary dark:text-brand-primary-light bg-state-hover dark:bg-state-hover"
               : "text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light hover:bg-state-hover dark:hover:bg-state-hover"
           }
