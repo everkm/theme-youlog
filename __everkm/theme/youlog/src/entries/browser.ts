@@ -33,7 +33,7 @@ function install() {
     headingSelector: "h1, h2, h3, h4",
     headerSelector: "header",
     offset: 10,
-    highlightParents: true,
+    highlightParents: false,
     title: "目录",
     enableMobileToc: true,
     scrollContainerSelector: "#body-main",
