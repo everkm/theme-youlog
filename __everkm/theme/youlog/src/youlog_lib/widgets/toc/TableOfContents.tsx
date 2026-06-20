@@ -75,8 +75,26 @@ function MobileToc(props: MobileTocProps) {
 
   createEffect(() => {
     const onStop = () => props.scrollSync.stop();
+
+    const onUpdate = () => {
+      const articleElement = document.querySelector<HTMLElement>(
+        props.articleSelector,
+      );
+      if (!articleElement) {
+        setTocItems([]);
+        setShowToc(false);
+        return;
+      }
+      setTocItems(parseTocItems(articleElement, props.headingSelector));
+      setShowToc(false);
+    };
+
     props.emitter.on("stop", onStop);
-    onCleanup(() => props.emitter.off("stop", onStop));
+    props.emitter.on("update", onUpdate);
+    onCleanup(() => {
+      props.emitter.off("stop", onStop);
+      props.emitter.off("update", onUpdate);
+    });
   });
 
   const toggleToc = (e: Event) => {
@@ -222,14 +240,21 @@ function TableOfContents(props: TocProps) {
     };
 
     const onUpdate = () => {
+      props.scrollSync.setActiveId("");
+
       const articleElement = getArticleElement();
       if (!articleElement) {
-        throw new Error(
-          `[TableOfContents] article not found on update for selector "${props.articleSelector}"`,
-        );
+        setTocItems([]);
+        return;
       }
+
       setTocItems(parseTocItems(articleElement, props.headingSelector));
-      props.scrollSync.resume();
+
+      const tocContainer = tocContainerRef || props.tocContainer;
+      if (tocContainer?.classList.contains("lg:sticky")) {
+        tocContainer.scrollTop = 0;
+        syncTocContainerMaxHeight(tocContainer, props.scrollContainer);
+      }
     };
 
     emitter.on("stop", onStop);

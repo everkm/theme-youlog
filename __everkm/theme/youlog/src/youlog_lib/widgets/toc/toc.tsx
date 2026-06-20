@@ -10,7 +10,9 @@ import { render } from "solid-js/web";
 import {
   EVENT_PAGE_LOADED,
   EVENT_BEFORE_UPDATE,
+  EVENT_WIDGET_TEARDOWN,
 } from "../page-ajax/constants";
+import { processedRegistry } from "../page-ajax/processedRegistry";
 import mitt, { Emitter } from "mitt";
 import { resolveScrollContainer, type ScrollContainer } from "../../core/scrollAnchor";
 import {
@@ -18,6 +20,7 @@ import {
   getMobileTocBarHeight,
   type TocScrollSync,
 } from "./tocScrollSync";
+import { syncTocContainerMaxHeight } from "./tocContainerLayout";
 
 /** 合并默认后的完整配置（不含运行时解析的 tocContainer / scrollContainer / headerHeight / callbackHeadersHeight / emitter） */
 export type RequiredTocOptions = Omit<
@@ -51,6 +54,8 @@ const DEFAULT_TOC_OPTIONS: RequiredTocOptions = {
   onAfterGoto: () => {},
 };
 
+const TOC_WIDGET_ID = "toc";
+
 function getMergedOptions(customOptions?: TocOptions): RequiredTocOptions {
   return {
     ...DEFAULT_TOC_OPTIONS,
@@ -60,6 +65,9 @@ function getMergedOptions(customOptions?: TocOptions): RequiredTocOptions {
 
 const DEFAULT_HEADER_HEIGHT = 0;
 const TOPBAR_OFFSET = -1;
+
+let desktopTocDispose: (() => void) | undefined;
+let desktopTocMounted = false;
 
 function queryWithinScrollContainer(
   scrollContainer: ScrollContainer,
@@ -124,6 +132,139 @@ function createMobileGotoHeadersHeight(
   };
 }
 
+/** PJAX morph 保护：#toc 子树由 Solid 管理，须跳过 idiomorph 以免被 SSR 空容器覆盖 */
+function ensureTocMorphProtection(
+  tocContainer: HTMLElement,
+  tocSelector: string,
+): void {
+  if (processedRegistry.has(TOC_WIDGET_ID)) {
+    return;
+  }
+  tocContainer.setAttribute("data-processed", TOC_WIDGET_ID);
+  processedRegistry.register(TOC_WIDGET_ID, tocContainer, tocSelector);
+}
+
+function applyDesktopTocContainerStyles(
+  tocContainer: HTMLElement,
+  options: RequiredTocOptions,
+  scrollContainer: ScrollContainer,
+): void {
+  const header = resolveHeaderInScrollContainer(
+    scrollContainer,
+    options.headerSelector,
+  );
+  const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
+  const stickyTopOffset = TOPBAR_OFFSET + VERTICAL_PADDING;
+
+  tocContainer.classList.remove("hidden", "mobile-active", "mobile-child");
+  tocContainer.classList.add("lg:sticky", "hidden", "lg:block");
+  tocContainer.style.top = resolveStickyTop(
+    header,
+    headerHeight,
+    stickyTopOffset,
+  );
+  tocContainer.style.scrollBehavior = "auto";
+}
+
+function renderDesktopTocTree(
+  options: RequiredTocOptions,
+  tocContainer: HTMLElement,
+  scrollContainer: ScrollContainer,
+  tocEmitter: Emitter<TocEvents>,
+  scrollSync: TocScrollSync,
+): () => void {
+  const header = resolveHeaderInScrollContainer(
+    scrollContainer,
+    options.headerSelector,
+  );
+  const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
+
+  return render(
+    () => (
+      <TableOfContents
+        tocContainer={tocContainer}
+        articleSelector={options.articleSelector}
+        headingSelector={options.headingSelector}
+        headerHeight={headerHeight}
+        offset={options.offset}
+        highlightParents={options.highlightParents}
+        title={options.title}
+        callbackHeadersHeight={createDesktopGotoHeadersHeight(
+          scrollContainer,
+          options.headerSelector,
+        )}
+        onAfterGoto={options.onAfterGoto}
+        emitter={tocEmitter}
+        scrollContainer={scrollContainer}
+        scrollSync={scrollSync}
+      />
+    ),
+    tocContainer,
+  );
+}
+
+function unmountDesktopToc(): void {
+  desktopTocDispose?.();
+  desktopTocDispose = undefined;
+  desktopTocMounted = false;
+}
+
+/** 首次挂载桌面 TOC（Solid 单例，PJAX 后仅 emit update） */
+function mountDesktopToc(
+  options: RequiredTocOptions,
+  tocEmitter: Emitter<TocEvents>,
+  scrollSync: TocScrollSync,
+): boolean {
+  if (desktopTocMounted) {
+    return true;
+  }
+
+  const tocContainer = document.querySelector<HTMLElement>(options.tocSelector);
+  const scrollContainer = resolveScrollContainer(options.scrollContainerSelector);
+  if (!tocContainer || !scrollContainer) {
+    return false;
+  }
+
+  const article = queryWithinScrollContainer(
+    scrollContainer,
+    options.articleSelector,
+  );
+  if (!article) {
+    return false;
+  }
+
+  ensureTocMorphProtection(tocContainer, options.tocSelector);
+  applyDesktopTocContainerStyles(tocContainer, options, scrollContainer);
+  desktopTocDispose = renderDesktopTocTree(
+    options,
+    tocContainer,
+    scrollContainer,
+    tocEmitter,
+    scrollSync,
+  );
+  desktopTocMounted = true;
+  syncTocContainerMaxHeight(tocContainer, scrollContainer);
+  return true;
+}
+
+/** PJAX 换页后增量刷新桌面 TOC，不 remount Solid */
+function refreshDesktopToc(
+  options: RequiredTocOptions,
+  tocEmitter: Emitter<TocEvents>,
+): boolean {
+  const tocContainer = document.querySelector<HTMLElement>(options.tocSelector);
+  const scrollContainer = resolveScrollContainer(options.scrollContainerSelector);
+  if (!tocContainer || !scrollContainer || !desktopTocMounted) {
+    return false;
+  }
+
+  applyDesktopTocContainerStyles(tocContainer, options, scrollContainer);
+  tocContainer.scrollTop = 0;
+  syncTocContainerMaxHeight(tocContainer, scrollContainer);
+  tocEmitter.emit("update");
+  return true;
+}
+
 function initMobileToc(
   options: RequiredTocOptions,
   tocEmitter: Emitter<TocEvents>,
@@ -148,9 +289,7 @@ function initMobileToc(
 
   const article = queryWithinScrollContainer(scrollContainer, articleSelector);
   if (!article) {
-    throw new Error(
-      `[initMobileToc] article not found: "${articleSelector}" under "${scrollContainerSelector}"`,
-    );
+    return undefined;
   }
 
   const header = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
@@ -203,80 +342,8 @@ function initMobileToc(
 
   return () => {
     disposeMobileToc();
+    mobileTocContainer?.remove();
   };
-}
-
-function generateToc(
-  options: RequiredTocOptions,
-  tocEmitter: Emitter<TocEvents>,
-  scrollSync: TocScrollSync,
-): void {
-  const {
-    tocSelector,
-    articleSelector,
-    headingSelector,
-    headerSelector,
-    offset,
-    highlightParents,
-    title,
-    onAfterGoto,
-    scrollContainerSelector,
-  } = options;
-
-  const tocContainer = document.querySelector<HTMLElement>(tocSelector);
-  const scrollContainer = resolveScrollContainer(scrollContainerSelector);
-  if (!scrollContainer) {
-    throw new Error(`${scrollContainerSelector} is not found`);
-  }
-
-  const article = queryWithinScrollContainer(scrollContainer, articleSelector);
-  if (!(tocContainer && article)) {
-    throw new Error(`${tocSelector} or ${articleSelector} is not found`);
-  }
-
-  tocContainer.innerHTML = "";
-  const header = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
-  const headerHeight = header ? header.offsetHeight : DEFAULT_HEADER_HEIGHT;
-  const stickyTopOffset = TOPBAR_OFFSET + VERTICAL_PADDING;
-
-  tocContainer.classList.remove("hidden", "mobile-active", "mobile-child");
-  tocContainer.classList.add("lg:sticky", "hidden", "lg:block");
-  tocContainer.style.top = resolveStickyTop(
-    header,
-    headerHeight,
-    stickyTopOffset,
-  );
-  tocContainer.style.scrollBehavior = "smooth";
-
-  render(
-    () => (
-      <TableOfContents
-        tocContainer={tocContainer}
-        articleSelector={articleSelector}
-        headingSelector={headingSelector}
-        headerHeight={headerHeight}
-        offset={offset}
-        highlightParents={highlightParents}
-        title={title}
-        callbackHeadersHeight={createDesktopGotoHeadersHeight(
-          scrollContainer,
-          headerSelector,
-        )}
-        onAfterGoto={onAfterGoto}
-        emitter={tocEmitter}
-        scrollContainer={scrollContainer}
-        scrollSync={scrollSync}
-      />
-    ),
-    tocContainer,
-  );
-}
-
-interface TocResult {
-  tocEmitter: Emitter<TocEvents>;
-  scrollSync: TocScrollSync;
-  mobileTocCleanup?: () => void;
-  options: RequiredTocOptions;
 }
 
 function mountToc(
@@ -284,12 +351,19 @@ function mountToc(
   tocEmitter: Emitter<TocEvents>,
   scrollSync: TocScrollSync,
 ): Pick<TocResult, "mobileTocCleanup"> {
-  generateToc(options, tocEmitter, scrollSync);
+  mountDesktopToc(options, tocEmitter, scrollSync);
   let mobileTocCleanup: undefined | (() => void);
   if (options.enableMobileToc) {
     mobileTocCleanup = initMobileToc(options, tocEmitter, scrollSync);
   }
   return { mobileTocCleanup };
+}
+
+interface TocResult {
+  tocEmitter: Emitter<TocEvents>;
+  scrollSync: TocScrollSync;
+  mobileTocCleanup?: () => void;
+  options: RequiredTocOptions;
 }
 
 function initToc(customOptions?: TocOptions): TocResult | undefined {
@@ -350,26 +424,31 @@ function doSetupToc(options?: TocOptions): void {
     if (!tocContainer) {
       tocEmitter.emit("stop");
       scrollSync.stop();
+      unmountDesktopToc();
       return;
     }
 
-    scrollSync.dispose();
-    const scrollContainer = resolveScrollContainer(
-      tocOptions.scrollContainerSelector,
-    );
-    if (!scrollContainer) {
+    if (desktopTocMounted) {
+      refreshDesktopToc(tocOptions, tocEmitter);
+    } else {
+      mountDesktopToc(tocOptions, tocEmitter, scrollSync);
+    }
+
+    scrollSync.resume();
+
+    if (tocOptions.enableMobileToc) {
+      mobileTocCleanup = initMobileToc(tocOptions, tocEmitter, scrollSync);
+    }
+  });
+
+  document.addEventListener(EVENT_WIDGET_TEARDOWN, (e: Event) => {
+    const { widgetId } = (e as CustomEvent<{ widgetId: string }>).detail;
+    if (widgetId !== TOC_WIDGET_ID) {
       return;
     }
-    scrollSync = createScrollSyncForOptions(tocOptions, scrollContainer);
-
-    if (mobileTocCleanup) {
-      mobileTocCleanup();
-    }
-
-    setTimeout(() => {
-      const mounted = mountToc(tocOptions, tocEmitter, scrollSync);
-      mobileTocCleanup = mounted.mobileTocCleanup;
-    }, 100);
+    tocEmitter.emit("stop");
+    scrollSync.stop();
+    unmountDesktopToc();
   });
 }
 

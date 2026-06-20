@@ -107,7 +107,10 @@ export function createTocScrollSync(
     if (!article) return;
 
     loadTocItems();
-    if (tocItems.length === 0) return;
+    if (tocItems.length === 0) {
+      setActiveId("");
+      return;
+    }
 
     const nextActiveKey = resolveActiveHeadingKey(
       tocItems,
@@ -116,9 +119,7 @@ export function createTocScrollSync(
       options.scrollContainer,
       getSpyOffset(),
     );
-    if (nextActiveKey) {
-      setActiveId(nextActiveKey);
-    }
+    setActiveId(nextActiveKey);
   };
 
   const beginGoto = (activeKey: string) => {
@@ -182,10 +183,10 @@ export function createTocScrollSync(
     beginGoto,
     stop: () => {
       stopSync = true;
+      setActiveId("");
     },
     resume: () => {
       stopSync = false;
-      refresh();
     },
     refresh,
     dispose,
