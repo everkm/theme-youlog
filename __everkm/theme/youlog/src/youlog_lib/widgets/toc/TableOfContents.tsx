@@ -9,8 +9,12 @@ import {
 import { parseTocItems, VERTICAL_PADDING, type TocItem } from "./tocParsing";
 import type { TocScrollSync } from "./tocScrollSync";
 import {
+  bindTocScrollContainment,
+  bindScrollportScroll,
   scrollActiveTocLinkIntoView,
+  shouldLimitTocContainerHeight,
   syncTocContainerMaxHeight,
+  syncTocOverscrollBehavior,
 } from "./tocContainerLayout";
 
 /** @deprecated 使用 ScrollContainer */
@@ -57,6 +61,7 @@ function MobileToc(props: MobileTocProps) {
   const [showToc, setShowToc] = createSignal(false);
 
   let mobileTocRef: HTMLDivElement | undefined;
+  let mobileTocScrollRef: HTMLDivElement | undefined;
 
   const activeId = props.scrollSync.activeId;
   const activeTocItem = () => tocItems().find((item) => item.key === activeId());
@@ -101,6 +106,47 @@ function MobileToc(props: MobileTocProps) {
     e.stopPropagation();
     setShowToc(!showToc());
   };
+
+  createEffect(() => {
+    const expanded = showToc();
+    const container = mobileTocRef;
+    const scrollContainer = mobileTocScrollRef;
+    if (!container || !expanded || !scrollContainer) return;
+
+    const updateMaxHeight = () => {
+      syncTocContainerMaxHeight(container, props.scrollContainer);
+      syncTocOverscrollBehavior(scrollContainer);
+    };
+
+    updateMaxHeight();
+
+    window.addEventListener("resize", updateMaxHeight);
+    const unbindPageScroll = bindScrollportScroll(
+      props.scrollContainer,
+      updateMaxHeight,
+    );
+
+    let resizeObserver: ResizeObserver | undefined;
+    if ("ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(updateMaxHeight);
+      resizeObserver.observe(container);
+      resizeObserver.observe(scrollContainer);
+      const stickyHost = container.parentElement;
+      if (stickyHost) {
+        resizeObserver.observe(stickyHost);
+      }
+    }
+
+    const unbindScrollContainment = bindTocScrollContainment(scrollContainer);
+
+    onCleanup(() => {
+      window.removeEventListener("resize", updateMaxHeight);
+      unbindPageScroll();
+      resizeObserver?.disconnect();
+      unbindScrollContainment();
+      container.style.removeProperty("max-height");
+    });
+  });
 
   const handleAfterGoto = (id: string, anchorName?: string) => {
     setShowToc(false);
@@ -148,9 +194,9 @@ function MobileToc(props: MobileTocProps) {
         </div>
 
         <Show when={showToc()}>
-          <div class="mobile-toc-content">
+          <div ref={mobileTocScrollRef} class="mobile-toc-content toc-mobile-scroll">
             <TableOfContents
-              tocContainer={mobileTocRef!}
+              tocContainer={mobileTocScrollRef!}
               articleSelector={props.articleSelector}
               headingSelector={props.headingSelector}
               headerHeight={props.headerHeight}
@@ -194,12 +240,14 @@ function TableOfContents(props: TocProps) {
 
     setTocItems(parseTocItems(articleElement, props.headingSelector));
 
-    const shouldLimitHeight = () =>
-      tocContainerRef?.classList.contains("lg:sticky") ?? false;
-
     const updateContainerHeight = () => {
-      if (!tocContainerRef || !shouldLimitHeight()) return;
-      syncTocContainerMaxHeight(tocContainerRef, props.scrollContainer);
+      if (!tocContainerRef) return;
+      if (shouldLimitTocContainerHeight(tocContainerRef)) {
+        syncTocContainerMaxHeight(tocContainerRef, props.scrollContainer);
+      }
+      if (tocContainerRef.classList.contains("lg:sticky")) {
+        syncTocOverscrollBehavior(tocContainerRef);
+      }
     };
 
     updateContainerHeight();
@@ -214,9 +262,15 @@ function TableOfContents(props: TocProps) {
       }
     }
 
+    const unbindScrollContainment =
+      tocContainerRef?.classList.contains("lg:sticky")
+        ? bindTocScrollContainment(tocContainerRef)
+        : undefined;
+
     onCleanup(() => {
       window.removeEventListener("resize", updateContainerHeight);
       resizeObserver?.disconnect();
+      unbindScrollContainment?.();
     });
   });
 
@@ -251,7 +305,7 @@ function TableOfContents(props: TocProps) {
       setTocItems(parseTocItems(articleElement, props.headingSelector));
 
       const tocContainer = tocContainerRef || props.tocContainer;
-      if (tocContainer?.classList.contains("lg:sticky")) {
+      if (tocContainer && shouldLimitTocContainerHeight(tocContainer)) {
         tocContainer.scrollTop = 0;
         syncTocContainerMaxHeight(tocContainer, props.scrollContainer);
       }
@@ -317,7 +371,7 @@ function TableOfContents(props: TocProps) {
     if (!activeLink) return;
 
     requestAnimationFrame(() => {
-      if (tocContainer.classList.contains("lg:sticky")) {
+      if (shouldLimitTocContainerHeight(tocContainer)) {
         syncTocContainerMaxHeight(tocContainer, props.scrollContainer);
       }
       scrollActiveTocLinkIntoView(tocContainer, activeLink);

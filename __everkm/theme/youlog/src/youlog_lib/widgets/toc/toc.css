@@ -9,20 +9,30 @@
   }
 }
 
-/* 自定义滚动条 */
-#toc::-webkit-scrollbar {
+/* 自定义滚动条（桌面 TOC + 小屏列表区） */
+#toc,
+.toc-mobile-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border, #e5e7eb) transparent;
+}
+
+#toc::-webkit-scrollbar,
+.toc-mobile-scroll::-webkit-scrollbar {
   @apply w-1;
 }
 
-#toc::-webkit-scrollbar-track {
+#toc::-webkit-scrollbar-track,
+.toc-mobile-scroll::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 
-#toc::-webkit-scrollbar-thumb {
+#toc::-webkit-scrollbar-thumb,
+.toc-mobile-scroll::-webkit-scrollbar-thumb {
   @apply bg-border dark:bg-border rounded-full;
 }
 
-#toc:hover::-webkit-scrollbar-thumb {
+#toc:hover::-webkit-scrollbar-thumb,
+.toc-mobile-scroll:hover::-webkit-scrollbar-thumb {
   @apply bg-border-strong dark:bg-border-strong;
 }
 
@@ -97,13 +107,13 @@
 /* 移动端TOC指示器样式 */
 .toc-mobile-indicator {
   @apply bg-surface-muted dark:bg-surface mb-4 rounded shadow-sm transition-all duration-300 print:hidden;
-  @apply relative overflow-y-auto border border-border lg:hidden dark:border-border;
+  @apply relative overflow-y-hidden border border-border lg:hidden dark:border-border;
   @apply text-[0.9em];
   width: 100%;
 }
 
 .toc-mobile-header {
-  @apply sticky top-0 flex cursor-pointer items-center justify-between bg-surface p-2 dark:bg-surface;
+  @apply flex shrink-0 cursor-pointer items-center justify-between bg-surface p-2 dark:bg-surface;
 }
 
 .toc-mobile-header-left {
@@ -126,26 +136,13 @@
   @apply h-5 w-5 transform text-text-tertiary transition-transform dark:text-text-tertiary;
 }
 
-/* 展开状态的指示器 */
+/* 展开状态：外层限高由 JS 按 bar 实际位置写入 max-height */
 .toc-mobile-indicator.toc-expanded {
-  @apply rounded-b;
+  @apply flex flex-col overflow-hidden rounded-b;
 }
 
-@keyframes toc-slide-down {
-  from {
-    max-height: 0;
-    opacity: 0.8;
-  }
-  to {
-    max-height: calc(
-      100dvh - var(--topbar-height, 60px) - var(--indicator-height, 50px)
-    );
-    opacity: 1;
-  }
-}
-
-.mobile-toc-content {
-  @apply px-7;
+.mobile-toc-content.toc-mobile-scroll {
+  @apply min-h-0 flex-1 overflow-y-auto px-7;
 }
 
 #mobile-toc-indicator + * {
