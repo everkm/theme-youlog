@@ -64,4 +64,17 @@ class ProcessedRegistryImpl implements ProcessedRegistry {
   }
 }
 
-export const processedRegistry: ProcessedRegistry = new ProcessedRegistryImpl();
+/** 跨 IIFE 入口（youlog / plugin-in-search 等）共享同一登记表 */
+const REGISTRY_GLOBAL_KEY = "__youlog_processed_registry";
+
+function getSharedRegistry(): ProcessedRegistry {
+  const win = window as Window & {
+    [REGISTRY_GLOBAL_KEY]?: ProcessedRegistry;
+  };
+  if (!win[REGISTRY_GLOBAL_KEY]) {
+    win[REGISTRY_GLOBAL_KEY] = new ProcessedRegistryImpl();
+  }
+  return win[REGISTRY_GLOBAL_KEY];
+}
+
+export const processedRegistry: ProcessedRegistry = getSharedRegistry();

@@ -1,6 +1,7 @@
 import { createSignal, createEffect, onCleanup, createMemo } from "solid-js";
 import { Portal } from "solid-js/web";
 import { HotKeysManager } from "../../widgets/keymap";
+import { EVENT_BEFORE_UPDATE } from "../../widgets/page-ajax/constants";
 import FloatSearch, { IApiConfig } from "./FloatSearch";
 
 interface InSearchProps {
@@ -29,6 +30,14 @@ export default function InSearch(props: InSearchProps) {
     apiKey: props.apiKey,
     index: props.index,
   }));
+
+  createEffect(() => {
+    const closeOnNavigate = () => setSearchVisible(false);
+    document.addEventListener(EVENT_BEFORE_UPDATE, closeOnNavigate);
+    onCleanup(() =>
+      document.removeEventListener(EVENT_BEFORE_UPDATE, closeOnNavigate),
+    );
+  });
 
   // 注册快捷键
   createEffect(() => {

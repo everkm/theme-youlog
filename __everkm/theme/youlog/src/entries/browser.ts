@@ -24,9 +24,12 @@ import { installKatex } from "youlog_lib/widgets/katex";
 import { installHeadingAnchor } from "youlog_lib/widgets/heading_anchor";
 import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 import { installTopbarHeightWatcher } from "youlog_lib/widgets/topbar";
+import { installInSearchMorphProtection } from "../youlog_lib/plugins/in_search/morphProtection";
 
 function install() {
   installTopbarHeightWatcher("header");
+  // 须在 plugin-in-search 的 customElement 升级前注册，避免 PJAX morph 覆盖搜索框
+  installInSearchMorphProtection();
   installToc({
     tocSelector: "#toc",
     articleSelector: "#article-main",

@@ -86,13 +86,15 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
 
         <div class="flex items-center space-x-4 flex-shrink-0">
           <Show when={props.configValue("algolia_search", null)}>
-            <x-in-search
-              app-id={props.configValue("algolia_search/app_id", "")}
-              api-key={props.configValue("algolia_search/api_key", "")}
-              index={props.configValue("algolia_search/index_name", "")}
-              site={props.configValue("algolia_search/site", "")}
-              only-button="false"
-            ></x-in-search>
+            <div id="header-in-search">
+              <x-in-search
+                app-id={props.configValue("algolia_search/app_id", "")}
+                api-key={props.configValue("algolia_search/api_key", "")}
+                index={props.configValue("algolia_search/index_name", "")}
+                site={props.configValue("algolia_search/site", "")}
+                only-button="false"
+              ></x-in-search>
+            </div>
           </Show>
 
           <Show when={props.configValue("header_nav", null)}>
