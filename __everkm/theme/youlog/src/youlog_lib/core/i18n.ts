@@ -4,6 +4,13 @@ import { isServer } from "solid-js/web";
 
 const DEFAULT_LANG = "en";
 
+function resolveLangKey(lang: string): string {
+  const normalized = lang.toLowerCase().replace("_", "-");
+  if (normalized === "zh" || normalized.startsWith("zh-")) return "zh";
+  if (normalized === "en" || normalized.startsWith("en-")) return "en";
+  return normalized.split("-")[0];
+}
+
 function getCurrentLang() {
   if (isServer) {
     if (typeof everkm === "undefined") {
@@ -19,8 +26,8 @@ function useTranslate(
 ) {
   return (key: string, params?: Record<string, string | boolean | number>) => {
     const keyTranslations = customTranslations[key] || {};
-    const lang = getCurrentLang();
-    let translated = keyTranslations[lang] || key;
+    const lang = resolveLangKey(getCurrentLang());
+    let translated = keyTranslations[lang] || keyTranslations.en || key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         translated = translated.replace(`{${k}}`, v.toString());

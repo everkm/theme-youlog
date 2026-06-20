@@ -6,6 +6,7 @@ import "../assets/css/youlog.css";
 import "../assets/css/markdown2.css";
 
 import { installToc } from "../youlog_lib/widgets/toc";
+import t from "../youlog_lib/widgets/toc/i18n";
 import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { initPageAjax, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
@@ -37,7 +38,7 @@ function install() {
     headerSelector: "header",
     offset: 10,
     highlightParents: false,
-    title: "目录",
+    title: t("title"),
     enableMobileToc: true,
     scrollContainerSelector: "#body-main",
     onAfterGoto: (id: string, anchorName?: string) => {
