@@ -1,3 +1,5 @@
+[中文版](README_CN.md) | [English](README.md)
+
 # Youlog 主题配置说明
 
 Youlog 是 [everkm-publish](https://publish.everkm.cn) 的文档/博客主题，默认模板为 `book`。站点级配置写在工作区 `__everkm/everkm.yaml` 的 `config` 节点下；书籍目录的路由参数写在 `folders` 的 `query` 中。
