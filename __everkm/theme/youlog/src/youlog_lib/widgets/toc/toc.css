@@ -2,6 +2,13 @@
  * 目录组件样式 
  */
 
+/* 桌面端 sticky TOC：高度限制在视口内（JS 会写入更精确的 inline max-height） */
+@media (min-width: 1024px) {
+  #toc.lg\:sticky {
+    max-height: calc(100dvh - var(--topbar-height, 3.5rem) - 2.5rem);
+  }
+}
+
 /* 自定义滚动条 */
 #toc::-webkit-scrollbar {
   @apply w-1;
