@@ -127,7 +127,9 @@ function createMobileGotoHeadersHeight(
   return () => {
     const h = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
     const base = h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT;
-    const bar = getMobileTocBarHeight(scrollContainer, headerSelector);
+    const bar = getMobileTocBarHeight(scrollContainer, headerSelector, {
+      requireSticky: false,
+    });
     return [base + bar];
   };
 }

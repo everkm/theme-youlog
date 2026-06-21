@@ -43,6 +43,8 @@ interface TocProps {
   highlightParents: boolean;
   title: string;
   callbackHeadersHeight: (() => number[]) | null;
+  /** 跳转前回调（如小屏先收起展开态 TOC，避免布局变化影响滚动测量） */
+  onBeforeGoto?: () => void;
   onAfterGoto: (id: string, anchorName?: string) => void;
   emitter: Emitter<TocEvents> | null;
   scrollSync: TocScrollSync;
@@ -148,9 +150,8 @@ function MobileToc(props: MobileTocProps) {
     });
   });
 
-  const handleAfterGoto = (id: string, anchorName?: string) => {
+  const handleBeforeGoto = () => {
     setShowToc(false);
-    props.onAfterGoto(id, anchorName);
   };
 
   return (
@@ -204,7 +205,8 @@ function MobileToc(props: MobileTocProps) {
               highlightParents={props.highlightParents}
               title={props.title}
               callbackHeadersHeight={props.callbackGotoHeadersHeight}
-              onAfterGoto={handleAfterGoto}
+              onBeforeGoto={handleBeforeGoto}
+              onAfterGoto={props.onAfterGoto}
               scrollContainer={props.scrollContainer}
               emitter={null}
               scrollSync={props.scrollSync}
@@ -337,19 +339,32 @@ function TableOfContents(props: TocProps) {
 
     props.scrollSync.beginGoto(item.key);
 
-    scrollToElement(targetHeading, props.scrollContainer, {
-      offset: getScrollOffset(),
-      behavior: "auto",
-    });
+    const finishGoto = () => {
+      scrollToElement(targetHeading, props.scrollContainer, {
+        offset: getScrollOffset(),
+        behavior: "auto",
+      });
 
-    let anchorName: string | undefined;
-    if (targetHeading.matches("a.heading-anchor")) {
-      anchorName = targetHeading.getAttribute("name") || undefined;
-    } else {
-      const anchorEl = targetHeading.querySelector("a.heading-anchor");
-      anchorName = anchorEl?.getAttribute("name") || undefined;
+      let anchorName: string | undefined;
+      if (targetHeading.matches("a.heading-anchor")) {
+        anchorName = targetHeading.getAttribute("name") || undefined;
+      } else {
+        const anchorEl = targetHeading.querySelector("a.heading-anchor");
+        anchorName = anchorEl?.getAttribute("name") || undefined;
+      }
+      props.onAfterGoto(item.id, anchorName);
+    };
+
+    if (props.onBeforeGoto) {
+      props.onBeforeGoto();
+      // 等展开态 DOM 移除并完成布局后再测量滚动位置
+      requestAnimationFrame(() => {
+        requestAnimationFrame(finishGoto);
+      });
+      return;
     }
-    props.onAfterGoto(item.id, anchorName);
+
+    finishGoto();
   };
 
   const scrollToTop = () => {

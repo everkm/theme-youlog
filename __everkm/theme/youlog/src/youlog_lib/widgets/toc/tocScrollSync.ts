@@ -24,13 +24,29 @@ function resolveHeaderHeightInContainer(
   return header ? header.offsetHeight : 0;
 }
 
-/** 小屏 sticky 状态下移动端 TOC 标题栏高度（用于跳转与高亮偏移） */
+export interface MobileTocBarHeightOptions {
+  /**
+   * 为 false 时始终返回标题栏高度（用于跳转偏移）。
+   * 默认 true：仅在 bar 已 sticky 时计入（用于滚动高亮，避免指示器滚出视口后仍占位）。
+   */
+  requireSticky?: boolean;
+}
+
+/** 小屏移动端 TOC 标题栏高度（用于跳转与高亮偏移） */
 export function getMobileTocBarHeight(
   scrollContainer: ScrollContainer,
   headerSelector: string,
+  options: MobileTocBarHeightOptions = {},
 ): number {
+  const { requireSticky = true } = options;
   const indicator = document.getElementById("mobile-toc-indicator");
   if (!indicator) return 0;
+
+  const headerBar = indicator.querySelector<HTMLElement>(".toc-mobile-header");
+  const barHeight = headerBar?.offsetHeight ?? 0;
+  if (!requireSticky) {
+    return barHeight;
+  }
 
   const containerTop =
     scrollContainer instanceof Window
@@ -44,8 +60,7 @@ export function getMobileTocBarHeight(
   const isSticky = rect.top - containerTop <= headerHeight + 1;
   if (!isSticky) return 0;
 
-  const headerBar = indicator.querySelector<HTMLElement>(".toc-mobile-header");
-  return headerBar?.offsetHeight ?? 0;
+  return barHeight;
 }
 
 function isMobileTocViewport(): boolean {
