@@ -27,6 +27,14 @@
   }
 }
 
+/* stack 小屏：侧栏关闭时从顶栏下方算起，避免挡住菜单按钮；打开时（data-drawer-open）贴顶满高 */
+@media (max-width: 1023px) {
+  #page-shell[data-stack-layout="1"] #sidebar-nav:not([data-drawer-open]) {
+    top: var(--topbar-height, 3.5rem);
+    height: calc(100dvh - var(--topbar-height, 3.5rem));
+  }
+}
+
 #sidebar-nav {
   h1,
   h2,

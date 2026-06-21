@@ -16,9 +16,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
     <aside
       id="sidebar-nav"
       classList={{
-        "fixed lg:relative h-dvh lg:h-full": belowHeader(),
-        "fixed h-dvh lg:sticky": !belowHeader(),
-        "w-[80%] lg:w-[var(--sidebar-width)] bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 top-0 z-50 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full flex flex-col print:hidden":
+        "fixed lg:relative h-dvh lg:h-full top-0": belowHeader(),
+        "fixed h-dvh lg:sticky top-0": !belowHeader(),
+        "w-[80%] max-w-[360px] lg:max-w-none lg:w-[var(--sidebar-width)] bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full flex flex-col print:hidden":
           true,
       }}
     >
@@ -58,6 +58,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
             </Show>
           </a>
           <button
+            type="button"
             data-drawer-close="sidebar-nav"
             class="lg:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
           >

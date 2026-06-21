@@ -24,6 +24,7 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
         <div class="flex items-center gap-2 flex-1 min-w-0">
           <Show when={showNavToggle()}>
             <button
+              type="button"
               data-drawer-toggle="sidebar-nav"
               class="lg:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
             >
