@@ -50,7 +50,9 @@ config:
   
   header_nav:
     - title: "@i18n:Home"
-      url: /
+      url: 
+        _default: /
+        zh: /zh/
       new_window: false
     - title: "@i18n:Guide"
       url: 
