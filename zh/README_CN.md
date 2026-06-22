@@ -1,4 +1,7 @@
-[中文版](README_CN.md) | [English](README.md)
+---
+slug: index
+---
+
 
 # Youlog 主题配置说明
 

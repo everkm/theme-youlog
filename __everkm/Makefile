@@ -17,6 +17,8 @@ print-ekmp:
 	@echo $(EKMP)
 	@$(EKMP) --version
 	
+clean-dist:
+	rm -rf dist
 
 work: print-ekmp
 	@RUST_BACKTRACE=0 EVERKM_LOG=everkm_publish=debug,tpls=debug,info \
@@ -24,14 +26,31 @@ work: print-ekmp
 		--work-dir ../ \
 		--theme youlog \
 		--theme-dev \
+		--lang=$${EVERKM_LANG:-zh} \
 		--listen=0.0.0.0:9081
 
 export-all: print-ekmp
+	make clean-dist
 	@EVERKM_LOG=info,everkm_publish=info \
 		$(EKMP) serve \
 		--work-dir ../ \
 		--theme youlog \
 		--theme-dev \
+		--lazy-img \
+		--cdn-prefix=/ \
+		--lang=en \
+		--stop-urls=/zh/ \
+		--export
+
+	@EVERKM_LOG=info,everkm_publish=info \
+		$(EKMP) serve \
+		--work-dir ../ \
+		--theme youlog \
+		--theme-dev \
+		--lazy-img \
+		--cdn-prefix=/ \
+		--lang=zh \
+		--base-prefix /zh \
 		--export
 
 # package-theme: print-ekmp
@@ -47,8 +66,7 @@ dist:
 
 
 preview:
-	@$(EKMP) web \
-		--work-dir dist
+	@$(EKMP) web dist
 
 pnpm-install:
 	pnpm install

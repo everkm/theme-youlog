@@ -11,7 +11,7 @@ set_latest_release.py
 用法示例：
   python3 scripts/set_latest_release.py --repo everkm/theme-youlog --tag v0.4.3
   python3 scripts/set_latest_release.py --repo everkm/theme-youlog
-  python3 scripts/set_latest_release.py --repo everkm/theme-youlog --changelog __everkm/theme/youlog/CHANGELOG.md
+  python3 scripts/set_latest_release.py --repo everkm/theme-youlog --changelog ./CHANGELOG.md
 
 更新日志：
 - 2026-06-12：初版，CHANGELOG 强校验 + gh release edit 晋升 latest。
@@ -66,7 +66,7 @@ def main() -> int:
     parser.add_argument(
         "--changelog",
         type=Path,
-        default=Path("__everkm/theme/youlog/CHANGELOG.md"),
+        default=Path("./CHANGELOG.md"),
         help="Path to CHANGELOG.md",
     )
     args = parser.parse_args()

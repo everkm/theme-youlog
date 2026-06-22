@@ -4,4 +4,4 @@ PYTHON ?= python3
 
 
 youlog-latest:
-	$(PYTHON) $(MYDIR)set_latest_release.py --repo everkm/theme-youlog --changelog $(MYDIR)../__everkm/theme/youlog/CHANGELOG.md
+	$(PYTHON) $(MYDIR)set_latest_release.py --repo everkm/theme-youlog --changelog $(MYDIR)../zh/CHANGELOG.md

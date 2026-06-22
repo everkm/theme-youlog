@@ -1,0 +1,19 @@
+Home:
+  _default: Home
+  zh: 首页
+  en: Home
+
+Guide:
+  _default: Guide
+  zh: 指南
+  en: Guide
+
+Docs:
+  _default: Docs
+  zh: 文档
+  en: Docs
+
+Languages:
+  _default: Languages
+  zh: 语言
+  en: Languages

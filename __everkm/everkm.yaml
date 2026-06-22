@@ -49,21 +49,25 @@ config:
       url: https://publish.everkm.com
   
   header_nav:
-    - title: Home
+    - title: "@i18n:Home"
       url: /
-    - title: Guide
-      url: https://publish.everkm.com/guide/
-    - title: Docs
-      url: https://publish.everkm.com/docs/
-    # - title: 博客
-    #   url: /blog/
-    #   children:
-    #     - title: 最新文章
-    #       url: /blog/latest
-    #     - title: 标签分类
-    #       url: /blog/tags
-    #     - title: 归档
-    #       url: /blog/archive
+      new_window: false
+    - title: "@i18n:Guide"
+      url: 
+        _default: https://publish.everkm.com/guide/
+        zh: https://publish.everkm.cn/guide/
+    - title: "@i18n:Docs"
+      url: 
+        _default: https://publish.everkm.com/docs/
+        zh: https://publish.everkm.cn/docs/
+    - title: "@i18n:Languages"
+      children:
+        - title: "English"
+          url: /index.html
+          new_window: false
+        - title: "中文"
+          url: /zh/
+          new_window: false
 
   body_end_html: |
     <script defer src="https://aa.daobox.cc/script.js" data-website-id="f47e3524-1a16-48bf-ad81-ffd91d4045fc"></script>
