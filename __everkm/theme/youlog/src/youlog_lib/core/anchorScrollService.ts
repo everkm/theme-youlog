@@ -8,6 +8,11 @@
  * - 协作：page-ajax（导航后滚动）、toc/topbar（inset contributor）。
  * - 宿主编排：由主题 entries/browser.ts 创建实例并 applyInitialHash。
  *
+ * 更新日志：
+ * - 2026-06-22：scrollContainer 改为懒解析（避免在容器入 DOM 前锁成 window 致 scrollTo 空操作）；
+ *   首屏校正升级为「窗口内持续重定位目标」，监听 fonts.ready / load / 正文 ResizeObserver，
+ *   修复慢网首屏字体/图片回流后标题位置偏移。
+ *
  * @module youlog_lib/core/anchorScrollService
  */
 
@@ -17,8 +22,10 @@ import {
   waitForDomContentLoaded,
 } from "./anchorInset";
 import {
+  computeScrollTopForElement,
   getHashFromUrl,
   getScrollTop,
+  resolveAnchorTarget,
   resolveScrollContainer,
   scrollToHash,
   type ScrollContainer,
@@ -59,8 +66,11 @@ export interface AnchorScrollService {
 }
 
 const DEFAULT_INSET_CSS_VAR = "--anchor-inset-top";
-const INITIAL_CORRECTION_WINDOW_MS = 500;
+// 首屏校正窗口：覆盖慢网下 CJK 字体 / 图片 / 代码高亮的延迟回流
+const INITIAL_CORRECTION_WINDOW_MS = 2500;
 const INITIAL_CORRECTION_THRESHOLD_PX = 2;
+// 滚动位置偏离预期超过该阈值视为用户主动滚动，放弃自动校正
+const USER_SCROLL_THRESHOLD_PX = 8;
 
 interface RegisteredInset {
   contributor: AnchorInsetContributor;
@@ -90,7 +100,11 @@ function resolveArticleRoot(
 export function createAnchorScrollService(
   options: AnchorScrollServiceOptions,
 ): AnchorScrollService {
-  const scrollContainer = resolveContainer(options.scrollContainer);
+  // 延迟解析滚动容器：服务可能在 #body-main 入 DOM 前创建（bundle 在 <head> 执行），
+  // 若此时即解析会回退为 window，导致后续所有 scrollTo 落在不滚动的 window 上而失效。
+  // 同时 PJAX morph 可能重建容器，故每次滚动都重新解析选择器。
+  const getScrollContainer = (): ScrollContainer =>
+    resolveContainer(options.scrollContainer);
   const extraOffset = options.extraOffset ?? 0;
   const insetCssVar = options.insetCssVar ?? DEFAULT_INSET_CSS_VAR;
   const onNavigate = options.onNavigate;
@@ -152,47 +166,83 @@ export function createAnchorScrollService(
   const startInitialCorrection = (hash: string): void => {
     stopInitialCorrection();
     initialCorrectionActive = true;
-    const scrollEl = scrollContainer;
-    const baselineOffset = getOffset();
-    const baselineScrollTop = getScrollTop(scrollEl);
-    let userScrolled = false;
+
+    const scrollEl = getScrollContainer();
+    const root = resolveArticleRoot(scrollEl, options.articleSelector);
+    // 期望停留位置；程序化校正后同步更新，借此区分「用户主动滚动」与「自身校正」
+    let expectedTop = getScrollTop(scrollEl);
+
+    // 重新把目标钉回正确位置：覆盖 inset 变化与首屏资源回流（字体/图片/代码高亮）
+    const reposition = (): void => {
+      if (!initialCorrectionActive) return;
+      if (
+        Math.abs(getScrollTop(scrollEl) - expectedTop) >
+        USER_SCROLL_THRESHOLD_PX
+      ) {
+        stopInitialCorrection();
+        return;
+      }
+      const target = resolveAnchorTarget(hash, root);
+      if (!target) return;
+      syncInsetCssVar();
+      const desiredTop = computeScrollTopForElement(
+        target,
+        scrollEl,
+        getOffset(),
+      );
+      if (
+        Math.abs(desiredTop - getScrollTop(scrollEl)) >
+        INITIAL_CORRECTION_THRESHOLD_PX
+      ) {
+        scrollEl.scrollTo({ top: desiredTop, behavior: "auto" });
+      }
+      expectedTop = getScrollTop(scrollEl);
+    };
 
     const onUserScroll = (): void => {
-      if (Math.abs(getScrollTop(scrollEl) - baselineScrollTop) > 4) {
-        userScrolled = true;
+      if (
+        Math.abs(getScrollTop(scrollEl) - expectedTop) >
+        USER_SCROLL_THRESHOLD_PX
+      ) {
         stopInitialCorrection();
       }
     };
-
     scrollEl.addEventListener("scroll", onUserScroll, { passive: true });
 
-    const timeout = window.setTimeout(() => {
-      stopInitialCorrection();
-    }, INITIAL_CORRECTION_WINDOW_MS);
+    let observer: ResizeObserver | undefined;
+    if ("ResizeObserver" in window) {
+      observer = new ResizeObserver(() => reposition());
+      observer.observe(document.documentElement);
+      // 观察正文容器高度：字体/图片加载导致目标上方内容回流时触发复位
+      if (root instanceof Element) {
+        observer.observe(root);
+      }
+    }
 
-    const observer =
-      "ResizeObserver" in window
-        ? new ResizeObserver(() => {
-            if (!initialCorrectionActive || userScrolled) return;
-            const nextOffset = getOffset();
-            syncInsetCssVar();
-            if (
-              Math.abs(nextOffset - baselineOffset) >
-              INITIAL_CORRECTION_THRESHOLD_PX
-            ) {
-              scrollToHash(hash, scrollContainer, {
-                behavior: "auto",
-                offset: nextOffset,
-              }, resolveArticleRoot(scrollContainer, options.articleSelector));
-            }
-          })
-        : undefined;
+    let active = true;
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(() => {
+        if (active) reposition();
+      });
+    }
+    const onWindowLoad = (): void => reposition();
+    window.addEventListener("load", onWindowLoad);
 
-    observer?.observe(document.documentElement);
+    // 兜底多帧复位，应对未触发 RO / load 的渐进式布局变化
+    const timers = [0, 80, 200, 400, 800, 1400].map((delay) =>
+      window.setTimeout(reposition, delay),
+    );
+    const endTimer = window.setTimeout(
+      stopInitialCorrection,
+      INITIAL_CORRECTION_WINDOW_MS,
+    );
 
     initialCorrectionCleanup = () => {
-      clearTimeout(timeout);
+      active = false;
+      timers.forEach((t) => clearTimeout(t));
+      clearTimeout(endTimer);
       scrollEl.removeEventListener("scroll", onUserScroll);
+      window.removeEventListener("load", onWindowLoad);
       observer?.disconnect();
     };
   };
@@ -216,9 +266,10 @@ export function createAnchorScrollService(
     }
 
     const offset = getOffset();
-    const root = resolveArticleRoot(scrollContainer, options.articleSelector);
+    const container = getScrollContainer();
+    const root = resolveArticleRoot(container, options.articleSelector);
     const behavior = req.behavior ?? "auto";
-    const ok = scrollToHash(hash, scrollContainer, { offset, behavior }, root);
+    const ok = scrollToHash(hash, container, { offset, behavior }, root);
 
     if (ok) {
       if (!req.skipNotify && req.source !== "toc") {

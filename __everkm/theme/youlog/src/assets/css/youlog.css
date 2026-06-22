@@ -19,6 +19,20 @@
       calc(var(--topbar-height, 3.5rem) + 2.75rem)
     );
   }
+
+  /*
+   * 小屏由滚动容器 #body-main 的 scroll-padding-top 统一提供锚点顶部留白。
+   * 此时标题/脚注若再保留 scroll-margin-top，浏览器原生滚动（冷启动 #hash、
+   * :target、页内查找等）会把两者相加，导致定位偏移约一倍（多出的"间距"）。
+   * 故在 scroll-padding 生效时清零目标自身的 scroll-margin-top，确保单一留白来源，
+   * 与 AnchorScrollService 计算的 JS 偏移保持一致。
+   */
+  #page-shell[data-has-headings="1"]
+    #body-main
+    .markdown-body
+    :is(h1, h2, h3, h4, h5, h6, .footnote-definition) {
+    scroll-margin-top: 0;
+  }
 }
 
 .mark-top {
