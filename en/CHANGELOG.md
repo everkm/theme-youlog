@@ -13,6 +13,7 @@ This changelog is for end users. Keep the wording user-friendly and avoid exposi
   - Added `start_icon` and `end_icon` to show icons before or after menu text (e.g. language switcher, external link)
   - Added `reflect_active_child`: when a sub-item matches the current page, the parent shows that sub-item's title (useful for language menus)
   - Added `no_highlight` to exclude specific items from the current-page highlight style
+  - Added `match_children_prefix`: when enabled on a parent menu, its direct child links can match the current page by URL prefix (including the home path `/`). Useful for language menus where the English entry points to `/` and should stay highlighted on pages not listed separately in the menu (e.g. the changelog page)
 
 
 ## v0.5.8 (2026-06-22)
