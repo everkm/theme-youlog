@@ -4,7 +4,7 @@ slug: index
 
 
 
-# Youlog Theme Configuration
+# Theme Configuration
 
 Youlog is a documentation/blog theme for [everkm-publish](https://publish.everkm.cn), with `book` as the default template. Site-level configuration is placed under the `config` node in workspace `__everkm/everkm.yaml`; route parameters for book directories are set in the `query` of `folders`.
 
