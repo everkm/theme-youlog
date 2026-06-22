@@ -350,4 +350,4 @@ meta:
 | 演示站 | https://youlog.theme.everkm.com/ |
 | 仓库 | https://github.com/everkm/theme-youlog |
 
-完整配置示例见工作区 [`__everkm/everkm.yaml`](../../everkm.yaml)。
+
