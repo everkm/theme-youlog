@@ -6,6 +6,7 @@ import {
   scrollToElement,
   type ScrollContainer,
 } from "../../core/scrollAnchor";
+import type { AnchorScrollService } from "../../core/anchorScrollService";
 import { parseTocItems, VERTICAL_PADDING, type TocItem } from "./tocParsing";
 import type { TocScrollSync } from "./tocScrollSync";
 import {
@@ -48,6 +49,8 @@ interface TocProps {
   onAfterGoto: (id: string, anchorName?: string) => void;
   emitter: Emitter<TocEvents> | null;
   scrollSync: TocScrollSync;
+  /** 注入时目录跳转委托 AnchorScrollService */
+  anchorScroll?: AnchorScrollService;
 }
 
 type MobileTocProps = Omit<
@@ -59,7 +62,17 @@ type MobileTocProps = Omit<
 };
 
 function MobileToc(props: MobileTocProps) {
-  const [tocItems, setTocItems] = createSignal<TocItem[]>([]);
+  const readTocItems = (): TocItem[] => {
+    const articleElement = document.querySelector<HTMLElement>(
+      props.articleSelector,
+    );
+    if (!articleElement) {
+      return [];
+    }
+    return parseTocItems(articleElement, props.headingSelector);
+  };
+
+  const [tocItems, setTocItems] = createSignal<TocItem[]>(readTocItems());
   const [showToc, setShowToc] = createSignal(false);
 
   let mobileTocRef: HTMLDivElement | undefined;
@@ -210,6 +223,7 @@ function MobileToc(props: MobileTocProps) {
               scrollContainer={props.scrollContainer}
               emitter={null}
               scrollSync={props.scrollSync}
+              anchorScroll={props.anchorScroll}
             />
           </div>
         </Show>
@@ -339,12 +353,7 @@ function TableOfContents(props: TocProps) {
 
     props.scrollSync.beginGoto(item.key);
 
-    const finishGoto = () => {
-      scrollToElement(targetHeading, props.scrollContainer, {
-        offset: getScrollOffset(),
-        behavior: "auto",
-      });
-
+    const finishHistory = () => {
       let anchorName: string | undefined;
       if (targetHeading.matches("a.heading-anchor")) {
         anchorName = targetHeading.getAttribute("name") || undefined;
@@ -353,6 +362,29 @@ function TableOfContents(props: TocProps) {
         anchorName = anchorEl?.getAttribute("name") || undefined;
       }
       props.onAfterGoto(item.id, anchorName);
+    };
+
+    if (props.anchorScroll) {
+      void props.anchorScroll
+        .scrollToHash({
+          hash: item.id,
+          source: "toc",
+          behavior: "auto",
+          beforeScroll: props.onBeforeGoto,
+          skipNotify: true,
+        })
+        .then(() => {
+          finishHistory();
+        });
+      return;
+    }
+
+    const finishGoto = () => {
+      scrollToElement(targetHeading, props.scrollContainer, {
+        offset: getScrollOffset(),
+        behavior: "auto",
+      });
+      finishHistory();
     };
 
     if (props.onBeforeGoto) {

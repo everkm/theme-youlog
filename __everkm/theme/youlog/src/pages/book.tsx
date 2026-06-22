@@ -140,12 +140,14 @@ const BookPage: Component<BookPageProps> = (props) => {
     hasNav: !!navDoc,
     configValue,
   });
+  const hasHeadings = !doc?.meta?.hide_toc;
 
   return (
     <div
       id="page-shell"
       data-ajax-layout={ajaxPageFingerprint}
       data-stack-layout={stackLayout ? "1" : "0"}
+      data-has-headings={hasHeadings ? "1" : undefined}
       class={stackLayout ? "flex flex-col h-dvh" : "flex h-dvh"}
     >
       {stackLayout ? (

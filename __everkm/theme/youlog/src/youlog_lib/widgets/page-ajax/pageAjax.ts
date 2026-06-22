@@ -15,10 +15,12 @@ import { buildSkipCallbacks } from "./morphCallbacks";
 import { getOrFetch, prefetch } from "./prefetchCache";
 import {
   resolveScrollContainer,
+  scrollContainerToTop,
   scrollToHash,
   getAnchorScrollOffset,
   type ScrollContainer,
 } from "../../core/scrollAnchor";
+import type { AnchorScrollService } from "../../core/anchorScrollService";
 import {
   EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
@@ -38,8 +40,13 @@ export interface PageAjaxOptions {
   scrollContainerSelector?: string;
   /** 锚点滚动时在文章内解析目标（与 TOC 一致，避免命中页外重复 id） */
   articleSelector?: string;
-  /** 锚点滚动顶部留白（如 sticky 顶栏、小屏目录栏）；未提供时用 getAnchorScrollOffset */
+  /**
+   * 锚点滚动顶部留白（如 sticky 顶栏、小屏目录栏）；未提供时用 getAnchorScrollOffset。
+   * 传入 anchorScroll 时忽略本项。
+   */
   resolveAnchorScrollOffset?: (scrollContainer: ScrollContainer) => number;
+  /** 统一锚点滚动服务；传入时 hash 滚动与 inset 由服务负责，首屏 hash 须由宿主 applyInitialHash */
+  anchorScroll?: AnchorScrollService;
 }
 
 type RequiredOptions = Required<
@@ -123,6 +130,21 @@ function scrollToPageHash(hash: string, opts: RequiredOptions): void {
 function scrollAfterNavigation(url: string, opts: RequiredOptions): void {
   const hash = getUrlHash(url);
   requestAnimationFrame(() => {
+    if (opts.anchorScroll) {
+      if (hash) {
+        void opts.anchorScroll.scrollToHash({
+          hash,
+          source: "navigation",
+          behavior: "auto",
+        });
+      } else {
+        const container =
+          resolveScrollContainer(opts.scrollContainerSelector) ?? window;
+        scrollContainerToTop(container, "auto");
+      }
+      return;
+    }
+
     const container = resolveScrollContainer(opts.scrollContainerSelector) ?? window;
     if (hash) {
       scrollToPageHash(hash, opts);
@@ -292,6 +314,7 @@ function initPageAjax(options: PageAjaxOptions = {}): void {
     scrollContainerSelector: options.scrollContainerSelector ?? "#body-main",
     articleSelector: options.articleSelector,
     resolveAnchorScrollOffset: options.resolveAnchorScrollOffset,
+    anchorScroll: options.anchorScroll,
   };
 
   nProgress.configure({ showSpinner: false, minimum: 0.1, speed: 200, trickleSpeed: 100 });
@@ -307,8 +330,10 @@ function initPageAjax(options: PageAjaxOptions = {}): void {
   bindPopState(opts);
   bindProgrammaticNavigate(opts);
 
-  // 首屏带 #anchor 进入时滚动到锚点
-  scrollToInitialHash(opts);
+  // 未注入 anchorScroll 时保留 legacy 首屏 hash 滚动
+  if (!opts.anchorScroll) {
+    scrollToInitialHash(opts);
+  }
 }
 
 function bindLinkInterceptor(opts: RequiredOptions): void {

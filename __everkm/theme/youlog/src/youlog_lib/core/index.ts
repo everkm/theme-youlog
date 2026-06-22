@@ -19,4 +19,13 @@ export {
   type ScrollContainer,
   type ScrollToAnchorOptions,
 } from "./scrollAnchor";
+export type { AnchorInsetContributor } from "./anchorInset";
+export { nextFrame, waitForDomContentLoaded, waitForLayoutCondition } from "./anchorInset";
+export {
+  createAnchorScrollService,
+  type AnchorScrollService,
+  type AnchorScrollServiceOptions,
+  type AnchorScrollSource,
+  type ScrollToHashRequest,
+} from "./anchorScrollService";
 

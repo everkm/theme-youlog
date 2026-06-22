@@ -12,6 +12,15 @@
   --anchor-scroll-margin: calc(var(--topbar-height, 3.5rem) + 1rem);
 }
 
+@media (max-width: 1023px) {
+  #page-shell[data-has-headings="1"] #body-main {
+    scroll-padding-top: var(
+      --anchor-inset-top,
+      calc(var(--topbar-height, 3.5rem) + 2.75rem)
+    );
+  }
+}
+
 .mark-top {
   content: " ";
   @apply icon-[material-symbols--vertical-align-top-rounded] inline-block h-[0.7em] w-[0.7em];

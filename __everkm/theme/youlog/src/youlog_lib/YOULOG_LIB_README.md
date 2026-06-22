@@ -4,6 +4,7 @@
 
 本文件（库级规范）的变更记录：
 
+- **2026-06-22**：`AnchorScrollService` + inset 注册表；page-ajax / toc 可选注入；详见 §3.8。
 - **2026-06-16**：初版；章节数字编号；page-ajax / nav-tree 跨项目复制注意事项写入 §5、§6。
 - **2026-06-16**：page-ajax 分级导航（idiomorph shell morph、head/layout 指纹）；nav-tree 支持 AJAX 后动态 mount 侧栏。
 - **2026-06-16**：新增 §3「使用注意事项」— 复制范围、库内外职责、入口接线、SSR 约定、widget 协作与已知缺口。
@@ -60,7 +61,8 @@ widgets/<name>/
 | 职责 | 位置 | 说明 |
 |------|------|------|
 | Widget 逻辑与 `install*` | `youlog_lib/widgets/*` | 复制后按各模块 `index.ts` 接入 |
-| 锚点滚动、嵌套滚动容器 | `youlog_lib/core/scrollAnchor.ts` | 被 `page-ajax`、`toc` 共用；经 `core/index.ts` 导出 |
+| 锚点滚动、嵌套滚动容器 | `youlog_lib/core/scrollAnchor.ts` | 纯几何计算；被 page-ajax、toc 共用 |
+| 锚点滚动编排与 inset | `youlog_lib/core/anchorScrollService.ts` | 宿主创建并注入 widget；见 §3.8 |
 | 布局 / head 指纹字符串 | 主题 `utils/ajaxLayout.ts` | 仅 SSR 使用；语义须与 `data-ajax-layout` / `data-ajax-head` 一致 |
 | DOM 骨架与 `data-*` 标记 | 主题 layout / pages | `#page-shell`、`data-ajax-element`、`#sidebar-nav-tree` 等 |
 | 浏览器入口接线 | 主题 `entries/browser.ts` | 调用各 `install*`，并处理 TOC 等与 `anchor-navigate` 的联动 |
@@ -69,30 +71,37 @@ widgets/<name>/
 
 ### 3.3 浏览器入口接线
 
-启用 AJAX 导航 + 侧栏树 + 目录时，入口至少应包含（选择器按项目调整）：
+启用 AJAX 导航 + 侧栏树 + 目录时，推荐入口（youlog 主题完整版，见 `entries/browser.ts`）：
 
 ```ts
+import { createAnchorScrollService } from "youlog_lib/core";
+import { initPageAjax, notifyAnchorNavigate, EVENT_ANCHOR_NAVIGATE } from "youlog_lib/widgets/page-ajax";
 import { installTopbarHeightWatcher } from "youlog_lib/widgets/topbar";
-import { installAjaxPageLoad, notifyAnchorNavigate } from "youlog_lib/widgets/page-ajax";
 import { installSidebarNavTree2 } from "youlog_lib/widgets/nav-tree";
 import { installNavMenu } from "youlog_lib/widgets/nav-menu";
 import { installToc } from "youlog_lib/widgets/toc";
 
-installTopbarHeightWatcher("header"); // 写入 --topbar-height，供锚点滚动留白
-installAjaxPageLoad({ scrollContainerSelector: "#body-main" });
-installSidebarNavTree2(); // 无条件调用，侧栏可随 AJAX 后出现
-installNavMenu({ mobileMenuContainerSelector: "#mobile-menu-container" });
-installToc({
-  scrollContainerSelector: "#body-main",
-  onAfterGoto: (id, anchorName) => {
-    const hash = anchorName || id;
-    if (hash.length) {
-      history.pushState(null, "", `#${hash}`);
-      notifyAnchorNavigate(); // 刷新 nav-tree 高亮，不触发 page-loaded
-    }
+const anchorScroll = createAnchorScrollService({
+  scrollContainer: "#body-main",
+  articleSelector: "#article-main",
+  extraOffset: 10,
+  onNavigate: (hash) => {
+    document.dispatchEvent(
+      new CustomEvent(EVENT_ANCHOR_NAVIGATE, { detail: { hash }, bubbles: true, composed: true }),
+    );
   },
 });
+
+// 主题层：registerYoulogAnchorInsets(anchorScroll) 等 contributor 注册
+installTopbarHeightWatcher("header");
+initPageAjax({ scrollContainerSelector: "#body-main", articleSelector: "#article-main", anchorScroll });
+installSidebarNavTree2();
+installNavMenu({ mobileMenuContainerSelector: "#mobile-menu-container" });
+installToc({ scrollContainerSelector: "#body-main", anchorScroll, onAfterGoto: (id, anchorName) => { /* pushState + notifyAnchorNavigate */ } });
+anchorScroll.applyInitialHash();
 ```
+
+未注入 `anchorScroll` 时，`initPageAjax` 仍支持 legacy `resolveAnchorScrollOffset` 与内置首屏 hash 滚动（向后兼容）。
 
 要点：
 
@@ -118,17 +127,39 @@ installToc({
 ```
 SSR（指纹 + DOM）
     ↓
-page-ajax ←── scrollAnchor（锚点滚动 / 滚顶）
+AnchorScrollService ←── inset 注册（topbar / mobile TOC / 主题 header）
+    ↓
+page-ajax ←── scrollAnchor（几何计算）
     │              ↑
-    │         topbar（--topbar-height）
+    │         topbar（--topbar-height CSS 变量）
     ├── page-loaded ──→ nav-tree / nav-menu / toc / prism / …
     └── anchor-navigate ──→ nav-tree（仅刷新高亮，不重建树）
 ```
 
+- **AnchorScrollService** 由宿主在 `browser.ts` 创建；page-ajax / toc 通过可选 `anchorScroll` 注入，**不得在 widget 内自行 create**。
 - **page-ajax** 是多数 widget 的生命周期中枢；未安装时，仅整页加载场景下部分 widget 仍可用（如首屏已存在 DOM 的 nav-tree）。
 - **nav-tree** 依赖 `page-ajax` 的 `page-loaded`（动态 mount）与 `anchor-navigate`（hash 高亮）；快路径下依赖 `data-nav-fingerprint` 与 `navTreeSync`。
-- **toc** 与 **page-ajax** 共用 `scrollAnchor`；嵌套滚动容器（如 `#body-main`）须在 `installToc` / `installAjaxPageLoad` 中传同一 `scrollContainerSelector`。
-- **topbar** 与 **scrollAnchor** 通过 CSS 变量 `--topbar-height` 协作；未安装 topbar 时锚点滚动仍可用，仅顶部留白可能偏小。
+- **toc** 与 **page-ajax** 须使用同一 `scrollContainerSelector`；注入 `anchorScroll` 时目录跳转与 PJAX hash 滚动共用 inset。
+- **topbar** 写入 `--topbar-height`；inset 由 `createTopbarInset` 或主题 `createScrollContainerHeaderInset` 注册。
+
+### 3.8 锚点滚动（AnchorScrollService，2026-06-22）
+
+| 模块 | 导出 | 说明 |
+|------|------|------|
+| `core/anchorScrollService.ts` | `createAnchorScrollService` | 统一 hash 滚动、inset 聚合、`--anchor-inset-top` |
+| `core/anchorInset.ts` | `AnchorInsetContributor` | inset 契约类型 |
+| `widgets/toc/tocInset.ts` | `createMobileTocBarInset` | 小屏目录栏 inset |
+| `widgets/topbar/topbarInset.ts` | `createTopbarInset`, `createScrollContainerHeaderInset` | 顶栏 / 容器内 header inset |
+
+复制检查（锚点专项）：
+
+- [ ] 已创建 `createAnchorScrollService` 并传入 `initPageAjax` / `installToc`
+- [ ] `scrollContainerSelector` 在 page-ajax 与 toc 间一致
+- [ ] sticky UI 已通过 `registerInset` 或 `create*Inset` 注册
+- [ ] 首屏 hash 由 `anchorScroll.applyInitialHash()` 触发（非 page-ajax legacy 路径）
+- [ ] 主题 CSS 中 `scroll-margin-top` / `scroll-padding-top` 与 `--anchor-inset-top` fallback 一致
+
+详细方案：`theme-youlog/stuff/km/260622-Plan-锚点滚动架构.md`。
 
 ### 3.6 npm 依赖（常用组合）
 
@@ -147,7 +178,7 @@ page-ajax ←── scrollAnchor（锚点滚动 / 滚顶）
 
 ## 4. 复制到其它项目时的检查清单
 
-- [ ] 已复制完整 `youlog_lib/`（含 `core/scrollAnchor.ts`）
+- [ ] 已复制完整 `youlog_lib/`（含 `core/scrollAnchor.ts`、`core/anchorScrollService.ts`）
 - [ ] `package.json` 已声明所用 widget 的 **npm 依赖**（例：`page-ajax` → `idiomorph`）
 - [ ] 浏览器入口已按 §3.3 调用 `install*` / `notifyAnchorNavigate` 等接线
 - [ ] SSR / 模板满足 §3.4 与各 widget **DOM / data 属性约定**

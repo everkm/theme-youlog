@@ -15,11 +15,13 @@ import {
 import { processedRegistry } from "../page-ajax/processedRegistry";
 import mitt, { Emitter } from "mitt";
 import { resolveScrollContainer, type ScrollContainer } from "../../core/scrollAnchor";
+import type { AnchorScrollService } from "../../core/anchorScrollService";
 import {
   createTocScrollSync,
   resolveTocGotoHeadersHeight,
   type TocScrollSync,
 } from "./tocScrollSync";
+import { createMobileTocBarInset } from "./tocInset";
 import { syncTocContainerMaxHeight } from "./tocContainerLayout";
 
 /** 合并默认后的完整配置（不含运行时解析的 tocContainer / scrollContainer / headerHeight / callbackHeadersHeight / emitter） */
@@ -36,6 +38,7 @@ export type RequiredTocOptions = Omit<
   scrollContainerSelector: string;
   headerSelector: string;
   enableMobileToc: boolean;
+  anchorScroll?: AnchorScrollService;
 };
 
 /** 对外传入 initToc/installToc；未传字段由 DEFAULT_TOC_OPTIONS 补全 */
@@ -68,6 +71,7 @@ const TOPBAR_OFFSET = -1;
 
 let desktopTocDispose: (() => void) | undefined;
 let desktopTocMounted = false;
+let unregisterMobileTocInset: (() => void) | undefined;
 
 function queryWithinScrollContainer(
   scrollContainer: ScrollContainer,
@@ -111,10 +115,37 @@ function createScrollSyncForOptions(
 
 /** 桌面端 / 小屏跳转：容器内 header +（小屏）mobile TOC 标题栏 */
 function createGotoHeadersHeight(
+  options: RequiredTocOptions,
   scrollContainer: ScrollContainer,
   headerSelector: string,
 ) {
-  return () => [resolveTocGotoHeadersHeight(scrollContainer, headerSelector)];
+  return () => {
+    if (options.anchorScroll) {
+      return [options.anchorScroll.getOffset() - options.offset];
+    }
+    return [resolveTocGotoHeadersHeight(scrollContainer, headerSelector)];
+  };
+}
+
+function registerMobileTocInset(
+  options: RequiredTocOptions,
+  scrollContainer: ScrollContainer,
+): void {
+  unregisterMobileTocInset?.();
+  unregisterMobileTocInset = undefined;
+
+  if (!options.anchorScroll || !options.enableMobileToc) {
+    return;
+  }
+
+  unregisterMobileTocInset = options.anchorScroll.registerInset(
+    createMobileTocBarInset({
+      scrollContainer,
+      headerSelector: options.headerSelector,
+      articleSelector: options.articleSelector,
+      headingSelector: options.headingSelector,
+    }),
+  );
 }
 
 /** PJAX morph 保护：#toc 子树由 Solid 管理，须跳过 idiomorph 以免被 SSR 空容器覆盖 */
@@ -175,6 +206,7 @@ function renderDesktopTocTree(
         highlightParents={options.highlightParents}
         title={options.title}
         callbackHeadersHeight={createGotoHeadersHeight(
+          options,
           scrollContainer,
           options.headerSelector,
         )}
@@ -182,6 +214,7 @@ function renderDesktopTocTree(
         emitter={tocEmitter}
         scrollContainer={scrollContainer}
         scrollSync={scrollSync}
+        anchorScroll={options.anchorScroll}
       />
     ),
     tocContainer,
@@ -303,6 +336,8 @@ function initMobileToc(
   mobileTocContainer.style.position = "sticky";
   mobileTocContainer.style.zIndex = "5";
 
+  registerMobileTocInset(options, scrollContainer);
+
   const disposeMobileToc = render(
     () => (
       <MobileToc
@@ -316,10 +351,12 @@ function initMobileToc(
         scrollContainer={scrollContainer}
         scrollSync={scrollSync}
         callbackGotoHeadersHeight={createGotoHeadersHeight(
+          options,
           scrollContainer,
           headerSelector,
         )}
         onAfterGoto={options.onAfterGoto}
+        anchorScroll={options.anchorScroll}
       />
     ),
     mobileTocContainer,
@@ -328,6 +365,8 @@ function initMobileToc(
   return () => {
     disposeMobileToc();
     mobileTocContainer?.remove();
+    unregisterMobileTocInset?.();
+    unregisterMobileTocInset = undefined;
   };
 }
 
@@ -399,6 +438,8 @@ function doSetupToc(options?: TocOptions): void {
   document.addEventListener(EVENT_BEFORE_UPDATE, () => {
     tocEmitter.emit("stop");
     scrollSync.stop();
+    unregisterMobileTocInset?.();
+    unregisterMobileTocInset = undefined;
     if (mobileTocCleanup) {
       mobileTocCleanup();
       mobileTocCleanup = undefined;

@@ -13,6 +13,7 @@ export const YOULOG_SCROLL_LAYOUT = {
   articleSelector: "#article-main",
   headerSelector: "header",
   tocSelector: "#toc",
+  headingSelector: "h1, h2, h3, h4",
   /** 锚点 / 目录跳转时，标题与 sticky 顶栏之间的额外间距（px） */
   anchorExtraOffset: 10,
 } as const;
@@ -25,6 +26,7 @@ export function getYoulogScrollContainer(): ScrollContainer | null {
 }
 
 /** 锚点 / 目录跳转时的顶部留白（sticky 顶栏 + 小屏目录栏 + 额外间距） */
+/** @deprecated 请改用 AnchorScrollService.getOffset() */
 export function resolveYoulogAnchorScrollOffset(
   scrollContainer: ScrollContainer,
 ): number {

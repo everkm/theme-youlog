@@ -5,14 +5,19 @@ import "../assets/css/youlog.css";
 // import "../assets/css/markdown.css";
 import "../assets/css/markdown2.css";
 
+import { createAnchorScrollService } from "../youlog_lib/core/anchorScrollService";
 import { installToc } from "../youlog_lib/widgets/toc";
 import t from "../youlog_lib/widgets/toc/i18n";
 import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
-import { initPageAjax, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
 import {
-  resolveYoulogAnchorScrollOffset,
-  YOULOG_SCROLL_LAYOUT,
-} from "../layout/scrollLayout";
+  initPageAjax,
+  notifyAnchorNavigate,
+  EVENT_ANCHOR_NAVIGATE,
+  EVENT_PAGE_LOADED,
+} from "../youlog_lib/widgets/page-ajax";
+import { registerYoulogAnchorInsets } from "../layout/anchorInsets";
+import { syncPageShellHasHeadings } from "../layout/pageShellMeta";
+import { YOULOG_SCROLL_LAYOUT } from "../layout/scrollLayout";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
@@ -31,20 +36,44 @@ import { installFootnoteBackButton } from "youlog_lib/widgets/footnote";
 import { installTopbarHeightWatcher } from "youlog_lib/widgets/topbar";
 import { installInSearchMorphProtection } from "../youlog_lib/plugins/in_search/morphProtection";
 
+function syncYoulogPageShellMeta(): void {
+  syncPageShellHasHeadings(
+    YOULOG_SCROLL_LAYOUT.articleSelector,
+    YOULOG_SCROLL_LAYOUT.headingSelector,
+  );
+}
+
 function install() {
+  const anchorScroll = createAnchorScrollService({
+    scrollContainer: YOULOG_SCROLL_LAYOUT.scrollContainerSelector,
+    articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
+    extraOffset: YOULOG_SCROLL_LAYOUT.anchorExtraOffset,
+    onNavigate: (hash) => {
+      document.dispatchEvent(
+        new CustomEvent(EVENT_ANCHOR_NAVIGATE, {
+          detail: { hash },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    },
+  });
+
+  registerYoulogAnchorInsets(anchorScroll);
   installTopbarHeightWatcher("header");
   // 须在 plugin-in-search 的 customElement 升级前注册，避免 PJAX morph 覆盖搜索框
   installInSearchMorphProtection();
   installToc({
     tocSelector: YOULOG_SCROLL_LAYOUT.tocSelector,
     articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
-    headingSelector: "h1, h2, h3, h4",
+    headingSelector: YOULOG_SCROLL_LAYOUT.headingSelector,
     headerSelector: YOULOG_SCROLL_LAYOUT.headerSelector,
     offset: YOULOG_SCROLL_LAYOUT.anchorExtraOffset,
     highlightParents: false,
     title: t("title"),
     enableMobileToc: true,
     scrollContainerSelector: YOULOG_SCROLL_LAYOUT.scrollContainerSelector,
+    anchorScroll,
     onAfterGoto: (id: string, anchorName?: string) => {
       const hash = anchorName || id;
       if (hash.length) {
@@ -71,7 +100,7 @@ function install() {
   initPageAjax({
     scrollContainerSelector: YOULOG_SCROLL_LAYOUT.scrollContainerSelector,
     articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
-    resolveAnchorScrollOffset: resolveYoulogAnchorScrollOffset,
+    anchorScroll,
   });
   installHeadingAnchor("#article-main");
   installFootnoteBackButton("#article-main");
@@ -93,6 +122,18 @@ function install() {
   installPageQrcode();
 
   installTheme();
+
+  const runPageShellMetaSync = () => syncYoulogPageShellMeta();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", runPageShellMetaSync, {
+      once: true,
+    });
+  } else {
+    runPageShellMetaSync();
+  }
+  document.addEventListener(EVENT_PAGE_LOADED, runPageShellMetaSync);
+
+  anchorScroll.applyInitialHash();
 }
 
 install();

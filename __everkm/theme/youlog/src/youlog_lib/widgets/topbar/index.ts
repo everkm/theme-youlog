@@ -36,8 +36,6 @@ function initTopbarHeightWatcher(selector: string): () => void {
   };
 }
 
-export { initTopbarHeightWatcher };
-
 function installTopbarHeightWatcher(selector = "header"): void {
   let cleanup: (() => void) | undefined;
 
@@ -55,4 +53,9 @@ function installTopbarHeightWatcher(selector = "header"): void {
   document.addEventListener(EVENT_PAGE_LOADED, mount);
 }
 
-export { installTopbarHeightWatcher };
+export { installTopbarHeightWatcher, initTopbarHeightWatcher };
+export {
+  createTopbarInset,
+  createScrollContainerHeaderInset,
+} from "./topbarInset";
+export type { TopbarInsetOptions } from "./topbarInset";

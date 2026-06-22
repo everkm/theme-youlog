@@ -42,12 +42,14 @@
  *
  * ## 更新日志
  *
+ * - 2026-06-22：可选 `anchorScroll`（AnchorScrollService）；注入后 hash 滚动委托服务，首屏由宿主 `applyInitialHash`。
  * - 2026-06-17：v5 重构——引擎零感知架构、`data-processed` + `ProcessedRegistry` 契约、
  *   单 `beforeNodeMorphed` 跳过子树、prefetch 缓存（LRU + 并发去重）、事件命名空间 `pjax:*`；
  *   移除 `data-ajax-element` 快路径与 `data-ajax-layout` / nav-tree 指纹逻辑。
  */
 
 export { initPageAjax, notifyAnchorNavigate, type PageAjaxOptions } from "./pageAjax";
+export type { AnchorScrollService } from "../../core/anchorScrollService";
 export {
   EVENT_BEFORE_UPDATE,
   EVENT_PAGE_LOADED,
