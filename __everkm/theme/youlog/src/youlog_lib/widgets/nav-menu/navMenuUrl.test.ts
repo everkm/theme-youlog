@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   findBestMatchingHref,
+  isEquivalentNavLink,
   isNavMenuUrlMatch,
   toComparePath,
 } from "./navMenuUrl";
@@ -91,5 +92,18 @@ describe("findBestMatchingHref", () => {
     expect(
       findBestMatchingHref("/book/", ["/"], ORIGIN),
     ).toBeNull();
+  });
+});
+
+describe("isEquivalentNavLink", () => {
+  it("treats home / and /index.html as the same page", () => {
+    expect(isEquivalentNavLink("/", "/index.html", ORIGIN)).toBe(true);
+    expect(isEquivalentNavLink("/index.html", "/", ORIGIN)).toBe(true);
+  });
+
+  it("does not treat directory prefix as equivalent", () => {
+    expect(isEquivalentNavLink("/book/", "/book/chapter/", ORIGIN)).toBe(
+      false,
+    );
   });
 });

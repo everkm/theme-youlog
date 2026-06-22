@@ -28,8 +28,8 @@
  * ### URL 规范化
  *
  * - 相对路径与绝对 URL（含域名）均先 `new URL(href, origin)` 转为绝对地址再比较。
- * - 目录首页等价（与侧栏 nav-tree 一致）：仅 `/a/index.html` ↔ `/a/` 互认；
- *   无尾斜杠的 `/a` **不参与**等价。
+ * - 目录首页等价（与侧栏 nav-tree 一致）：`/index.html` ↔ 对应目录尾斜杠路径互认
+ *   （含根路径 `/index.html` ↔ `/`）；无尾斜杠的 `/a` **不参与**等价。
  * - 用于最长匹配的 pathname 规范（`toComparePath`）：尾斜杠目录追加 `index.html`，
  *   例如 `/` → `/index.html`，`/book/` → `/book/index.html`。
  *
@@ -37,17 +37,17 @@
  *
  * 1. **精确 / 页面级匹配**：复用 `isNavUrlMatch`（pathname + search；导航项带 hash 则要求 hash 一致，
  *    导航项无 hash 时当前 URL 可带任意 hash）。
- * 2. **首页 `/`（特殊）**：仅精确匹配 `/` 与 `/index.html`，**不做前缀匹配**，
- *    避免在 `/book/` 等子路径误高亮首页。
+ * 2. **首页 `/`（特殊）**：`/` 与 `/index.html` 视为同一页面（目录首页等价，与 §URL 规范化一致）；
+ *    但**不做前缀匹配**，避免在 `/book/` 等子路径误高亮首页。
  * 3. **其它目录项**（规范化后 pathname 以 `/` 结尾）：除精确匹配外，允许前缀匹配子路径，
  *    例如导航 `/book/` 可匹配当前 `/book/chapter/`。
  * 4. **无尾斜杠的路径**（如 `/doc/page`）：仅精确匹配，不做前缀匹配。
  *
  * ### 多项竞争时（最长匹配优先）
  *
- * 所有匹配项按 `toComparePath(pathname).length` 取最长者；例如当前 `/book/` 时，
- * 配置同时有 `/` 与 `/book/`，仅 `/book/` 高亮；当前 `/book/chapter/` 且存在
- * `/book/chapter/` 与 `/book/` 时，优先 `/book/chapter/`。
+ * 所有匹配项按 `toComparePath(pathname).length` 取最长者，得到 `bestLink`；
+ * 再标记与 `bestLink` **页面等价**的项为 active（`isEquivalentNavLink`，含 `/` ↔ `/index.html`），
+ * 故 Home `/` 与 English `/index.html` 在首页会同时高亮。
  *
  * ## 与 page-ajax 的协作
  *

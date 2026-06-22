@@ -95,6 +95,20 @@ export function findBestMatchingHref(
   return best;
 }
 
+/**
+ * 两导航链接是否指向同一页面（含 `/` ↔ `/index.html` 等价，不含目录前缀）。
+ * 用于在已选出 bestLink 后，标记与之等价的其它菜单项（如 Home `/` 与 English `/index.html`）。
+ */
+export function isEquivalentNavLink(
+  a: string,
+  b: string,
+  origin = typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost",
+): boolean {
+  return isNavUrlMatch(a, b, origin);
+}
+
 export function isSameNavLink(
   a: string,
   b: string,

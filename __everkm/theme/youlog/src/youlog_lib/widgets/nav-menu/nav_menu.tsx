@@ -5,7 +5,7 @@ import { MobileNavController } from "./MobileNavController";
 import { applyDerivedLabels, normalizeMenuContext } from "./menuItemDerived";
 import {
   findBestMatchingHref,
-  isSameNavLink,
+  isEquivalentNavLink,
 } from "./navMenuUrl";
 
 export interface MenuItem {
@@ -53,7 +53,7 @@ function applyActiveState(items: MenuItem[], currentUrl: string): void {
     let anyActive = false;
     for (const item of menuItems) {
       const selfActive =
-        bestLink !== null && isSameNavLink(item.link, bestLink);
+        bestLink !== null && isEquivalentNavLink(item.link, bestLink);
       const childActive = item.children ? walk(item.children) : false;
       item.active = selfActive || childActive;
       if (item.active) anyActive = true;
