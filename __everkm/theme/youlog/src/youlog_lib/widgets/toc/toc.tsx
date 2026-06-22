@@ -17,7 +17,7 @@ import mitt, { Emitter } from "mitt";
 import { resolveScrollContainer, type ScrollContainer } from "../../core/scrollAnchor";
 import {
   createTocScrollSync,
-  getMobileTocBarHeight,
+  resolveTocGotoHeadersHeight,
   type TocScrollSync,
 } from "./tocScrollSync";
 import { syncTocContainerMaxHeight } from "./tocContainerLayout";
@@ -109,29 +109,12 @@ function createScrollSyncForOptions(
   });
 }
 
-/** 桌面端高亮：仅容器内 header；小屏跳转：header + sticky 时 TOC bar */
-function createDesktopGotoHeadersHeight(
+/** 桌面端 / 小屏跳转：容器内 header +（小屏）mobile TOC 标题栏 */
+function createGotoHeadersHeight(
   scrollContainer: ScrollContainer,
   headerSelector: string,
 ) {
-  return () => {
-    const h = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
-    return [h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT];
-  };
-}
-
-function createMobileGotoHeadersHeight(
-  scrollContainer: ScrollContainer,
-  headerSelector: string,
-) {
-  return () => {
-    const h = resolveHeaderInScrollContainer(scrollContainer, headerSelector);
-    const base = h ? h.offsetHeight : DEFAULT_HEADER_HEIGHT;
-    const bar = getMobileTocBarHeight(scrollContainer, headerSelector, {
-      requireSticky: false,
-    });
-    return [base + bar];
-  };
+  return () => [resolveTocGotoHeadersHeight(scrollContainer, headerSelector)];
 }
 
 /** PJAX morph 保护：#toc 子树由 Solid 管理，须跳过 idiomorph 以免被 SSR 空容器覆盖 */
@@ -191,7 +174,7 @@ function renderDesktopTocTree(
         offset={options.offset}
         highlightParents={options.highlightParents}
         title={options.title}
-        callbackHeadersHeight={createDesktopGotoHeadersHeight(
+        callbackHeadersHeight={createGotoHeadersHeight(
           scrollContainer,
           options.headerSelector,
         )}
@@ -332,7 +315,7 @@ function initMobileToc(
         emitter={tocEmitter}
         scrollContainer={scrollContainer}
         scrollSync={scrollSync}
-        callbackGotoHeadersHeight={createMobileGotoHeadersHeight(
+        callbackGotoHeadersHeight={createGotoHeadersHeight(
           scrollContainer,
           headerSelector,
         )}
@@ -398,9 +381,12 @@ function initToc(customOptions?: TocOptions): TocResult | undefined {
 }
 
 function installToc(options?: TocOptions): void {
-  document.addEventListener("DOMContentLoaded", () => {
-    doSetupToc(options);
-  });
+  const run = () => doSetupToc(options);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
 }
 
 function doSetupToc(options?: TocOptions): void {

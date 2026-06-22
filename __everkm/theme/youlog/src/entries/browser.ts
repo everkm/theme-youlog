@@ -9,6 +9,10 @@ import { installToc } from "../youlog_lib/widgets/toc";
 import t from "../youlog_lib/widgets/toc/i18n";
 import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
 import { initPageAjax, notifyAnchorNavigate } from "../youlog_lib/widgets/page-ajax";
+import {
+  resolveYoulogAnchorScrollOffset,
+  YOULOG_SCROLL_LAYOUT,
+} from "../layout/scrollLayout";
 import { initDrawer } from "../youlog_lib/widgets/drawer";
 import { initSidebarResizer } from "../youlog_lib/widgets/resizer";
 import { installLazyImg } from "../youlog_lib/widgets/image-lazy";
@@ -32,15 +36,15 @@ function install() {
   // 须在 plugin-in-search 的 customElement 升级前注册，避免 PJAX morph 覆盖搜索框
   installInSearchMorphProtection();
   installToc({
-    tocSelector: "#toc",
-    articleSelector: "#article-main",
+    tocSelector: YOULOG_SCROLL_LAYOUT.tocSelector,
+    articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
     headingSelector: "h1, h2, h3, h4",
-    headerSelector: "header",
-    offset: 10,
+    headerSelector: YOULOG_SCROLL_LAYOUT.headerSelector,
+    offset: YOULOG_SCROLL_LAYOUT.anchorExtraOffset,
     highlightParents: false,
     title: t("title"),
     enableMobileToc: true,
-    scrollContainerSelector: "#body-main",
+    scrollContainerSelector: YOULOG_SCROLL_LAYOUT.scrollContainerSelector,
     onAfterGoto: (id: string, anchorName?: string) => {
       const hash = anchorName || id;
       if (hash.length) {
@@ -64,7 +68,11 @@ function install() {
   installKeywordHighlighter("#article-main");
   installYoulogPrint();
   installDcardUse("#article-main");
-  initPageAjax({ scrollContainerSelector: "#body-main" });
+  initPageAjax({
+    scrollContainerSelector: YOULOG_SCROLL_LAYOUT.scrollContainerSelector,
+    articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
+    resolveAnchorScrollOffset: resolveYoulogAnchorScrollOffset,
+  });
   installHeadingAnchor("#article-main");
   installFootnoteBackButton("#article-main");
 

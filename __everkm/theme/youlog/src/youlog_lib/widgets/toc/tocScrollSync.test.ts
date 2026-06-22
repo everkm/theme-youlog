@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getMobileTocBarHeight } from "./tocScrollSync";
+import { getMobileTocBarHeight, resolveTocGotoHeadersHeight } from "./tocScrollSync";
 
 describe("getMobileTocBarHeight", () => {
   function setupIndicator(options: {
@@ -71,5 +71,31 @@ describe("getMobileTocBarHeight", () => {
     ).toBe(44);
 
     indicator.remove();
+  });
+});
+
+describe("resolveTocGotoHeadersHeight", () => {
+  it("小屏计入 mobile TOC 标题栏高度", () => {
+    const scrollContainer = document.createElement("div");
+    const indicator = document.createElement("div");
+    indicator.id = "mobile-toc-indicator";
+    const headerBar = document.createElement("div");
+    headerBar.className = "toc-mobile-header";
+    Object.defineProperty(headerBar, "offsetHeight", {
+      configurable: true,
+      get: () => 44,
+    });
+    indicator.appendChild(headerBar);
+    document.body.appendChild(indicator);
+
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn() }),
+    );
+
+    expect(resolveTocGotoHeadersHeight(scrollContainer, "header")).toBe(44);
+
+    indicator.remove();
+    vi.unstubAllGlobals();
   });
 });

@@ -16,7 +16,8 @@ import { getOrFetch, prefetch } from "./prefetchCache";
 import {
   resolveScrollContainer,
   scrollToHash,
-  resolveAnchorTarget,
+  getAnchorScrollOffset,
+  type ScrollContainer,
 } from "../../core/scrollAnchor";
 import {
   EVENT_BEFORE_UPDATE,
@@ -35,9 +36,16 @@ import {
 export interface PageAjaxOptions {
   /** 导航完成后滚动到顶部的滚动容器 CSS 选择器 */
   scrollContainerSelector?: string;
+  /** 锚点滚动时在文章内解析目标（与 TOC 一致，避免命中页外重复 id） */
+  articleSelector?: string;
+  /** 锚点滚动顶部留白（如 sticky 顶栏、小屏目录栏）；未提供时用 getAnchorScrollOffset */
+  resolveAnchorScrollOffset?: (scrollContainer: ScrollContainer) => number;
 }
 
-type RequiredOptions = Required<PageAjaxOptions>;
+type RequiredOptions = Required<
+  Pick<PageAjaxOptions, "scrollContainerSelector">
+> &
+  PageAjaxOptions;
 
 // ── Head 兼容性 ────────────────────────────────────────────
 
@@ -78,13 +86,46 @@ function notifyAnchorNavigate(): void {
   dispatchAnchorNavigate(getUrlHash(window.location.href));
 }
 
+function resolveArticleRoot(
+  scrollContainer: ScrollContainer,
+  articleSelector?: string,
+): ParentNode {
+  if (!articleSelector) {
+    return document;
+  }
+  if (scrollContainer instanceof Window) {
+    return document.querySelector(articleSelector) ?? document;
+  }
+  return scrollContainer.querySelector(articleSelector) ?? scrollContainer;
+}
+
+function resolveAnchorOffset(
+  scrollContainer: ScrollContainer,
+  opts: RequiredOptions,
+): number {
+  if (opts.resolveAnchorScrollOffset) {
+    return opts.resolveAnchorScrollOffset(scrollContainer);
+  }
+  return getAnchorScrollOffset(scrollContainer);
+}
+
+function scrollToPageHash(hash: string, opts: RequiredOptions): void {
+  const container = resolveScrollContainer(opts.scrollContainerSelector) ?? window;
+  const root = resolveArticleRoot(container, opts.articleSelector);
+  scrollToHash(
+    hash,
+    container,
+    { behavior: "auto", offset: resolveAnchorOffset(container, opts) },
+    root,
+  );
+}
+
 function scrollAfterNavigation(url: string, opts: RequiredOptions): void {
   const hash = getUrlHash(url);
   requestAnimationFrame(() => {
     const container = resolveScrollContainer(opts.scrollContainerSelector) ?? window;
     if (hash) {
-      // 用 resolveAnchorTarget 解析：既匹配元素 id，也匹配 a.heading-anchor[name]（锚点名）
-      scrollToHash(hash, container, { behavior: "auto" });
+      scrollToPageHash(hash, opts);
       dispatchAnchorNavigate(hash);
     } else if (container instanceof Window) {
       container.scrollTo({ top: 0 });
@@ -95,13 +136,18 @@ function scrollAfterNavigation(url: string, opts: RequiredOptions): void {
 }
 
 /** 首屏（含整页刷新落地）若 URL 带 hash，滚动到对应锚点 */
-function scrollToInitialHash(): void {
+function scrollToInitialHash(opts: RequiredOptions): void {
   const hash = getUrlHash(window.location.href);
   if (!hash) return;
-  const run = () =>
+  const run = () => {
+    // 等待 widget（如小屏目录）挂载并完成布局后再测量
     requestAnimationFrame(() => {
-      resolveAnchorTarget(hash)?.scrollIntoView({ behavior: "auto" });
+      requestAnimationFrame(() => {
+        scrollToPageHash(hash, opts);
+        dispatchAnchorNavigate(hash);
+      });
     });
+  };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", run, { once: true });
   } else {
@@ -244,6 +290,8 @@ async function handleNavigation(
 function initPageAjax(options: PageAjaxOptions = {}): void {
   const opts: RequiredOptions = {
     scrollContainerSelector: options.scrollContainerSelector ?? "#body-main",
+    articleSelector: options.articleSelector,
+    resolveAnchorScrollOffset: options.resolveAnchorScrollOffset,
   };
 
   nProgress.configure({ showSpinner: false, minimum: 0.1, speed: 200, trickleSpeed: 100 });
@@ -260,7 +308,7 @@ function initPageAjax(options: PageAjaxOptions = {}): void {
   bindProgrammaticNavigate(opts);
 
   // 首屏带 #anchor 进入时滚动到锚点
-  scrollToInitialHash();
+  scrollToInitialHash(opts);
 }
 
 function bindLinkInterceptor(opts: RequiredOptions): void {

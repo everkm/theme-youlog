@@ -24,6 +24,22 @@ function resolveHeaderHeightInContainer(
   return header ? header.offsetHeight : 0;
 }
 
+export function resolveTocGotoHeadersHeight(
+  scrollContainer: ScrollContainer,
+  headerSelector: string,
+): number {
+  const base = resolveHeaderHeightInContainer(scrollContainer, headerSelector);
+  if (!isMobileTocViewport()) {
+    return base;
+  }
+  return (
+    base +
+    getMobileTocBarHeight(scrollContainer, headerSelector, {
+      requireSticky: false,
+    })
+  );
+}
+
 export interface MobileTocBarHeightOptions {
   /**
    * 为 false 时始终返回标题栏高度（用于跳转偏移）。
