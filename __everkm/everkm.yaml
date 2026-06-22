@@ -65,6 +65,8 @@ config:
     #     - title: 归档
     #       url: /blog/archive
 
+  body_end_html: |
+    <script defer src="https://aa.daobox.cc/script.js" data-website-id="f47e3524-1a16-48bf-ad81-ffd91d4045fc"></script>
 
 folders:
   "/":
