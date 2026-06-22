@@ -17,6 +17,8 @@
  * 1. **导航容器**：`#header-nav`（SSR 由 `TopHeader` + `ssr.tsx` 输出，首屏带 `invisible`，客户端 mount 后移除）。
  * 2. **移动端容器（可选）**：`#mobile-menu-container`，由 `installNavMenu({ mobileMenuContainerSelector })` 指定。
  * 3. **配置来源**：站点 `header_nav` 配置项（见主题 README）。
+ *    SSR 须 `withContext={true}`，扩展字段经 `data-nav-menu-context` 透传（`start_icon`、`end_icon`、
+ *    `no_highlight`、`reflect_active_child`）。
  *
  * ## 当前页高亮规则（`navMenuUrl.ts`）
  *
@@ -63,6 +65,7 @@
  *
  * ## 更新日志
  *
+ * - 2026-06-22：`header_nav` 扩展 `start_icon` / `end_icon` / `no_highlight` / `reflect_active_child`；SSR context 透传；桌面/移动菜单图标与高亮规则。
  * - 2026-06-20：URL 匹配改为绝对地址比较 + 最长匹配；首页 `/` 仅精确匹配；桌面端 `FloatingMenu` 应用 `active` 样式。
  * - 2026-06-16：`installNavMenu` 监听 `pjax:page-loaded`，修复 AJAX 切换后菜单失效。
  */

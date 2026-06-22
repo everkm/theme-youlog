@@ -107,6 +107,7 @@ const TopHeader: Component<TopHeaderProps> = (props) => {
               <NavMenu
                 items={props.configValue("header_nav", [])}
                 requestId={props.requestId}
+                withContext={true}
               />
             </nav>
           </Show>

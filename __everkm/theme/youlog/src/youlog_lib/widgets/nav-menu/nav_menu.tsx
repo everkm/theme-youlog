@@ -2,6 +2,7 @@ import { render } from "solid-js/web";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 import { FloatingMenu } from "./FloatingMenu";
 import { MobileNavController } from "./MobileNavController";
+import { applyDerivedLabels, normalizeMenuContext } from "./menuItemDerived";
 import {
   findBestMatchingHref,
   isSameNavLink,
@@ -13,6 +14,10 @@ export interface MenuItem {
   newWindow: boolean;
   active: boolean;
   children?: MenuItem[];
+  startIcon?: string;
+  endIcon?: string;
+  noHighlight?: boolean;
+  reflectActiveChild?: boolean;
   [key: string]: unknown;
 }
 
@@ -24,6 +29,7 @@ function parseMenuData(navElement: HTMLElement | null): MenuItem[] {
   if (!rootUl) return [];
   const items = parseMenuItems(rootUl as HTMLElement);
   applyActiveState(items, window.location.href);
+  applyDerivedLabels(items);
   return items;
 }
 
@@ -80,7 +86,7 @@ function parseMenuItems(ul: HTMLElement): MenuItem[] {
     }
 
     const item: MenuItem = {
-      ...context,
+      ...normalizeMenuContext(context),
       text,
       link: href,
       newWindow: link.getAttribute("target") === "_blank",

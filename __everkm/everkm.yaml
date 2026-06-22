@@ -58,11 +58,16 @@ config:
       url: 
         _default: https://publish.everkm.com/guide/
         zh: https://publish.everkm.cn/guide/
+      end_icon: external
     - title: "@i18n:Docs"
       url: 
         _default: https://publish.everkm.com/docs/
         zh: https://publish.everkm.cn/docs/
+      end_icon: external
     - title: "@i18n:Languages"
+      start_icon: language
+      no_highlight: true
+      reflect_active_child: true
       children:
         - title: "English"
           url: /index.html

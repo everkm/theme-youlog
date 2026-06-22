@@ -139,6 +139,10 @@ config:
 | `url` | string | — | 链接地址 |
 | `new_window` | boolean | `true` | 是否新窗口打开 |
 | `children` | array | — | 子菜单项，结构同上级 |
+| `start_icon` | string | — | 文字前图标，支持 `language`、`external` |
+| `end_icon` | string | — | 文字后图标，支持 `language`、`external` |
+| `no_highlight` | boolean | `false` | 该项不显示当前页高亮样式 |
+| `reflect_active_child` | boolean | `false` | 子项命中当前页时，父项显示子项标题 |
 
 ### 页脚导航 `bottom_nav`
 

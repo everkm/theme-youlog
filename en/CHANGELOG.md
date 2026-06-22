@@ -7,6 +7,14 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.5.9 (2026-06-22)
+
+- **Header navigation**
+  - Added `start_icon` and `end_icon` to show icons before or after menu text (e.g. language switcher, external link)
+  - Added `reflect_active_child`: when a sub-item matches the current page, the parent shows that sub-item's title (useful for language menus)
+  - Added `no_highlight` to exclude specific items from the current-page highlight style
+
+
 ## v0.5.8 (2026-06-22)
 
 - **Sidebar navigation**

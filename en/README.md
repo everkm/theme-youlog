@@ -140,6 +140,10 @@ config:
 | `url` | string | — | Link URL |
 | `new_window` | boolean | `true` | Whether to open in a new window |
 | `children` | array | — | Sub-menu items, same structure as parent |
+| `start_icon` | string | — | Icon before text; supports `language`, `external` |
+| `end_icon` | string | — | Icon after text; supports `language`, `external` |
+| `no_highlight` | boolean | `false` | Do not apply current-page highlight style to this item |
+| `reflect_active_child` | boolean | `false` | When a child matches the current page, show the child's title on the parent |
 
 ### Footer Navigation `bottom_nav`
 

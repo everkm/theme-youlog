@@ -1,9 +1,14 @@
 import { Component, For, Show } from "solid-js";
+import { navItemToContext } from "./menuItemDerived";
 
 export interface NavItem {
   title: string;
   url?: string;
   new_window?: boolean;
+  start_icon?: string;
+  end_icon?: string;
+  no_highlight?: boolean;
+  reflect_active_child?: boolean;
   children?: NavItem[];
   [key: string]: unknown;
 }
@@ -29,7 +34,7 @@ const NavMenuInner: Component<NavMenuProps> = (props) => (
             }
             data-nav-menu-context={
               props.withContext
-                ? JSON.stringify({ ...item, children: undefined })
+                ? JSON.stringify(navItemToContext(item))
                 : undefined
             }
           >

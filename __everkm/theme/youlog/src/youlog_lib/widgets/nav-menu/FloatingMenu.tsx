@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onCleanup, onMount, For, Show } from "solid-js";
+import { createSignal, createEffect, onCleanup, For, Show } from "solid-js";
 import {
   computePosition,
   flip,
@@ -7,6 +7,7 @@ import {
   autoUpdate,
 } from "@floating-ui/dom";
 import type { MenuItem } from "./nav_menu";
+import { NavMenuIcon } from "./menuIcons";
 
 interface MenuItemProps {
   item: MenuItem;
@@ -22,7 +23,27 @@ const MenuItemComponent = (props: MenuItemProps) => {
   const level = () => props.level || 0;
   const hasChildren = () =>
     props.item.children && props.item.children.length > 0;
-  const isHighlighted = () => props.item.active || isOpen();
+  const pageActive = () => props.item.active && !props.item.noHighlight;
+  const isTopTrigger = () => level() === 0 && hasChildren();
+  const isTopOpen = () => isTopTrigger() && isOpen();
+
+  const linkClasses = () => {
+    const base = `flex items-center whitespace-nowrap px-3 py-2 text-sm transition-colors ${level() > 0 ? "w-full" : "rounded"}`;
+
+    if (isTopTrigger()) {
+      return `${base} ${
+        isTopOpen()
+          ? "text-brand-primary dark:text-brand-primary-light bg-state-hover dark:bg-state-hover"
+          : "text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light hover:bg-state-hover dark:hover:bg-state-hover"
+      }`;
+    }
+
+    if (pageActive()) {
+      return `${base} text-brand-primary dark:text-brand-primary-light bg-state-hover dark:bg-state-hover font-medium hover:bg-state-hover dark:hover:bg-state-hover`;
+    }
+
+    return `${base} text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light hover:bg-brand-primary-subtle dark:hover:bg-brand-primary-subtle`;
+  };
 
   const updatePosition = () => {
     if (!isOpen() || !itemRef || !menuRef) return;
@@ -136,17 +157,11 @@ const MenuItemComponent = (props: MenuItemProps) => {
         href={props.item.link}
         onClick={handleToggle}
         target={props.item.newWindow ? "_blank" : "_self"}
-        class={`
-          flex items-center whitespace-nowrap px-3 py-2 text-sm
-          ${
-            isHighlighted()
-              ? "text-brand-primary dark:text-brand-primary-light bg-state-hover dark:bg-state-hover"
-              : "text-text-primary dark:text-text-primary hover:text-brand-primary dark:hover:text-brand-primary-light hover:bg-state-hover dark:hover:bg-state-hover"
-          }
-          ${level() > 0 ? "px-4" : "rounded"}
-        `}
+        class={linkClasses()}
       >
+        <NavMenuIcon name={props.item.startIcon} class="mr-1.5" />
         {props.item.text}
+        <NavMenuIcon name={props.item.endIcon} class="ml-1.5" />
         <Show when={hasChildren()}>
           <svg
             class={`ml-1.5 h-4 w-4 transition-transform ${isOpen() ? (level() === 0 ? "rotate-180" : "rotate-90") : ""}`}
@@ -168,7 +183,7 @@ const MenuItemComponent = (props: MenuItemProps) => {
       <Show when={hasChildren() && isOpen()}>
         <ul
           ref={menuRef}
-          class="absolute z-50 min-w-[12rem] bg-surface dark:bg-surface rounded-md shadow-lg py-1 border border-border dark:border-border opacity-0 transition-opacity duration-150"
+          class="absolute z-50 min-w-[12rem] bg-surface dark:bg-surface rounded-md shadow-lg py-1 border border-border dark:border-border opacity-0 transition-opacity duration-150 flex flex-col gap-px"
           style={{
             position: "absolute",
             left: "0",

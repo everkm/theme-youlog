@@ -1,16 +1,27 @@
 import { createSignal, createEffect, onCleanup, For, Show } from "solid-js";
 import type { MenuItem } from "./nav_menu";
+import { isItemHighlighted } from "./menuItemDerived";
+import { NavMenuIcon } from "./menuIcons";
 
 interface AccordionItemProps {
   item: MenuItem;
   level?: number;
 }
 
+const MenuItemLabel = (props: { item: MenuItem; class?: string }) => (
+  <span class={`inline-flex items-center ${props.class ?? ""}`}>
+    <NavMenuIcon name={props.item.startIcon} class="mr-1.5" />
+    {props.item.text}
+    <NavMenuIcon name={props.item.endIcon} class="ml-1.5" />
+  </span>
+);
+
 const AccordionItem = (props: AccordionItemProps) => {
-  const [isOpen, setIsOpen] = createSignal(false); //props.item.active || false);
+  const [isOpen, setIsOpen] = createSignal(false);
   const level = () => props.level || 0;
   const hasChildren = () =>
     props.item.children && props.item.children.length > 0;
+  const highlighted = () => isItemHighlighted(props.item);
 
   const handleItemClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -19,6 +30,9 @@ const AccordionItem = (props: AccordionItemProps) => {
       setIsOpen(!isOpen());
     }
   };
+
+  const textClass = () =>
+    `${level() === 0 ? "text-lg" : "text-base"} font-medium ${highlighted() ? "text-brand-primary dark:text-brand-primary-light" : ""}`;
 
   return (
     <div
@@ -31,20 +45,17 @@ const AccordionItem = (props: AccordionItemProps) => {
         <Show
           when={!hasChildren()}
           fallback={
-            <span
-              class={`${level() === 0 ? "text-lg" : "text-base"} font-medium ${props.item.active ? "text-brand-primary dark:text-brand-primary-light" : ""}`}
-              style={{ flex: 1 }}
-            >
-              {props.item.text}
+            <span class={textClass()} style={{ flex: 1 }}>
+              <MenuItemLabel item={props.item} />
             </span>
           }
         >
           <a
             href={props.item.link}
-            class={`${level() === 0 ? "text-lg" : "text-base"} font-medium ${props.item.active ? "text-brand-primary dark:text-brand-primary-light" : ""}`}
+            class={textClass()}
             style={{ flex: 1 }}
           >
-            {props.item.text}
+            <MenuItemLabel item={props.item} />
           </a>
         </Show>
         <Show when={hasChildren()}>
