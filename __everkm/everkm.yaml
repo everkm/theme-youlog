@@ -68,9 +68,10 @@ config:
       start_icon: language
       no_highlight: true
       reflect_active_child: true
+      match_children_prefix: true
       children:
         - title: "English"
-          url: /index.html
+          url: /
           new_window: false
         - title: "中文"
           url: /zh/

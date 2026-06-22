@@ -23,10 +23,15 @@ function isRootNavPath(pathname: string): boolean {
   return normalizePathname(pathname) === "/";
 }
 
+export interface NavMenuMatchOptions {
+  /** 子树内匹配时允许 `/` 前缀匹配（全局默认仍为仅精确匹配）。 */
+  allowRootPrefix?: boolean;
+}
+
 /**
  * 判断顶栏导航项是否与当前地址匹配。
  * - 相对/绝对链接均先 resolve 为绝对 URL 再比较
- * - 首页 `/` 仅精确匹配 `/` 与 `/index.html`，不做前缀匹配
+ * - 首页 `/` 仅精确匹配 `/` 与 `/index.html`，不做前缀匹配（除非 `allowRootPrefix`）
  * - 其它目录项（尾斜杠）可前缀匹配子路径
  */
 export function isNavMenuUrlMatch(
@@ -35,8 +40,9 @@ export function isNavMenuUrlMatch(
   origin = typeof window !== "undefined"
     ? window.location.origin
     : "http://localhost",
+  options: NavMenuMatchOptions = {},
 ): boolean {
-  if (isNavUrlMatch(currentUrl, targetUrl)) {
+  if (isNavUrlMatch(currentUrl, targetUrl, origin)) {
     return true;
   }
 
@@ -49,15 +55,21 @@ export function isNavMenuUrlMatch(
     }
 
     const targetPath = normalizePathname(target.pathname);
+    const currentPath = normalizePathname(current.pathname);
+
     if (isRootNavPath(targetPath)) {
-      return false;
+      if (!options.allowRootPrefix) {
+        return false;
+      }
+      return (
+        currentPath === targetPath || currentPath.startsWith(targetPath)
+      );
     }
 
     if (!targetPath.endsWith("/")) {
       return false;
     }
 
-    const currentPath = normalizePathname(current.pathname);
     return (
       currentPath === targetPath || currentPath.startsWith(targetPath)
     );
@@ -73,13 +85,14 @@ export function findBestMatchingHref(
   origin = typeof window !== "undefined"
     ? window.location.origin
     : "http://localhost",
+  options: NavMenuMatchOptions = {},
 ): string | null {
   let best: string | null = null;
   let bestLen = -1;
 
   for (const href of hrefs) {
     if (!href || href === "#") continue;
-    if (!isNavMenuUrlMatch(currentUrl, href, origin)) continue;
+    if (!isNavMenuUrlMatch(currentUrl, href, origin, options)) continue;
 
     try {
       const len = toComparePath(resolveNavUrl(href, origin).pathname).length;

@@ -20,12 +20,19 @@ export function normalizePathname(pathname: string): string {
  * 判断导航链接是否与当前地址匹配（含 hash / search）。
  * pathname 一致时：导航项带 hash 则要求 hash 一致；导航项无 hash 则视为页面级链接（当前 URL 可带任意 hash）。
  */
-export function isNavUrlMatch(currentUrl: string, targetUrl: string): boolean {
+export function isNavUrlMatch(
+  currentUrl: string,
+  targetUrl: string,
+  origin?: string,
+): boolean {
   try {
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "http://localhost";
-    const current = new URL(currentUrl, origin);
-    const target = new URL(targetUrl, origin);
+    const resolvedOrigin =
+      origin ??
+      (typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost");
+    const current = new URL(currentUrl, resolvedOrigin);
+    const target = new URL(targetUrl, resolvedOrigin);
 
     if (
       current.origin !== target.origin ||

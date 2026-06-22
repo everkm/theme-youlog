@@ -9,6 +9,7 @@ export interface NavItem {
   end_icon?: string;
   no_highlight?: boolean;
   reflect_active_child?: boolean;
+  match_children_prefix?: boolean;
   children?: NavItem[];
   [key: string]: unknown;
 }

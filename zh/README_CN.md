@@ -143,6 +143,7 @@ config:
 | `end_icon` | string | — | 文字后图标，支持 `language`、`external` |
 | `no_highlight` | boolean | `false` | 该项不显示当前页高亮样式 |
 | `reflect_active_child` | boolean | `false` | 子项命中当前页时，父项显示子项标题 |
+| `match_children_prefix` | boolean | `false` | 仅对**直接子级**链接启用放宽前缀匹配（含 `/`）；子树内二阶段高亮，不改变全局 Home 规则 |
 
 ### 页脚导航 `bottom_nav`
 

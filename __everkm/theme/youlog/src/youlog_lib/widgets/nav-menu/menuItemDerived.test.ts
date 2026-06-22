@@ -23,12 +23,14 @@ describe("normalizeMenuContext", () => {
         end_icon: "external",
         no_highlight: true,
         reflect_active_child: true,
+        match_children_prefix: true,
       }),
     ).toEqual({
       startIcon: "language",
       endIcon: "external",
       noHighlight: true,
       reflectActiveChild: true,
+      matchChildrenPrefix: true,
     });
   });
 
@@ -52,10 +54,12 @@ describe("navItemToContext", () => {
         title: "Languages",
         start_icon: "language",
         reflect_active_child: true,
+        match_children_prefix: true,
       }),
     ).toEqual({
       startIcon: "language",
       reflectActiveChild: true,
+      matchChildrenPrefix: true,
     });
   });
 });

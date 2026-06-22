@@ -3,10 +3,7 @@ import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 import { FloatingMenu } from "./FloatingMenu";
 import { MobileNavController } from "./MobileNavController";
 import { applyDerivedLabels, normalizeMenuContext } from "./menuItemDerived";
-import {
-  findBestMatchingHref,
-  isEquivalentNavLink,
-} from "./navMenuUrl";
+import { applyActiveState } from "./navMenuActiveState";
 
 export interface MenuItem {
   text: string;
@@ -18,6 +15,7 @@ export interface MenuItem {
   endIcon?: string;
   noHighlight?: boolean;
   reflectActiveChild?: boolean;
+  matchChildrenPrefix?: boolean;
   [key: string]: unknown;
 }
 
@@ -31,37 +29,6 @@ function parseMenuData(navElement: HTMLElement | null): MenuItem[] {
   applyActiveState(items, window.location.href);
   applyDerivedLabels(items);
   return items;
-}
-
-function collectMenuLinks(items: MenuItem[]): string[] {
-  const links: string[] = [];
-  for (const item of items) {
-    if (item.link && item.link !== "#") {
-      links.push(item.link);
-    }
-    if (item.children) {
-      links.push(...collectMenuLinks(item.children));
-    }
-  }
-  return links;
-}
-
-function applyActiveState(items: MenuItem[], currentUrl: string): void {
-  const bestLink = findBestMatchingHref(currentUrl, collectMenuLinks(items));
-
-  function walk(menuItems: MenuItem[]): boolean {
-    let anyActive = false;
-    for (const item of menuItems) {
-      const selfActive =
-        bestLink !== null && isEquivalentNavLink(item.link, bestLink);
-      const childActive = item.children ? walk(item.children) : false;
-      item.active = selfActive || childActive;
-      if (item.active) anyActive = true;
-    }
-    return anyActive;
-  }
-
-  walk(items);
 }
 
 function parseMenuItems(ul: HTMLElement): MenuItem[] {

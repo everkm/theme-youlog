@@ -144,6 +144,7 @@ config:
 | `end_icon` | string | — | Icon after text; supports `language`, `external` |
 | `no_highlight` | boolean | `false` | Do not apply current-page highlight style to this item |
 | `reflect_active_child` | boolean | `false` | When a child matches the current page, show the child's title on the parent |
+| `match_children_prefix` | boolean | `false` | Allow prefix matching (including `/`) for **direct children** only, in a scoped second pass; does not change global home matching |
 
 ### Footer Navigation `bottom_nav`
 

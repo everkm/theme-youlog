@@ -55,6 +55,22 @@ describe("isNavMenuUrlMatch", () => {
     expect(isNavMenuUrlMatch("/index.html", "/", ORIGIN)).toBe(true);
     expect(isNavMenuUrlMatch("/book/", "/", ORIGIN)).toBe(false);
   });
+
+  it("allows root prefix when allowRootPrefix is set", () => {
+    expect(
+      isNavMenuUrlMatch("/changelog.html", "/", ORIGIN, {
+        allowRootPrefix: true,
+      }),
+    ).toBe(true);
+    expect(
+      isNavMenuUrlMatch("/book/", "/", ORIGIN, { allowRootPrefix: true }),
+    ).toBe(true);
+    expect(
+      isNavMenuUrlMatch("/zh/changelog.html", "/zh/", ORIGIN, {
+        allowRootPrefix: true,
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("findBestMatchingHref", () => {
@@ -92,6 +108,25 @@ describe("findBestMatchingHref", () => {
     expect(
       findBestMatchingHref("/book/", ["/"], ORIGIN),
     ).toBeNull();
+  });
+
+  it("matches root prefix among siblings when allowRootPrefix is set", () => {
+    expect(
+      findBestMatchingHref(
+        "/changelog.html",
+        ["/", "/zh/"],
+        ORIGIN,
+        { allowRootPrefix: true },
+      ),
+    ).toBe("/");
+    expect(
+      findBestMatchingHref(
+        "/zh/changelog.html",
+        ["/", "/zh/"],
+        ORIGIN,
+        { allowRootPrefix: true },
+      ),
+    ).toBe("/zh/");
   });
 });
 
