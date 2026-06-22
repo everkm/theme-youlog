@@ -17,13 +17,15 @@ export interface RegistryEntry {
   el: WeakRef<Element>;
   /** 用于在新文档中定位对应元素；必须是稳定唯一的 id 选择器 */
   selector: string;
+  /** 原始 SSR innerHTML 快照，仅用于调试 diff（定位 hash 为何不一致） */
+  rawHtml: string;
 }
 
 export interface ProcessedRegistry {
   /** 初次注册：必须在 widget 改写 container.innerHTML 之前调用 */
   register(id: string, container: Element, selector: string): void;
-  /** 重处理后更新 hash（取新文档中的原始 HTML hash，而非 widget 转换后的 hash） */
-  updateHash(id: string, newHash: string): void;
+  /** 重处理后更新 hash（取新文档中的原始 HTML hash，而非 widget 转换后的 hash）；可同时更新原始 HTML 快照 */
+  updateHash(id: string, newHash: string, newRawHtml?: string): void;
   has(id: string): boolean;
   getAll(): ReadonlyMap<string, RegistryEntry>;
   delete(id: string): void;
@@ -34,17 +36,23 @@ class ProcessedRegistryImpl implements ProcessedRegistry {
   private entries = new Map<string, RegistryEntry>();
 
   register(id: string, container: Element, selector: string): void {
+    const rawHtml = container.innerHTML;
     this.entries.set(id, {
-      hash: hashHtml(container.innerHTML),
+      hash: hashHtml(rawHtml),
       el: new WeakRef(container),
       selector,
+      rawHtml,
     });
   }
 
-  updateHash(id: string, newHash: string): void {
+  updateHash(id: string, newHash: string, newRawHtml?: string): void {
     const entry = this.entries.get(id);
     if (!entry) return;
-    this.entries.set(id, { ...entry, hash: newHash });
+    this.entries.set(id, {
+      ...entry,
+      hash: newHash,
+      rawHtml: newRawHtml ?? entry.rawHtml,
+    });
   }
 
   has(id: string): boolean {

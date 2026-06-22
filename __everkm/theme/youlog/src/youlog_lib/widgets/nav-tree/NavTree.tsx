@@ -1,5 +1,6 @@
 import { Component, For, Show, createMemo } from "solid-js";
 import { NavTreeState, NavItem } from "./NavTreeState";
+import { pjaxDebug } from "../page-ajax/debug";
 
 import "./NavTree.css";
 
@@ -132,7 +133,7 @@ const NavTree: Component<NavTreeProps> = (props) => {
   let navElement: HTMLElement | undefined;
 
   const handleNodeClick = (nodeId: string, node: NavItem) => {
-    console.log("Node clicked:", nodeId, node);
+    pjaxDebug("navtree: Node clicked:", nodeId, node);
     props.onNodeClick?.(nodeId, node);
   };
 

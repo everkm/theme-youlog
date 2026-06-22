@@ -30,7 +30,7 @@ function renderQrcode(): void {
     // 清空容器并插入二维码 SVG
     container.innerHTML = svgString;
 
-    console.log("页面二维码生成成功:", url);
+    // console.log("页面二维码生成成功:", url);
   } catch (error) {
     console.error("生成二维码失败:", error);
     container.innerHTML = "";

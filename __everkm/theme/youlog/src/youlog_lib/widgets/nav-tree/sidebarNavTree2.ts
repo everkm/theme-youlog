@@ -10,6 +10,7 @@ import {
   EVENT_WIDGET_TEARDOWN,
 } from "../page-ajax/constants";
 import { processedRegistry } from "../page-ajax/processedRegistry";
+import { pjaxDebug } from "../page-ajax/debug";
 import { NavTreeState } from "./NavTreeState";
 import { NavTree } from "./NavTree";
 import { render } from "solid-js/web";
@@ -20,7 +21,8 @@ import {
 import { isNavUrlMatch } from "./navTreeUrl";
 
 function log(message: string, ...args: any[]) {
-  // console.log("sidebarNavTree2: " + message, ...args);
+  // 路由到统一的 PJAX 调试开关：window.__PJAX_DEBUG__ = true 时输出
+  pjaxDebug("navtree: " + message, ...args);
 }
 
 function error_log(message: string, ...args: any[]) {
@@ -338,7 +340,14 @@ class TreeConverter {
   private static parser = new MarkdownTreeParser();
 
   static convertToNavTree(element: HTMLElement): boolean {
-    if (this.convertedElements.has(element)) return false;
+    if (this.convertedElements.has(element)) {
+      pjaxDebug("navtree: convertToNavTree 跳过（该 ul/ol 已转换过）", element);
+      return false;
+    }
+    pjaxDebug(
+      "navtree: ⚠️ convertToNavTree 即将构建全新 NavTree（展开态从空开始 → 会出现折叠后再展开）",
+      element,
+    );
     const validationError =
       TreeStructureValidator.validateTreeStructure(element);
     if (validationError) {
@@ -441,9 +450,14 @@ function scheduleHighlight(): void {
  */
 function mount(): void {
   const container = document.querySelector(WIDGET_SEL) as HTMLElement | null;
-  if (!container) return;
+  if (!container) {
+    pjaxDebug(`navtree: mount() 跳过（未找到 ${WIDGET_SEL}）`);
+    return;
+  }
 
-  if (!processedRegistry.has(WIDGET_ID)) {
+  const firstMount = !processedRegistry.has(WIDGET_ID);
+  pjaxDebug(`navtree: mount() 开始 firstMount=${firstMount}`, container);
+  if (firstMount) {
     container.setAttribute("data-processed", WIDGET_ID);
     processedRegistry.register(WIDGET_ID, container, WIDGET_SEL);
   }
@@ -471,15 +485,18 @@ function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
   );
 
   document.addEventListener(EVENT_BEFORE_UPDATE, () => {
+    pjaxDebug("navtree: 收到 before-update → 清理脱离文档的状态");
     NavTreeManager.getInstance().clearStaleStates();
     TreeConverter.pruneConvertedElements();
   });
 
   document.addEventListener(EVENT_PAGE_LOADED, () => {
     if (!processedRegistry.has(WIDGET_ID)) {
+      pjaxDebug("navtree: page-loaded → 未注册，执行 mount()（新出现的侧栏）");
       mount();
     } else {
       // nav-tree 未变化（hash 匹配，morph 已保留子树），仅刷新当前页高亮
+      pjaxDebug("navtree: page-loaded → 已注册且 hash 未变，仅刷新高亮（不重建）✓");
       scheduleHighlight();
     }
   });
@@ -488,6 +505,9 @@ function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
     const { widgetId, newHtml, container } = (e as CustomEvent).detail;
     if (widgetId !== WIDGET_ID || !container) return;
 
+    pjaxDebug(
+      "navtree: ⚠️ 收到 widget:reprocess → 用新 SSR HTML 整树重建（这是折叠/再展开的根源）",
+    );
     // 清理旧状态后用新 SSR HTML 重建
     NavTreeManager.getInstance().unregisterContainer(container as HTMLElement);
     TreeConverter.pruneConvertedElements();
@@ -501,6 +521,7 @@ function installSidebarNavTree2(options: SidebarNavTreeOptions = {}): void {
   document.addEventListener(EVENT_WIDGET_TEARDOWN, (e: Event) => {
     const { widgetId } = (e as CustomEvent).detail;
     if (widgetId !== WIDGET_ID) return;
+    pjaxDebug("navtree: 收到 widget:teardown → 侧栏在新页面消失，清理状态");
     NavTreeManager.getInstance().clearStaleStates();
     TreeConverter.clearConvertedElements();
   });

@@ -13,6 +13,7 @@ import { processedRegistry } from "./processedRegistry";
 import { hashHtml } from "./htmlHash";
 import { buildSkipCallbacks } from "./morphCallbacks";
 import { getOrFetch, prefetch } from "./prefetchCache";
+import { pjaxDebug, pjaxGroup, pjaxGroupEnd, pjaxLogHtmlDiff } from "./debug";
 import {
   resolveScrollContainer,
   scrollContainerToTop,
@@ -199,10 +200,31 @@ function morphPageShell(newDoc: Document): boolean {
   // skipIds = 当前已注册 widget；beforeNodeMorphed 命中 oldNode 上的 data-processed 即跳过整棵子树。
   // 无需镜像 data-processed 到新文档（回调只看当前 DOM 的 oldNode）。
   const skipIds = new Set(processedRegistry.getAll().keys());
+  pjaxDebug("morph: 开始，skipIds =", [...skipIds]);
+
+  // 记录 morph 前各受保护容器的节点引用，用于事后判断是否被「删旧建新」替换
+  const beforeRefs = new Map<string, Element | undefined>();
+  for (const [id, entry] of processedRegistry.getAll()) {
+    beforeRefs.set(id, entry.el.deref());
+  }
 
   Idiomorph.morph(current, next, {
     callbacks: buildSkipCallbacks(skipIds),
   });
+
+  // morph 后存活性校验：live 节点是否与 morph 前同一引用，是判断 protection 是否生效的决定性证据
+  for (const [id, entry] of processedRegistry.getAll()) {
+    const live = document.querySelector(entry.selector);
+    const beforeRef = beforeRefs.get(id);
+    pjaxDebug(`morph: 完成后检查 widget="${id}" selector=${entry.selector}`, {
+      stillInDom: !!live,
+      sameNodeAsBefore: live === beforeRef, // false = idiomorph 替换了节点 → 状态丢失
+      hasProcessedAttr: live instanceof Element
+        ? live.getAttribute("data-processed")
+        : null,
+      converted: !!(live && live.querySelector(".nav-tree-container")), // 已转换的 Solid 树是否还在
+    });
+  }
   return true;
 }
 
@@ -214,6 +236,7 @@ function reprocessContainers(newDoc: Document): void {
     const newEl = newDoc.querySelector(entry.selector);
 
     if (!newEl) {
+      pjaxDebug(`reprocess: widget="${id}" 新页面缺失该容器 → TEARDOWN(销毁)`);
       const container = entry.el.deref();
       // morph 已将该容器从 DOM 移除（id 不在新旧交集，走 idiomorph 默认 removeNode）。
       // 传入 container 引用（已脱离 DOM）供 widget teardown handler 做 JS 层清理。
@@ -227,7 +250,21 @@ function reprocessContainers(newDoc: Document): void {
     }
 
     const newHash = hashHtml(newEl.innerHTML);
-    if (entry.hash === newHash) continue; // 内容未变，widget 增强状态完整保留
+    if (entry.hash === newHash) {
+      pjaxDebug(
+        `reprocess: widget="${id}" hash 一致(${newHash}) → 保留增强状态，不重建 ✓`,
+      );
+      continue; // 内容未变，widget 增强状态完整保留
+    }
+
+    pjaxGroup(
+      `reprocess: widget="${id}" hash 变化 → REPROCESS(整树重建，展开状态将清零!)`,
+    );
+    pjaxDebug(`old hash = ${entry.hash}  new hash = ${newHash}`);
+    // 用「register 时记录的原始 SSR HTML」与「新页面 SSR HTML」逐字符对比，定位差异来源
+    // （注：container.innerHTML 此刻已是转换后的 .nav-tree-container，不能直接当原始 HTML 比）
+    pjaxLogHtmlDiff(`widget="${id}" 新旧 SSR HTML 差异`, entry.rawHtml, newEl.innerHTML);
+    pjaxGroupEnd();
 
     const container = entry.el.deref();
     if (!container) {
@@ -242,8 +279,8 @@ function reprocessContainers(newDoc: Document): void {
       }),
     );
 
-    // 以新文档的原始 HTML hash 更新记录，保持 hash 与 SSR HTML 形式一致
-    processedRegistry.updateHash(id, newHash);
+    // 以新文档的原始 HTML hash + 快照更新记录，保持 hash/diff 与 SSR HTML 形式一致
+    processedRegistry.updateHash(id, newHash, newEl.innerHTML);
   }
 }
 
@@ -261,8 +298,13 @@ async function handleNavigation(
 ): Promise<void> {
   if (navigating) return;
 
+  pjaxDebug(
+    `=== 导航开始 url=${url} fromPopState=${fromPopState} renderedUrl=${renderedUrl}`,
+  );
+
   // 相对「当前已渲染页面」仅 hash 变化：不发请求，直接滚动 + 通知
   if (isSamePathHashChange(renderedUrl, url)) {
+    pjaxDebug("导航：仅 hash 变化，不 fetch、不 morph（navtree 不应重建）");
     if (!fromPopState) window.history.pushState(null, "", url);
     renderedUrl = url;
     scrollAfterNavigation(url, opts);
