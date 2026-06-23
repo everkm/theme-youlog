@@ -18,12 +18,12 @@
  * 2. **移动端容器（可选）**：`#mobile-menu-container`，由 `installNavMenu({ mobileMenuContainerSelector })` 指定。
  * 3. **配置来源**：站点 `header_nav` 配置项（见主题 README）。
  *    SSR 须 `withContext={true}`，扩展字段经 `data-nav-menu-context` 透传（`start_icon`、`end_icon`、
- *    `no_highlight`、`reflect_active_child`、`match_children_prefix`）。
+ *    `no_highlight`、`reflect_active_child`、`match_children_prefix`、`exact_match`）。
  *
  * ## 当前页高亮规则（`navMenuUrl.ts` + `navMenuActiveState.ts`）
  *
- * **阶段 1（全局严格）**：`findBestMatchingHref` 在**全部候选链接**中选出唯一最佳匹配，
- * 再标记 `active`；有子项命中时父项也会高亮（下拉菜单场景）。
+ * **阶段 1（全局）**：按**菜单项**各自选项匹配，最长者胜出；仅点亮**自身匹配成功**且与
+ * `bestLink` 等价的项（同 href 不同选项不会等价传染，如 Home `exact_match` 与 Languages 子项 `/zh/`）。
  *
  * ### URL 规范化
  *
@@ -56,6 +56,12 @@
  * （如 `/changelog.html` 可点亮 Languages 下 English，但顶层 Home 不高亮）。
  * 直接子级之间仍按最长 `toComparePath` 竞争（`/zh/foo` 上 `/zh/` 胜过 `/`）。
  *
+ * ### `exact_match`（仅精确，含 index.html 等价）
+ *
+ * 该项仅 `isNavUrlMatch`（如 `/zh/` ↔ `/zh/index.html`），不做前缀匹配。
+ * 与 `match_children_prefix` 冲突时 **优先 `exact_match`**（子项设了 `exact_match` 则不参与父项放宽前缀）。
+ * 适用于 locale 首页（`/zh/`），避免在 `/zh/changelog.html` 误高亮 Home。
+ *
  * ## 与 page-ajax 的协作
  *
  * - `pjax:page-loaded`：`installNavMenu` 已监听，每次导航后重新解析 SSR 链接并重算高亮。
@@ -72,6 +78,7 @@
  *
  * ## 更新日志
  *
+ * - 2026-06-23：`exact_match` 按项精确匹配；与 `match_children_prefix` 冲突时优先 exact。
  * - 2026-06-23：`match_children_prefix` 子树二阶段匹配，兼顾多语言 English `/` 前缀覆盖。
  * - 2026-06-22：`header_nav` 扩展 `start_icon` / `end_icon` / `no_highlight` / `reflect_active_child`；SSR context 透传；桌面/移动菜单图标与高亮规则。
  * - 2026-06-20：URL 匹配改为绝对地址比较 + 最长匹配；首页 `/` 仅精确匹配；桌面端 `FloatingMenu` 应用 `active` 样式。

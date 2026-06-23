@@ -16,6 +16,7 @@ export interface MenuItem {
   noHighlight?: boolean;
   reflectActiveChild?: boolean;
   matchChildrenPrefix?: boolean;
+  exactMatch?: boolean;
   [key: string]: unknown;
 }
 

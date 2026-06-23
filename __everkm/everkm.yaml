@@ -53,6 +53,7 @@ config:
       url: 
         _default: /
         zh: /zh/
+      exact_match: true
       new_window: false
     - title: "@i18n:Guide"
       url: 

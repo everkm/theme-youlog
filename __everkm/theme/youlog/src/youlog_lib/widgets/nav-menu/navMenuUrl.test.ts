@@ -71,6 +71,27 @@ describe("isNavMenuUrlMatch", () => {
       }),
     ).toBe(true);
   });
+
+  it("exactMatch blocks prefix even with allowRootPrefix", () => {
+    expect(
+      isNavMenuUrlMatch("/zh/changelog.html", "/zh/", ORIGIN, {
+        exactMatch: true,
+        allowRootPrefix: true,
+      }),
+    ).toBe(false);
+    expect(
+      isNavMenuUrlMatch("/zh/", "/zh/", ORIGIN, { exactMatch: true }),
+    ).toBe(true);
+    expect(
+      isNavMenuUrlMatch("/zh/index.html", "/zh/", ORIGIN, { exactMatch: true }),
+    ).toBe(true);
+    expect(
+      isNavMenuUrlMatch("/book/", "/", ORIGIN, {
+        exactMatch: true,
+        allowRootPrefix: true,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("findBestMatchingHref", () => {

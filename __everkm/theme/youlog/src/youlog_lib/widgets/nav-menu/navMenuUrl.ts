@@ -15,7 +15,7 @@ export function toComparePath(pathname: string): string {
   return normalized;
 }
 
-function resolveNavUrl(href: string, origin: string): URL {
+export function resolveNavUrl(href: string, origin: string): URL {
   return new URL(href, origin);
 }
 
@@ -24,6 +24,8 @@ function isRootNavPath(pathname: string): boolean {
 }
 
 export interface NavMenuMatchOptions {
+  /** 仅精确匹配（含 index.html 等价）；优先于 allowRootPrefix 与目录前缀。 */
+  exactMatch?: boolean;
   /** 子树内匹配时允许 `/` 前缀匹配（全局默认仍为仅精确匹配）。 */
   allowRootPrefix?: boolean;
 }
@@ -31,7 +33,8 @@ export interface NavMenuMatchOptions {
 /**
  * 判断顶栏导航项是否与当前地址匹配。
  * - 相对/绝对链接均先 resolve 为绝对 URL 再比较
- * - 首页 `/` 仅精确匹配 `/` 与 `/index.html`，不做前缀匹配（除非 `allowRootPrefix`）
+ * - `exactMatch` 时仅 `isNavUrlMatch`（含 `/` ↔ `/index.html`、`/zh/` ↔ `/zh/index.html`）
+ * - 首页 `/` 仅精确匹配，不做前缀匹配（除非 `allowRootPrefix` 且未设 `exactMatch`）
  * - 其它目录项（尾斜杠）可前缀匹配子路径
  */
 export function isNavMenuUrlMatch(
@@ -42,6 +45,10 @@ export function isNavMenuUrlMatch(
     : "http://localhost",
   options: NavMenuMatchOptions = {},
 ): boolean {
+  if (options.exactMatch) {
+    return isNavUrlMatch(currentUrl, targetUrl, origin);
+  }
+
   if (isNavUrlMatch(currentUrl, targetUrl, origin)) {
     return true;
   }
@@ -78,21 +85,26 @@ export function isNavMenuUrlMatch(
   }
 }
 
+/** 单项 URL 候选（可带 per-link 匹配选项）。 */
+export interface NavMenuLinkCandidate {
+  href: string;
+  options?: NavMenuMatchOptions;
+}
+
 /** 在候选链接中选出与当前地址最长匹配的一项（相对/绝对均可）。 */
-export function findBestMatchingHref(
+export function findBestMatchingAmongCandidates(
   currentUrl: string,
-  hrefs: string[],
+  candidates: NavMenuLinkCandidate[],
   origin = typeof window !== "undefined"
     ? window.location.origin
     : "http://localhost",
-  options: NavMenuMatchOptions = {},
 ): string | null {
   let best: string | null = null;
   let bestLen = -1;
 
-  for (const href of hrefs) {
+  for (const { href, options } of candidates) {
     if (!href || href === "#") continue;
-    if (!isNavMenuUrlMatch(currentUrl, href, origin, options)) continue;
+    if (!isNavMenuUrlMatch(currentUrl, href, origin, options ?? {})) continue;
 
     try {
       const len = toComparePath(resolveNavUrl(href, origin).pathname).length;
@@ -106,6 +118,22 @@ export function findBestMatchingHref(
   }
 
   return best;
+}
+
+/** 在候选链接中选出与当前地址最长匹配的一项（相对/绝对均可）。 */
+export function findBestMatchingHref(
+  currentUrl: string,
+  hrefs: string[],
+  origin = typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost",
+  options: NavMenuMatchOptions = {},
+): string | null {
+  return findBestMatchingAmongCandidates(
+    currentUrl,
+    hrefs.map((href) => ({ href, options })),
+    origin,
+  );
 }
 
 /**

@@ -1,23 +1,68 @@
 import type { MenuItem } from "./nav_menu";
-import { findBestMatchingHref, isEquivalentNavLink } from "./navMenuUrl";
+import {
+  findBestMatchingAmongCandidates,
+  isEquivalentNavLink,
+  isNavMenuUrlMatch,
+  type NavMenuMatchOptions,
+  resolveNavUrl,
+  toComparePath,
+} from "./navMenuUrl";
 
-function collectMenuLinks(items: MenuItem[]): string[] {
-  const links: string[] = [];
-  for (const item of items) {
-    if (item.link && item.link !== "#") {
-      links.push(item.link);
-    }
-    if (item.children) {
-      links.push(...collectMenuLinks(item.children));
-    }
+/** `exact_match` 优先于 `match_children_prefix` 子树内的放宽前缀。 */
+export function matchOptionsForItem(
+  item: Pick<MenuItem, "exactMatch">,
+  inChildPrefixSubtree: boolean,
+): NavMenuMatchOptions {
+  if (item.exactMatch) {
+    return { exactMatch: true };
   }
-  return links;
+  if (inChildPrefixSubtree) {
+    return { allowRootPrefix: true };
+  }
+  return {};
 }
 
-function collectDirectChildLinks(children: MenuItem[]): string[] {
-  return children
-    .map((child) => child.link)
-    .filter((link): link is string => Boolean(link && link !== "#"));
+interface Phase1Result {
+  bestLink: string | null;
+  matchedItems: Set<MenuItem>;
+}
+
+function computePhase1Matches(
+  items: MenuItem[],
+  currentUrl: string,
+  origin: string,
+): Phase1Result {
+  const matchedItems = new Set<MenuItem>();
+  let bestLink: string | null = null;
+  let bestLen = -1;
+
+  function walk(menuItems: MenuItem[]) {
+    for (const item of menuItems) {
+      if (item.link && item.link !== "#") {
+        const options = matchOptionsForItem(item, false);
+        if (isNavMenuUrlMatch(currentUrl, item.link, origin, options)) {
+          matchedItems.add(item);
+          try {
+            const len = toComparePath(
+              resolveNavUrl(item.link, origin).pathname,
+            ).length;
+            if (len > bestLen) {
+              bestLen = len;
+              bestLink = item.link;
+            }
+          } catch {
+            // ignore invalid href
+          }
+        }
+      }
+      if (item.children?.length) {
+        walk(item.children);
+      }
+    }
+  }
+
+  walk(items);
+  return { bestLink, matchedItems };
 }
 
 function applyChildPrefixMatchState(
@@ -27,16 +72,26 @@ function applyChildPrefixMatchState(
 ): void {
   for (const item of items) {
     if (item.matchChildrenPrefix && item.children?.length) {
-      const bestChildLink = findBestMatchingHref(
+      const candidates = item.children
+        .filter((child) => child.link && child.link !== "#")
+        .map((child) => ({
+          href: child.link,
+          options: matchOptionsForItem(child, true),
+        }));
+
+      const bestChildLink = findBestMatchingAmongCandidates(
         currentUrl,
-        collectDirectChildLinks(item.children),
+        candidates,
         origin,
-        { allowRootPrefix: true },
       );
 
       if (bestChildLink !== null) {
         for (const child of item.children) {
-          if (isEquivalentNavLink(child.link, bestChildLink, origin)) {
+          const options = matchOptionsForItem(child, true);
+          if (
+            isNavMenuUrlMatch(currentUrl, child.link, origin, options) &&
+            isEquivalentNavLink(child.link, bestChildLink, origin)
+          ) {
             child.active = true;
           }
         }
@@ -50,7 +105,7 @@ function applyChildPrefixMatchState(
   }
 }
 
-/** 阶段 1：全局严格匹配；阶段 2：`matchChildrenPrefix` 父项子树内放宽前缀（不向外等价传染）。 */
+/** 阶段 1：按项匹配 + 最长竞争；阶段 2：`matchChildrenPrefix` 子树内放宽前缀。 */
 export function applyActiveState(
   items: MenuItem[],
   currentUrl: string,
@@ -58,9 +113,9 @@ export function applyActiveState(
     ? window.location.origin
     : "http://localhost",
 ): void {
-  const bestLink = findBestMatchingHref(
+  const { bestLink, matchedItems } = computePhase1Matches(
+    items,
     currentUrl,
-    collectMenuLinks(items),
     origin,
   );
 
@@ -68,7 +123,9 @@ export function applyActiveState(
     let anyActive = false;
     for (const item of menuItems) {
       const selfActive =
-        bestLink !== null && isEquivalentNavLink(item.link, bestLink, origin);
+        matchedItems.has(item) &&
+        bestLink !== null &&
+        isEquivalentNavLink(item.link, bestLink, origin);
       const childActive = item.children ? walk(item.children) : false;
       item.active = selfActive || childActive;
       if (item.active) anyActive = true;

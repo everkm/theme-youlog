@@ -7,6 +7,7 @@
 | 260622 | 初稿：新增 `start_icon` / `end_icon` / `no_highlight` / `reflect_active_child` 配置项及客户端渲染规则 |
 | 260622 | 已落地：SSR context 透传、`applyDerivedLabels`、桌面/移动菜单图标与高亮 |
 | 260623 | 增补 `match_children_prefix`：父项开关 + 子树内二阶段 URL 匹配，兼顾多语言子项（English `/` 前缀覆盖未入导航的英文页） |
+| 260623 | 已落地：`exact_match` 按项精确匹配；与 `match_children_prefix` 冲突时优先 exact |
 | 260623 | 已落地：`match_children_prefix` 二阶段高亮、`allowRootPrefix`、`everkm.yaml` Languages 开启开关 |
 
 ---
@@ -55,8 +56,9 @@ YAML 使用 **snake_case**；经 `data-nav-menu-context` 透传后，客户端 `
 | F-03 | `no_highlight` | `noHighlight` | boolean? | `false` | 该项**不应用**高亮样式（见 §3.2） |
 | F-04 | `reflect_active_child` | `reflectActiveChild` | boolean? | `false` | 有子项命中当前页时，父项展示文字替换为**该子项** `title`（见 §3.3） |
 | F-05 | `match_children_prefix` | `matchChildrenPrefix` | boolean? | `false` | 对该项**直接子级**链接启用放宽前缀匹配（含 `/`）；见 §3.4 |
+| F-06 | `exact_match` | `exactMatch` | boolean? | `false` | 该项仅精确匹配（含 index.html 等价），不做前缀；见 §3.5 |
 
-既有字段不变：`title`、`url`、`new_window`、`children`。不支持子项级单独开关。
+既有字段不变：`title`、`url`、`new_window`、`children`。不支持子项级单独开关（`exact_match` 除外，按项配置）。
 
 ### 2.1 图标标识 `start_icon` / `end_icon`
 
@@ -86,6 +88,7 @@ header_nav:
     url:
       _default: /
       zh: /zh/
+    exact_match: true
     new_window: false
 
   - title: "@i18n:Guide"
@@ -186,17 +189,16 @@ Languages 典型组合：
 #### 3.4.2 二阶段 `applyActiveState`
 
 ```
-阶段 1（现有，全局严格）：
-  collectMenuLinks(整棵树) → findBestMatchingHref → isEquivalentNavLink 标记 active
+阶段 1（按项匹配）：
+  遍历每项，用该项自身选项（含 exact_match）匹配 → 最长者 bestLink
+  → 仅点亮「自身匹配成功」且与 bestLink 等价的项（同 href 不等价传染）
 
-阶段 2（新增，仅 flagged 父项）：
-  对每个 matchChildrenPrefix 的父项：
-    仅取其直接子级 links → findBestMatchingHref（allowRootPrefix）
-    → 在子树内标记命中子项 active + 父项 childActive
-    → 不向外传播 isEquivalentNavLink（避免连带点亮顶层 Home）
+阶段 2（仅 matchChildrenPrefix 父项）：
+  直接子级按各自选项匹配（子项 exact_match 优先于父项放宽前缀）
+  → 子树内标记命中子项 + 父项 childActive
 ```
 
-阶段 1 与阶段 2 **叠加**：子树内子项可被阶段 2 单独点亮；阶段 2 命中**不**改变阶段 1 的 `bestLink`，也**不**让子树外的等价链接（如顶层 Home `/`）因 English `/` 而高亮。
+阶段 1 与阶段 2 **叠加**；阶段 2 不向外等价传染（如 `/changelog.html` 点亮 Languages English，不点亮顶层 Home）。
 
 #### 3.4.3 子树内匹配规则
 
@@ -231,7 +233,36 @@ Languages 典型组合：
 
 开关挂在**父项** `data-nav-menu-context`（与 `reflect_active_child` 同级）；`parseMenuItems` 解析父项时保留 `matchChildrenPrefix`，在 `applyActiveState` 遍历到该父项时对 `children` 执行阶段 2。
 
-### 3.5 高亮与 PJAX
+### 3.5 `exact_match`（F-06）
+
+**语义**：该项仅 `isNavUrlMatch`（pathname + search；含 `/zh/` ↔ `/zh/index.html`），**不做前缀匹配**。
+
+#### 3.5.1 动机
+
+locale 首页 `/zh/` 在全局规则下会前缀匹配 `/zh/changelog.html`，导致 Home 与 Languages 子项（同 href）一并高亮。对 Home 设 `exact_match: true` 后，仅在 `/zh/`、`/zh/index.html` 高亮。
+
+#### 3.5.2 与 `match_children_prefix` 的优先级
+
+**冲突时优先 `exact_match`**：
+
+| 项 | 配置 | `/zh/changelog.html` |
+|----|------|------------------------|
+| Home `/zh/` | `exact_match: true` | ❌ 不匹配 |
+| Languages → 中文 `/zh/` | （无 exact）+ 父项 `match_children_prefix` | ✅ 阶段 2 前缀匹配 |
+
+子项若设 `exact_match: true`，即使在 `match_children_prefix` 父项下也**不**参与放宽前缀。
+
+#### 3.5.3 配置示例
+
+```yaml
+- title: "@i18n:Home"
+  url:
+    _default: /
+    zh: /zh/
+  exact_match: true
+```
+
+### 3.6 高亮与 PJAX
 
 现有 `installNavMenu` 在 `pjax:page-loaded` 后重新 `parseMenuData` → `applyActiveState` → 重挂菜单。新增后处理须在**每次**重算 `active` 后执行：
 

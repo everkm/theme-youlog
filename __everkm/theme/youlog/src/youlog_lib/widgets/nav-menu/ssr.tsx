@@ -10,6 +10,7 @@ export interface NavItem {
   no_highlight?: boolean;
   reflect_active_child?: boolean;
   match_children_prefix?: boolean;
+  exact_match?: boolean;
   children?: NavItem[];
   [key: string]: unknown;
 }

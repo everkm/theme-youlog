@@ -71,6 +71,11 @@ export function normalizeMenuContext(
     result.matchChildrenPrefix = Boolean(matchChildrenPrefix);
   }
 
+  const exactMatch = raw.exactMatch ?? raw.exact_match;
+  if (exactMatch !== undefined) {
+    result.exactMatch = Boolean(exactMatch);
+  }
+
   return result;
 }
 
@@ -85,5 +90,6 @@ export function navItemToContext(
   if (normalized.noHighlight) ctx.noHighlight = true;
   if (normalized.reflectActiveChild) ctx.reflectActiveChild = true;
   if (normalized.matchChildrenPrefix) ctx.matchChildrenPrefix = true;
+  if (normalized.exactMatch) ctx.exactMatch = true;
   return ctx;
 }

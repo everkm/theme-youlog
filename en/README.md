@@ -145,6 +145,7 @@ config:
 | `no_highlight` | boolean | `false` | Do not apply current-page highlight style to this item |
 | `reflect_active_child` | boolean | `false` | When a child matches the current page, show the child's title on the parent |
 | `match_children_prefix` | boolean | `false` | Allow prefix matching (including `/`) for **direct children** only, in a scoped second pass; does not change global home matching |
+| `exact_match` | boolean | `false` | Exact page match only (including `/path/` ↔ `/path/index.html`); no prefix. Takes priority over `match_children_prefix` when both apply |
 
 ### Footer Navigation `bottom_nav`
 

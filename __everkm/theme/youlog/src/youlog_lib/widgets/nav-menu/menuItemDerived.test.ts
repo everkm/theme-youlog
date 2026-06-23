@@ -24,6 +24,7 @@ describe("normalizeMenuContext", () => {
         no_highlight: true,
         reflect_active_child: true,
         match_children_prefix: true,
+        exact_match: true,
       }),
     ).toEqual({
       startIcon: "language",
@@ -31,6 +32,7 @@ describe("normalizeMenuContext", () => {
       noHighlight: true,
       reflectActiveChild: true,
       matchChildrenPrefix: true,
+      exactMatch: true,
     });
   });
 

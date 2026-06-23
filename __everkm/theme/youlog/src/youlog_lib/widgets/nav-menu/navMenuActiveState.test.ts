@@ -12,9 +12,9 @@ function item(partial: Partial<MenuItem> & Pick<MenuItem, "text" | "link">): Men
   };
 }
 
-function everkmLikeMenu(): MenuItem[] {
+function everkmLikeMenu(homeLink = "/"): MenuItem[] {
   return [
-    item({ text: "Home", link: "/" }),
+    item({ text: "Home", link: homeLink, exactMatch: true }),
     item({
       text: "Languages",
       link: "#",
@@ -51,13 +51,39 @@ describe("applyActiveState", () => {
   });
 
   it("prefers zh child on zh paths", () => {
-    const items = everkmLikeMenu();
+    const items = everkmLikeMenu("/zh/");
     applyActiveState(items, `${ORIGIN}/zh/changelog.html`, ORIGIN);
 
     expect(items[0].active).toBe(false);
     expect(items[1].active).toBe(true);
     expect(items[1].children![0].active).toBe(false);
     expect(items[1].children![1].active).toBe(true);
+  });
+
+  it("highlights zh home only on zh index paths", () => {
+    const items = everkmLikeMenu("/zh/");
+    applyActiveState(items, `${ORIGIN}/zh/`, ORIGIN);
+
+    expect(items[0].active).toBe(true);
+    expect(items[1].children![1].active).toBe(true);
+  });
+
+  it("exact_match on child wins over match_children_prefix", () => {
+    const items: MenuItem[] = [
+      item({
+        text: "Languages",
+        link: "#",
+        matchChildrenPrefix: true,
+        children: [
+          item({ text: "中文", link: "/zh/", exactMatch: true }),
+        ],
+      }),
+    ];
+
+    applyActiveState(items, `${ORIGIN}/zh/changelog.html`, ORIGIN);
+
+    expect(items[0].active).toBe(false);
+    expect(items[0].children![0].active).toBe(false);
   });
 
   it("highlights english on unlisted english directory paths", () => {
