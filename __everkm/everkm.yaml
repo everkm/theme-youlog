@@ -43,7 +43,7 @@ config:
     channel: www
 
     # 配置推送
-    enable: true
+    enabled: true
     url_base: https://youlog.theme.everkm.com/  # 导出后 push 拼页面绝对 URL
     body_selector: "#article-main"      # 正文 CSS 选择器，默认 .markdown-body
     languages:                          # reset 时写入索引语言
