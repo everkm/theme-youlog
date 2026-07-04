@@ -268,7 +268,7 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
   background-color: var(--bgColor-attention-muted);
   color: var(--fgColor-default);
   border-radius: 2px;
-  padding: 0.05em 0.25em;
+  /* padding: 0.05em 0.25em; */
 }
 
 .markdown-body sub,
