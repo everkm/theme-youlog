@@ -40,6 +40,16 @@ config:
     api_key: 95bb37e3122ee9cb57a8ee0abbd14409
     index_name: yilog
     site: theme-youlog
+    channel: www
+
+    # 配置推送
+    enable: true
+    url_base: https://youlog.theme.everkm.com/  # 导出后 push 拼页面绝对 URL
+    body_selector: "#article-main"      # 正文 CSS 选择器，默认 .markdown-body
+    languages:                          # reset 时写入索引语言
+      - zh_CN
+      - en_US
+
 
   # 底部导航(仅支持一级导航)
   bottom_nav:
