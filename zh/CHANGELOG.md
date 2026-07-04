@@ -13,6 +13,14 @@ slug: changelog
 - 未明确指定新版本号时，默认追加到第一个最新版本号
 
 
+## v0.5.10 (2026-07-04)
+
+- **站内导航**
+  - PJAX 启用时注册全局 `window.youlogNavigate(url)`，dcard / Alpine 等可编程式跳转；未注册时回退 `location.href`
+- **博客列表分页**
+  - 修复站内无刷新浏览时，`dcard/list` 分页内容不随页码更新的问题
+  - PJAX 换页后自动重新初始化页面中的 Alpine.js 组件（含 dcard 分页下拉等）
+
 ## v0.5.9 (2026-06-23)
 
 - **顶栏导航**

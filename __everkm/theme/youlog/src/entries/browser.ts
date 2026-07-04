@@ -12,6 +12,7 @@ import { installNavMenu } from "../youlog_lib/widgets/nav-menu";
 import {
   initPageAjax,
   notifyAnchorNavigate,
+  installAlpinePjaxReinit,
   EVENT_ANCHOR_NAVIGATE,
   EVENT_PAGE_LOADED,
 } from "../youlog_lib/widgets/page-ajax";
@@ -102,6 +103,7 @@ function install() {
     articleSelector: YOULOG_SCROLL_LAYOUT.articleSelector,
     anchorScroll,
   });
+  installAlpinePjaxReinit();
   installHeadingAnchor("#article-main");
   installFootnoteBackButton("#article-main");
 

@@ -13,6 +13,7 @@ import { processedRegistry } from "./processedRegistry";
 import { hashHtml } from "./htmlHash";
 import { buildSkipCallbacks } from "./morphCallbacks";
 import { getOrFetch, prefetch } from "./prefetchCache";
+import { registerGlobalNavigate } from "./globalNavigate";
 import { pjaxDebug, pjaxGroup, pjaxGroupEnd, pjaxLogHtmlDiff } from "./debug";
 import {
   resolveScrollContainer,
@@ -75,6 +76,11 @@ function isSamePathHashChange(currentHref: string, nextHref: string): boolean {
 function getUrlHash(url: string): string {
   const idx = url.indexOf("#");
   return idx >= 0 ? url.slice(idx + 1) : "";
+}
+
+/** 规范为不含 hash 的绝对 URL，便于比较「是否同一页」 */
+function normalizePageUrl(url: string): string {
+  return new URL(url, window.location.href).href.split("#")[0]!;
 }
 
 // ── 滚动 ───────────────────────────────────────────────────
@@ -302,6 +308,13 @@ async function handleNavigation(
     `=== 导航开始 url=${url} fromPopState=${fromPopState} renderedUrl=${renderedUrl}`,
   );
 
+  const targetUrl = normalizePageUrl(url);
+  const currentUrl = normalizePageUrl(renderedUrl);
+  if (targetUrl === currentUrl) {
+    pjaxDebug("导航：目标 URL 与当前已渲染页面相同，跳过 fetch / morph");
+    return;
+  }
+
   // 相对「当前已渲染页面」仅 hash 变化：不发请求，直接滚动 + 通知
   if (isSamePathHashChange(renderedUrl, url)) {
     pjaxDebug("导航：仅 hash 变化，不 fetch、不 morph（navtree 不应重建）");
@@ -371,6 +384,9 @@ function initPageAjax(options: PageAjaxOptions = {}): void {
   bindLinkInterceptor(opts);
   bindPopState(opts);
   bindProgrammaticNavigate(opts);
+  registerGlobalNavigate((url) => {
+    void handleNavigation(url, opts);
+  });
 
   // 未注入 anchorScroll 时保留 legacy 首屏 hash 滚动
   if (!opts.anchorScroll) {

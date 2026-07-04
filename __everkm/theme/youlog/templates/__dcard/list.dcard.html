@@ -39,30 +39,25 @@
     </div>
     {% endif %}
 
-    {# 跳转分页 #}
+    {# 跳转分页（Alpine；PJAX 换页后由 installAlpinePjaxReinit 重新 initTree） #}
     <div x-data="{
     currentPage: {{ page_no }},
     totalPages: {{ page_count }},
     baseUrl: '{{ __page_path_base }}',
-    pageQuery: '{% if __env_is_preview %}{% endif %}',
     goToPage() {
       const page = parseInt(this.currentPage);
       if (page >= 1 && page <= this.totalPages) {
-        let url;
-        if (page === 1) {
-          url = this.baseUrl + '.html';
-        } else {
-          url = this.baseUrl + '.p' + page + '.html';
-        }
-        window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } }));
+        const path = page === 1 ? this.baseUrl + '.html' : this.baseUrl + '.p' + page + '.html';
+        const url = new URL(path, window.location.origin).href;
+        (typeof window.youlogNavigate==='function'?window.youlogNavigate:function(u){location.href=u})(url);
       }
     }
   }" x-init="currentPage = {{ page_no }}">
         <select x-model="currentPage" @change="goToPage()"
             class="text-gray-600 text-sm rounded pl-1 py-1 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <template x-for="page in totalPages" :key="page">
-                <option :value="page" :selected="page === {{ page_no }}" x-text="page + ' / ' + totalPages"></option>
-            </template>
+            {% for p in range(start=1, end=page_count + 1) %}
+            <option value="{{ p }}"{% if p == page_no %} selected{% endif %}>{{ p }} / {{ page_count }}</option>
+            {% endfor %}
         </select>
     </div>
 

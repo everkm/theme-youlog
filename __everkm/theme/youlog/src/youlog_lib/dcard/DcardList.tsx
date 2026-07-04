@@ -1,4 +1,5 @@
 import { Component, For, Show } from "solid-js";
+import { navigateOrLocation } from "../widgets/page-ajax/globalNavigate";
 import { NavigateNextIcon, NavigatePrevIcon } from "./icons";
 import { formatDate } from "./utils";
 
@@ -40,13 +41,8 @@ const DcardList: Component<DcardListProps> = (props) => {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const pagePathBase = ctx.page_path_base;
 
-  const pageUrl = (page: number) => {
-    let qs = everkm.page_query(requestId, { page: "" });
-    let url =
-      page <= 1 ? `${pagePathBase}.html` : `${pagePathBase}.p${page}.html`;
-    if (qs) url += `?${qs}`;
-    return url;
-  };
+  const pageUrl = (page: number) =>
+    page <= 1 ? `${pagePathBase}.html` : `${pagePathBase}.p${page}.html`;
 
   const buildItemHref = (doc: PostItem): string => {
     if (props.hide_prev_next) return doc.url_path;
@@ -104,13 +100,13 @@ const DcardList: Component<DcardListProps> = (props) => {
             x-data={`{
               currentPage: ${pageNo},
               totalPages: ${pageCount},
-              baseUrl: '${pagePathBase}',
-              pageQuery: '${ctx.env_is_preview ? "" : ""}',
+              baseUrl: ${JSON.stringify(pagePathBase)},
               goToPage() {
                 const page = parseInt(this.currentPage);
                 if (page >= 1 && page <= this.totalPages) {
-                  let url = page === 1 ? this.baseUrl + '.html' : this.baseUrl + '.p' + page + '.html';
-                  window.dispatchEvent(new CustomEvent('page-navigate', { detail: { url } }));
+                  const path = page === 1 ? this.baseUrl + '.html' : this.baseUrl + '.p' + page + '.html';
+                  const url = new URL(path, window.location.origin).href;
+                  ${navigateOrLocation("url")};
                 }
               }
             }`}

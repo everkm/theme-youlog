@@ -7,6 +7,14 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.5.10 (2026-07-04)
+
+- **In-site navigation**
+  - When PJAX is active, registers `window.youlogNavigate(url)` for programmatic navigation from dcard / Alpine snippets; falls back to `location.href` when unavailable
+- **Blog list pagination**
+  - Fixed `dcard/list` content not updating to match the page number during in-site AJAX navigation
+  - Alpine.js components in the page (including dcard page selector) are re-initialized after PJAX navigation
+
 ## v0.5.9 (2026-06-23)
 
 - **Header navigation**

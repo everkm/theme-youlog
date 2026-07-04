@@ -42,6 +42,8 @@
  *
  * ## 更新日志
  *
+ * - 2026-07-02：`window.youlogNavigate(url)` 全局编程式导航；`navigateOrLocation(url)` 供内联脚本回退 `location.href`。
+ * - 2026-07-02：可选 `installAlpinePjaxReinit`；PJAX 换页后对 `document.body` 调用 `Alpine.initTree`（若已加载 alpine.js）。
  * - 2026-06-22：可选 `anchorScroll`（AnchorScrollService）；注入后 hash 滚动委托服务，首屏由宿主 `applyInitialHash`。
  * - 2026-06-17：v5 重构——引擎零感知架构、`data-processed` + `ProcessedRegistry` 契约、
  *   单 `beforeNodeMorphed` 跳过子树、prefetch 缓存（LRU + 并发去重）、事件命名空间 `pjax:*`；
@@ -49,6 +51,13 @@
  */
 
 export { initPageAjax, notifyAnchorNavigate, type PageAjaxOptions } from "./pageAjax";
+export { installAlpinePjaxReinit } from "./alpineReinit";
+export {
+  GLOBAL_NAVIGATE_FN,
+  registerGlobalNavigate,
+  navigateOrLocation,
+  type YoulogNavigate,
+} from "./globalNavigate";
 export type { AnchorScrollService } from "../../core/anchorScrollService";
 export {
   EVENT_BEFORE_UPDATE,
