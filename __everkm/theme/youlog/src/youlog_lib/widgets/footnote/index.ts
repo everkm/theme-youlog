@@ -1,3 +1,11 @@
+/**
+ * 脚注返回按钮：在 `.footnote-definition` 末尾插入回到引用处的按钮。
+ *
+ * ## 更新日志
+ *
+ * - 2026-07-25：清理 definition 空白文本节点；用 `.footnote-reference a` 匹配引用；readyState 挂载。
+ */
+
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 
 type CleanupFunction = (() => void) | null;
@@ -23,33 +31,31 @@ function initFootnoteBackButton(bodySelector: string): CleanupFunction {
 
   definitions.forEach((definition) => {
     const id = definition.id;
-    if (!id) {
-      console.error(`Footnote definition not found: ${definition}`);
-      return;
+    if (!id) return;
+
+    // Strip whitespace text nodes (SSR HTML newlines break flex/grid layout).
+    for (const node of [...definition.childNodes]) {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()) {
+        node.remove();
+      }
     }
 
     const existingBackButtons = definition.querySelectorAll<HTMLButtonElement>(
       ".footnote-back-button",
     );
-    if (existingBackButtons.length > 0) {
-      console.error(`Footnote back button already exists: ${definition}`);
-      return;
-    }
+    if (existingBackButtons.length > 0) return;
 
-    const refs = container.querySelectorAll<HTMLElement>(
-      `a[href="#${CSS.escape(id)}"]`,
+    const refs = [
+      ...container.querySelectorAll<HTMLElement>(".footnote-reference a"),
+    ].filter(
+      (anchor) =>
+        anchor.getAttribute("href") === `#${id}` || anchor.hash === `#${id}`,
     );
 
-    if (refs.length === 0) {
-      console.error(`Footnote reference not found: ${definition}`);
-      return;
-    }
+    if (refs.length === 0) return;
 
     const lastChild = definition.lastElementChild as HTMLElement | null;
-    if (!lastChild) {
-      console.error(`Footnote last child not found: ${definition}`);
-      return;
-    }
+    if (!lastChild) return;
 
     const hasMultipleRefs = refs.length > 1;
 
@@ -96,14 +102,18 @@ function installFootnoteBackButton(bodySelector: string): void {
     }
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
-    currentCleanupFn = initFootnoteBackButton(bodySelector);
-  });
-
-  document.addEventListener(EVENT_PAGE_LOADED, () => {
+  const mount = () => {
     cleanup();
     currentCleanupFn = initFootnoteBackButton(bodySelector);
-  });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount, { once: true });
+  } else {
+    mount();
+  }
+
+  document.addEventListener(EVENT_PAGE_LOADED, mount);
 }
 
 export { initFootnoteBackButton, installFootnoteBackButton };

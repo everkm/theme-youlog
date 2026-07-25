@@ -2,19 +2,18 @@ import Mark from "mark.js";
 import { EVENT_PAGE_LOADED } from "../page-ajax/constants";
 import scrollIntoView from "scroll-into-view-if-needed";
 
-// 从当前URL中获取高亮关键字
-function extractKeywordsFromUrl() {
+function extractKeywordsFromUrl(): string[] | null {
   const u = new URL(window.location.href);
   const param = u.searchParams.get("__hlts") || "";
-  if (!param) {
+  if (!param) return null;
+
+  try {
+    const words = JSON.parse(param);
+    if (!Array.isArray(words) || words.length === 0) return null;
+    return words.filter((w): w is string => typeof w === "string" && w.length > 0);
+  } catch {
     return null;
   }
-
-  const words = JSON.parse(param);
-  if (!Array.isArray(words)) {
-    return;
-  }
-  return words;
 }
 
 function markKeywords(
@@ -23,28 +22,23 @@ function markKeywords(
 ) {
   const mark = new Mark(container);
   mark.mark(words, {
-    className: "!bg-[yellow]",
-    // 忽略高亮，则无法定位，所以去除
-    // exclude: ['pre code'],
+    className: "keyword-hlt",
   });
 }
 
-function setupKeywordHighlighter(container?: HTMLElement) {
+function setupKeywordHighlighter(container: HTMLElement) {
   const words = extractKeywordsFromUrl();
-  if (!words) {
-    return;
-  }
+  if (!words) return;
 
   markKeywords(words, container);
 
-  const target = document.querySelectorAll("mark[data-markjs]");
-  if (target.length === 0) {
-    return;
-  }
-  let focusEl = target[0] as HTMLElement;
+  const targets = document.querySelectorAll("mark[data-markjs]");
+  if (targets.length === 0) return;
 
-  // 向上搜索，确定是否代码块，若是则将目标修改为该代码块，
-  // 因为代码高亮会修改dom, 造成节点无效
+  let focusEl = targets[0] as HTMLElement;
+
+  // If the match is inside a code block, scroll the code element —
+  // client-side highlighters may rewrite nested mark nodes.
   let currentEl = focusEl;
   while (
     currentEl.parentElement &&
@@ -57,7 +51,6 @@ function setupKeywordHighlighter(container?: HTMLElement) {
     }
   }
 
-  console.log("scrollIntoView ", focusEl);
   setTimeout(() => {
     scrollIntoView(focusEl, {
       scrollMode: "if-needed",
@@ -65,7 +58,6 @@ function setupKeywordHighlighter(container?: HTMLElement) {
       inline: "nearest",
       behavior: (actions) => {
         actions.forEach(({ el, top, left }) => {
-          // 添加 100px 的顶部间距
           el.scrollTo({
             top: Math.max(0, top - 100),
             left,
@@ -75,30 +67,26 @@ function setupKeywordHighlighter(container?: HTMLElement) {
       },
     });
 
-    console.log("second mark highlight", "complete");
     markKeywords(words, focusEl);
   }, 300);
 }
 
-function initKeywordHighlighter(container_selector: string) {
-  const container = document.querySelector(container_selector);
-  if (!container) {
-    console.error(
-      `Keyword highlighter container selector ${container_selector} not found`,
-    );
-    return;
-  }
+function initKeywordHighlighter(containerSelector: string) {
+  const container = document.querySelector(containerSelector);
+  if (!container) return;
   setupKeywordHighlighter(container as HTMLElement);
 }
 
-function installKeywordHighlighter(container_selector: string) {
-  document.addEventListener("DOMContentLoaded", () => {
-    initKeywordHighlighter(container_selector);
-  });
+function installKeywordHighlighter(containerSelector: string) {
+  const mount = () => initKeywordHighlighter(containerSelector);
 
-  document.addEventListener(EVENT_PAGE_LOADED, () => {
-    initKeywordHighlighter(container_selector);
-  });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount, { once: true });
+  } else {
+    mount();
+  }
+
+  document.addEventListener(EVENT_PAGE_LOADED, mount);
 }
 
 export { initKeywordHighlighter, installKeywordHighlighter };

@@ -1,6 +1,6 @@
 {
   "name": "youlog",
-  "version": "0.2.8",
+  "version": "0.1.0",
   "type": "module",
   "description": "",
   "main": "index.js",

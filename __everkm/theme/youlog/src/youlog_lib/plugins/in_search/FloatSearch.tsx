@@ -83,6 +83,18 @@ interface IHitItem {
   highlights: string[]
 }
 
+/** Visible path for a hit link (strip __hlts noise). */
+function displayHitUrl(link: string): string {
+  try {
+    const u = new URL(link, window.location.origin)
+    u.searchParams.delete('__hlts')
+    const q = u.searchParams.toString()
+    return q ? `${u.pathname}?${q}${u.hash}` : `${u.pathname}${u.hash}`
+  } catch {
+    return link
+  }
+}
+
 // 搜索结果项组件
 const SearchResultItem = (props: {
   item: IHitItem
@@ -102,6 +114,9 @@ const SearchResultItem = (props: {
       class="text-link dark:text-link inline font-medium underline-offset-2 hover:underline"
       innerHTML={props.item.title}
     ></h2>
+    <p class="text-text-tertiary dark:text-text-tertiary truncate text-xs">
+      {displayHitUrl(props.item.link)}
+    </p>
     <p
       class="text-text-secondary dark:text-text-secondary text-sm"
       innerHTML={props.item.summary}
@@ -683,7 +698,7 @@ export default function FloatSearch(props: FloatSearchProps) {
             ref={setSearchInputRef}
             value={wd()}
             onInput={handleInputChange}
-            class="bg-surface dark:bg-surface dark:text-text-primary min-w-12 flex-1 px-1 text-xl outline-0"
+            class="bg-surface dark:bg-surface dark:text-text-primary min-w-12 flex-1 border-0 px-1 text-xl shadow-none outline-none ring-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none"
           />
           {hitItems().length > 0 && (
             <div

@@ -7,6 +7,17 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.5.11 (2026-07-25)
+
+- **In-site search**
+  - Search results now show the page path, with cleaner, easier-to-read links
+  - Improved search input focus styling to avoid a double border
+- **Search keyword highlighting**
+  - After opening a page from search, matched terms highlight more reliably and scroll to the first hit
+  - Refined highlight colors for light and dark themes for clearer reading
+- **Footnotes**
+  - Fixed occasional misalignment of footnote back buttons and improved reference targeting
+
 ## v0.5.10 (2026-07-04)
 
 - **In-site navigation**

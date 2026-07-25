@@ -40,3 +40,19 @@ em.hit-keyword {
 .in-search-opened {
   @apply !overflow-hidden;
 }
+
+/* Kill global / UA focus ring (avoid double border on search input). */
+[data-role="float-search"] input {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+[data-role="float-search"] input:focus,
+[data-role="float-search"] input:focus-visible {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}

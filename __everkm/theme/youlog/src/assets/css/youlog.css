@@ -190,3 +190,17 @@
     print-color-adjust: exact;
   }
 }
+
+/* Search __hlts keyword highlight (mark.js) */
+mark.keyword-hlt,
+mark[data-markjs] {
+  background-color: #ffe58f;
+  color: inherit;
+  border-radius: 0.15em;
+}
+
+.dark mark.keyword-hlt,
+.dark mark[data-markjs] {
+  background-color: #9a6700;
+  color: inherit;
+}
