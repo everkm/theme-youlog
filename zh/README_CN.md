@@ -24,7 +24,7 @@ config:
   algolia_search: { ... } # 全文搜索
   header_nav: [ ... ]     # 顶栏导航
   bottom_nav: [ ... ]     # 页脚链接
-  body_end_html: "..."    # 尾部追加的 HTML, 
+  body_end_html: "..."    # 页面尾部追加的 HTML
 
 folders:
   "/docs/":
@@ -110,6 +110,22 @@ config:
 | `custom_css` | string | 自定义 CSS 文件路径，如 `~/assets/my.css` |
 
 配色变量可参考主题包内 `templates/theme-demo/` 下的配色示例，通过 `custom_css` 覆盖 CSS 变量实现品牌色定制。
+
+---
+
+## 页面尾部 HTML `body_end_html`
+
+可在每个页面 `</body>` 前追加自定义 HTML 片段，便于接入统计脚本、在线客服等第三方组件。
+
+```yaml
+config:
+  body_end_html: |
+    <script defer src="https://example.com/analytics.js"></script>
+```
+
+| 配置项 | 类型 | 说明 |
+|--------|------|------|
+| `body_end_html` | string | 追加到 `<body>` 末尾的 HTML；支持多行（YAML `|`） |
 
 ---
 

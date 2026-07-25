@@ -114,6 +114,22 @@ Color variable examples can be found under `templates/theme-demo/` in the theme 
 
 ---
 
+## Body End HTML `body_end_html`
+
+Append custom HTML before each page's `</body>`, for analytics scripts, live chat widgets, and other third-party integrations.
+
+```yaml
+config:
+  body_end_html: |
+    <script defer src="https://example.com/analytics.js"></script>
+```
+
+| Field | Type | Description |
+|--------|------|------|
+| `body_end_html` | string | HTML appended at the end of `<body>`; supports multiline YAML block scalars |
+
+---
+
 ## Navigation
 
 ### Header Navigation `header_nav`
