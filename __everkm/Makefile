@@ -81,4 +81,5 @@ push-index-themes:
 	gh workflow run publish-theme.yaml \
 		--repo everkm/themes \
 		-f mode=single \
-		-f full_name=everkm/theme-youlog
+		-f full_name=everkm/theme-youlog \
+		-f force=true
