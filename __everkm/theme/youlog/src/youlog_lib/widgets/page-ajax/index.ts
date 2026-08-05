@@ -42,6 +42,7 @@
  *
  * ## 更新日志
  *
+ * - 2026-08-05：`installAlpinePjaxReinit` 对 `#page-shell` 先 `destroyTree` 再 `initTree`，修复 morph 后 dcard 等内联 Alpine 片段失效。
  * - 2026-07-02：`window.youlogNavigate(url)` 全局编程式导航；`navigateOrLocation(url)` 供内联脚本回退 `location.href`。
  * - 2026-07-02：可选 `installAlpinePjaxReinit`；PJAX 换页后对 `document.body` 调用 `Alpine.initTree`（若已加载 alpine.js）。
  * - 2026-06-22：可选 `anchorScroll`（AnchorScrollService）；注入后 hash 滚动委托服务，首屏由宿主 `applyInitialHash`。

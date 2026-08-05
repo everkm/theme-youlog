@@ -13,6 +13,7 @@ This changelog is for end users. Keep the wording user-friendly and avoid exposi
   - Adapts to list container width: stacked title/date when narrow; one row with truncated title when wide
   - Added `show_summary` to optionally show the post summary under the title
   - When a post was updated, the date is italic and slightly bold instead of an “updated” label
+  - Fixed page-jump dropdown not working during in-site AJAX navigation (Alpine snippets are properly rebuilt after PJAX)
 
 ## v0.5.11 (2026-07-25)
 

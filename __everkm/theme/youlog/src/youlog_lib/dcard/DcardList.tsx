@@ -124,10 +124,10 @@ const DcardList: Component<DcardListProps> = (props) => {
               totalPages: ${pageCount},
               baseUrl: ${JSON.stringify(pagePathBase)},
               goToPage() {
-                const page = parseInt(this.currentPage);
+                const page = parseInt(this.currentPage, 10);
                 if (page >= 1 && page <= this.totalPages) {
                   const path = page === 1 ? this.baseUrl + '.html' : this.baseUrl + '.p' + page + '.html';
-                  const url = new URL(path, window.location.origin).href;
+                  const url = new URL(path, window.location.href).href;
                   ${navigateOrLocation("url")};
                 }
               }
