@@ -11,6 +11,7 @@ interface DcardListProps {
   page_size?: number;
   hide_prev_next?: boolean;
   include_myself?: boolean;
+  show_summary?: boolean;
 }
 
 const DcardList: Component<DcardListProps> = (props) => {
@@ -54,23 +55,44 @@ const DcardList: Component<DcardListProps> = (props) => {
     return `${doc.url_path}${sep}${params.join("&")}`;
   };
 
+  const showSummary = !!props.show_summary;
+
   return (
     <>
-      <ol>
+      <ol class="dcard-list">
         <For each={items}>
-          {(doc) => (
-            <li>
-              <a href={buildItemHref(doc)} target="_blank">
-                {doc.title}
-              </a>
-              <Show when={doc.weight > 0}>
-                <span class="!text-red-500 mark-top"></span>
-              </Show>
-              <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number flex items-center gap-2">
-                <span>{formatDate(doc.updated_at, "YYYY-MM-DD HH:mm")}</span>
-              </div>
-            </li>
-          )}
+          {(doc) => {
+            const createdAt = doc.created_at ?? doc.date;
+            const isUpdated = createdAt !== doc.updated_at;
+            return (
+              <li>
+                <div class="dcard-list__row">
+                  <div class="dcard-list__main">
+                    <Show when={doc.weight > 0}>
+                      <span class="!text-red-500 mark-top shrink-0"></span>
+                    </Show>
+                    <a
+                      href={buildItemHref(doc)}
+                      target="_blank"
+                      class="dcard-list__title"
+                    >
+                      {doc.title}
+                    </a>
+                  </div>
+                  <div
+                    class={`dcard-list__date number ${
+                      isUpdated ? "italic font-medium" : "font-light"
+                    }`}
+                  >
+                    {formatDate(doc.updated_at, "YYYY-MM-DD")}
+                  </div>
+                </div>
+                <Show when={showSummary && !!doc.summary}>
+                  <p class="dcard-list__summary">{doc.summary}</p>
+                </Show>
+              </li>
+            );
+          }}
         </For>
       </ol>
 

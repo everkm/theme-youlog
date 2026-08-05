@@ -7,6 +7,13 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.5.12 (2026-08-05)
+
+- **Blog list (dcard/list)**
+  - Adapts to list container width: stacked title/date when narrow; one row with truncated title when wide
+  - Added `show_summary` to optionally show the post summary under the title
+  - When a post was updated, the date is italic and slightly bold instead of an “updated” label
+
 ## v0.5.11 (2026-07-25)
 
 - **In-site search**

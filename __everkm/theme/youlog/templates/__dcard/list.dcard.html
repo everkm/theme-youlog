@@ -3,21 +3,27 @@
 
 {% set page_no =__qs.page | default(value=1) | int %}
 {% set page_size = page_size | default(value=6) %}
+{% set show_summary = show_summary | default(value=false) %}
 {% set offset = (page_no - 1) * page_size %}
 {% set data = posts(dir=dir, recursive=include_subfolders | default(value=true), exclude_tags=exclude_tags | default(value=[]), offset=offset, limit=page_size) %}
 {% set items = data.items %}
 {% set total = data.total %}
-{% set page_count = total / page_size %}
-{% set page_count = page_count | round(method="ceil") %}
-<ol>
+{% set page_count = (total / page_size) | round(method="ceil") | int %}
+<ol class="dcard-list">
     {% for doc in items %}
     <li>
-        <a href="{{ doc.url_path | safe }}" target="_blank">{{doc.title}}</a>
-        {%if doc.weight > 0%}<span class="!text-red-500 mark-top"></span>{%endif%}
-        <div class="text-gray-500 dark:text-gray-400 font-light text-[90%] number">
-            {{doc.updated_at | date(format=config(key="date_format", default="%Y-%m-%d %H:%M"))}}
-            {% if doc.date != doc.updated_at %}<em class="text-gray-500 text-[90%]">{{t(text="updated")}}</em>{% endif %}
+        <div class="dcard-list__row">
+            <div class="dcard-list__main">
+                {% if doc.weight > 0 %}<span class="!text-red-500 mark-top shrink-0"></span>{% endif %}
+                <a href="{{ doc.url_path | safe }}" target="_blank" class="dcard-list__title">{{doc.title}}</a>
+            </div>
+            <div class="dcard-list__date number {% if doc.created_at != doc.updated_at %}italic font-medium{% else %}font-light{% endif %}">
+                {{doc.updated_at | date(format="%Y-%m-%d")}}
+            </div>
         </div>
+        {% if show_summary and doc.summary %}
+        <p class="dcard-list__summary">{{ doc.summary }}</p>
+        {% endif %}
     </li>
     {% endfor %}
 </ol>

@@ -28,6 +28,7 @@ declare global {
     slug: string;
     summary: string;
     date: number;
+    created_at?: number;
     updated_at: number;
     draft: boolean;
     tags: string[];
