@@ -294,3 +294,20 @@ mark[data-markjs] {
   background-color: #9a6700;
   color: inherit;
 }
+
+/* dcard/items 多列：圆点收进每个格子内，避免伸到相邻列 */
+.markdown-body ul.dcard-items-grid,
+ul.dcard-items-grid {
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.markdown-body ul.dcard-items-grid > li,
+ul.dcard-items-grid > li {
+  padding-left: 0.85em;
+}
+
+.markdown-body ul.dcard-items-grid > li:not(.task-list-item)::before,
+ul.dcard-items-grid > li:not(.task-list-item)::before {
+  left: 0;
+}

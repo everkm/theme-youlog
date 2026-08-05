@@ -400,7 +400,7 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 
 .markdown-body ul {
   list-style: none;
-  padding-left: 1.5em;
+  padding-left: 1.1em;
 }
 
 .markdown-body ol {
@@ -418,30 +418,30 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 .markdown-body ul > li:not(.task-list-item)::before {
   content: "";
   position: absolute;
-  left: -1.3em;
-  top: 0.75em;
-  width: 6px;
-  height: 6px;
+  left: -0.85em;
+  top: 0.85em;
+  width: 0.3em;
+  height: 0.3em;
   background-color: var(--text-secondary);
   border-radius: 50%;
   opacity: 0.85;
 }
 
 .markdown-body ul ul > li:not(.task-list-item)::before {
-  width: 5px;
-  height: 5px;
-  left: -1.2em;
-  top: 0.75em;
+  width: 0.25em;
+  height: 0.25em;
+  left: -0.8em;
+  top: 0.85em;
   border-radius: 0;
   background-color: var(--text-secondary);
   opacity: 0.7;
 }
 
 .markdown-body ul ul ul > li:not(.task-list-item)::before {
-  width: 6px;
-  height: 6px;
-  left: -1.15em;
-  top: 0.75em;
+  width: 0.3em;
+  height: 0.3em;
+  left: -0.8em;
+  top: 0.85em;
   border-radius: 50%;
   background-color: transparent;
   border: 1.5px solid var(--text-secondary);

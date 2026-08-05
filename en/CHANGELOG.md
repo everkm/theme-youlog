@@ -14,6 +14,8 @@ This changelog is for end users. Keep the wording user-friendly and avoid exposi
   - Added `show_summary` to optionally show the post summary under the title
   - When a post was updated, the date is italic and slightly bold instead of an “updated” label
   - Fixed page-jump dropdown not working during in-site AJAX navigation (Alpine snippets are properly rebuilt after PJAX)
+- **Item list (dcard/items)**
+  - Added `cols` as a max column count: columns adapt to the list container width automatically; long titles truncate to one line
 
 ## v0.5.11 (2026-07-25)
 
