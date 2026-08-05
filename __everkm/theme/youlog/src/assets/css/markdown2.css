@@ -550,9 +550,9 @@ html:where([lang|="zh" i], [lang|="ja" i], [lang|="ko" i])
 .markdown-body table {
   border-collapse: collapse;
   border-spacing: 0;
-  width: 100%;
+  width: max-content;
   max-width: 100%;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem;
   display: block;
   overflow-x: auto;
   font-size: 0.9em;

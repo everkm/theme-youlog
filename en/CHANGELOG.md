@@ -16,6 +16,8 @@ This changelog is for end users. Keep the wording user-friendly and avoid exposi
   - Fixed page-jump dropdown not working during in-site AJAX navigation (Alpine snippets are properly rebuilt after PJAX)
 - **Item list (dcard/items)**
   - Added `cols` as a max column count: columns adapt to the list container width automatically; long titles truncate to one line
+- **Markdown tables**
+  - Narrow tables (e.g. a single column) are horizontally centered; wide tables still scroll horizontally
 
 ## v0.5.11 (2026-07-25)
 
