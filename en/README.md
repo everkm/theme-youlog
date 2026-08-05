@@ -352,7 +352,16 @@ Use blockquotes with specific classes in Markdown:
 
 ### dcard `list` Parameter
 
-`dcard/list` supports the parameter `hide_prev_next: true`, which hides the previous/next navigation links in list items.
+| Parameter | Description |
+|------|------|
+| `hide_prev_next: true` | Hide previous/next navigation links in list items |
+| `show_summary: true` | Show the post summary under the title when available |
+
+### dcard `items` Parameter
+
+| Parameter | Description |
+|------|------|
+| `cols` | Max column count; columns adapt to the list container width; long titles truncate to one line |
 
 ---
 
