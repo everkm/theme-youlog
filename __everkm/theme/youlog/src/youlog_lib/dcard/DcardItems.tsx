@@ -30,6 +30,7 @@ const DcardItems: Component<DcardItemsProps> = (props) => {
     exclude_tags: props.exclude_tags,
     categories: props.categories,
     include_myself: props.include_myself,
+    include_dir_index: props.include_dir_index,
     limit: props.limit && props.limit > 0 ? Math.floor(props.limit) : undefined,
     order_by: props.order_by,
     order_direction: props.order_direction,

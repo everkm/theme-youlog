@@ -83,6 +83,8 @@ declare global {
     draft?: boolean;
     recursive?: boolean;
     include_myself?: boolean;
+    /** 是否包含目录默认页（slug=index / index.md / 同名 foo/foo.md）；默认 false */
+    include_dir_index?: boolean;
     order_by?: "date" | "updated_at" | "title";
     order_direction?: "asc" | "desc";
   }

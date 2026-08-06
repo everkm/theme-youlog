@@ -11,6 +11,7 @@ interface DcardListProps {
   page_size?: number;
   hide_prev_next?: boolean;
   include_myself?: boolean;
+  include_dir_index?: boolean;
   show_summary?: boolean;
 }
 
@@ -29,6 +30,7 @@ const DcardList: Component<DcardListProps> = (props) => {
     recursive: props.recursive ?? true,
     exclude_tags: props.exclude_tags,
     include_myself: props.include_myself,
+    include_dir_index: props.include_dir_index,
   } as const;
 
   const currentOffset = (pageNo - 1) * pageSize;
