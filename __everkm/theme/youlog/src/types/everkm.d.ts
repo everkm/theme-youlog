@@ -33,16 +33,31 @@ declare global {
       requestId: string,
       args?: FetchPostsArgs,
     ): Record<string, number>;
-    posts_category_list(
-      requestId: string,
-      args?: FetchPostsArgs,
-    ): Record<string, number>;
     posts_directory_list(
       requestId: string,
       args?: PostsDirectoryArgs,
     ): string[];
     post_meta(requestId: string, args: FetchPostArgs): PostItem | null;
     post_detail(requestId: string, args: FetchPostArgs): PostItem | null;
+    post_neighbors(
+      requestId: string,
+      args: { id: string } & FetchPostsArgs,
+    ): { prev_id: string | null; next_id: string | null };
+    post_resources(
+      requestId: string,
+      args: { id?: string; path?: string; kinds?: ContentResourceKind[] },
+    ): { items: ContentResource[]; total: number } | null;
+    posts_resources(
+      requestId: string,
+      args?: FetchPostsArgs & {
+        kinds?: ContentResourceKind[];
+        offset?: number;
+        limit?: number;
+      },
+    ): {
+      items: Array<{ post: PostItem; resources: ContentResource[] }>;
+      total: number;
+    };
     has_post(requestId: string, args: { path: string }): boolean;
     nav_indicator(
       requestId: string,
@@ -79,13 +94,12 @@ declare global {
     dir?: string;
     tags?: string[];
     exclude_tags?: string[];
-    categories?: string[];
     draft?: boolean;
     recursive?: boolean;
     include_myself?: boolean;
     /** 是否包含目录默认页（slug=index / index.md / 同名 foo/foo.md）；默认 false */
     include_dir_index?: boolean;
-    order_by?: "date" | "updated_at" | "title";
+    order_by?: "created_at" | "updated_at" | "title" | "default";
     order_direction?: "asc" | "desc";
   }
 
@@ -96,9 +110,11 @@ declare global {
 
   interface FetchPostArgs {
     id?: string;
+    /** logical path，或 `[[...]]` 内链（slug/标题/绝对路径；`[[./x]]` 须在当前文章页上下文） */
     path?: string;
     lazy_img?: boolean;
     exclude_tags?: string;
+    /** 为 true 时：`[[...]]` 内链无法解析或文章不存在则返回 null/false；plain path 找不到时本就返回 null */
     allow_missing?: boolean;
   }
 
@@ -134,6 +150,20 @@ declare global {
   interface ConfigArgs {
     key: string;
     default?: any;
+  }
+
+  type ContentResourceKind = "image" | "audio" | "video" | "other";
+
+  interface ContentResource {
+    kind: ContentResourceKind;
+    src: string;
+    via: "image" | "link";
+    url: string;
+    alt?: string;
+    title?: string;
+    width?: number;
+    height?: number;
+    external?: boolean;
   }
 
   var everkm: Everkm;

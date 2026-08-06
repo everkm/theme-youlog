@@ -27,12 +27,10 @@ declare global {
     url_path: string;
     slug: string;
     summary: string;
-    date: number;
-    created_at?: number;
+    created_at: number;
     updated_at: number;
     draft: boolean;
     tags: string[];
-    categories: string[];
     weight: number;
     template?: string | null;
     content_html?: string | null;
