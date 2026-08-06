@@ -362,6 +362,7 @@ Use blockquotes with specific classes in Markdown:
 | Parameter | Description |
 |------|------|
 | `cols` | Max column count; columns adapt to the list container width; long titles truncate to one line |
+| `more` | Obsidian-style wikilink; when resolved, appends one item at the end of the list (e.g. `[[archives]]`, `[[blog/index\|See all]]`); omitted if unresolved |
 
 ---
 

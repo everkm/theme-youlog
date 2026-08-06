@@ -7,7 +7,7 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
-## v0.5.12 (2026-08-06)
+## v0.5.12 (2026-08-07)
 
 - **Article links**
   - Links inside list items (`li`) have no underline by default and show one on hover for cleaner reading
@@ -18,6 +18,7 @@ This changelog is for end users. Keep the wording user-friendly and avoid exposi
   - Fixed page-jump dropdown not working during in-site AJAX navigation (Alpine snippets are properly rebuilt after PJAX)
 - **Item list (dcard/items)**
   - Added `cols` as a max column count: columns adapt to the list container width automatically; long titles truncate to one line
+  - Added `more`: append a trailing link via wikilink (e.g. `[[archives|See all]]`); omitted if unresolved
 - **Markdown tables**
   - Narrow tables (e.g. a single column) are horizontally centered; wide tables still scroll horizontally
 
