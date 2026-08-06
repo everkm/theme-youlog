@@ -29,23 +29,20 @@
     display: flex;
     align-items: center;
     position: relative;
-    cursor: pointer;
     min-height: 2rem;
+    border-radius: 4px;
 
     & > a,
-    & > span {
+    & > span:not(.tree-toggle) {
       flex: 1;
       align-self: stretch;
       display: flex;
       align-items: center;
       min-height: 2rem;
-      padding: 0 8px 0 1em;
+      padding: 0 8px 0 0;
       border-radius: 4px;
       text-decoration: none;
       color: inherit;
-    }
-
-    &:has(a) {
       cursor: pointer;
     }
 
@@ -54,23 +51,17 @@
     }
   }
 
-  li[data-depth] > .node-content.with-toggle > a,
-  li[data-depth] > .node-content.with-toggle > span {
-    padding-left: calc((var(--depth, 0) * 1.25rem) + 1.65em);
-  }
-
   li[data-depth] > .node-content:not(.with-toggle) > a,
-  li[data-depth] > .node-content:not(.with-toggle) > span {
+  li[data-depth] > .node-content:not(.with-toggle) > span:not(.tree-toggle) {
     padding-left: calc((var(--depth, 0) * 1.25rem) + 1.2em);
   }
 
-  .node-content > a:hover,
-  .node-content > span:hover {
-    @apply bg-state-hover hover:bg-state-hover dark:hover:bg-state-hover;
+  /* hover 文字区：整行高亮；hover 折叠按钮时整行不高亮 */
+  .node-content:hover:not(:has(.tree-toggle:hover)) {
+    @apply bg-state-hover dark:bg-state-hover;
   }
 
-  li.active > .node-content > a,
-  li.active > .node-content > span {
+  li.active > .node-content {
     @apply bg-state-active dark:bg-state-active;
   }
 
@@ -78,57 +69,58 @@
     @apply text-brand-primary dark:text-brand-primary-light;
   }
 
-  .tree-node-branch > .with-toggle::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: calc((var(--depth, 0) * 1.25rem) + 0.3em);
-    width: 1.25rem;
-    height: 1.25rem;
-    display: flex;
+  .tree-toggle {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234b5563'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
-    background-size: 0.9rem;
-    background-repeat: no-repeat;
-    background-position: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-left: calc(var(--depth, 0) * 1.25rem);
+    margin-right: 0.1em;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: transform 0.2s, background-color 0.15s;
-    transform: translateY(-50%) rotate(0deg);
+    transition:
+      transform 0.2s,
+      background-color 0.15s,
+      color 0.15s;
+
+    svg {
+      width: 0.9rem;
+      height: 0.9rem;
+      display: block;
+    }
   }
 
-  .tree-node-branch > .with-toggle::before:hover {
+  .tree-toggle:hover {
     @apply bg-state-hover dark:bg-state-hover;
+    color: var(--brand-primary);
   }
 
-  .dark .tree-node-branch > .with-toggle::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e5e7eb'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+  .dark .tree-toggle:hover {
+    color: var(--brand-primary-light);
   }
 
-  .tree-node-branch > .with-toggle.expanded::before {
-    transform: translateY(-50%) rotate(90deg);
+  .tree-toggle--spacer {
+    visibility: hidden;
+    pointer-events: none;
+    cursor: default;
   }
 
-  .tree-node-leaf > .with-toggle::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: calc((var(--depth, 0) * 1.25rem) + 0.3em);
-    width: 1.25rem;
-    height: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translateY(-50%);
+  .node-content.expanded > .tree-toggle:not(.tree-toggle--spacer) {
+    transform: rotate(90deg);
   }
 
   .branch-node {
     cursor: pointer;
   }
 
-  .node-content > a:active,
-  .node-content > span:active {
+  .node-content:active:not(:has(.tree-toggle:active)) {
     @apply bg-state-active dark:bg-state-active;
   }
 }

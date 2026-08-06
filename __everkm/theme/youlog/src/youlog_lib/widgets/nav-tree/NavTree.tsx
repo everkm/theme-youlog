@@ -16,6 +16,17 @@ interface NavTreeProps {
   onNodeClick?: (nodeId: string, node: NavItem) => void;
 }
 
+const ToggleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+  </svg>
+);
+
 /**
  * 树节点组件
  * 递归渲染单个树节点
@@ -35,8 +46,13 @@ const TreeNode: Component<{
   const isLeaf = createMemo(() => !hasChildren());
   const isExpanded = createMemo(() => props.state.isExpanded(props.nodeId));
   const isActive = createMemo(() => props.state.isActive(props.nodeId));
+  const showToggleColumn = createMemo(
+    () => props.hasSiblingWithChildren ?? false,
+  );
 
-  const handleToggle = () => {
+  const handleToggle = (e?: Event) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     props.state.toggleExpanded(props.nodeId);
   };
 
@@ -45,6 +61,13 @@ const TreeNode: Component<{
     const currentNode = node();
     if (currentNode) {
       props.onNodeClick?.(props.nodeId, currentNode);
+    }
+  };
+
+  /** 无链接的目录节点：点击标题也可展开/折叠 */
+  const handleLabelClick = () => {
+    if (hasChildren()) {
+      props.state.toggleExpanded(props.nodeId);
     }
   };
 
@@ -63,11 +86,28 @@ const TreeNode: Component<{
           <div
             class="node-content mb-0.5"
             classList={{
-              "with-toggle": props.hasSiblingWithChildren ?? false,
+              "with-toggle": showToggleColumn(),
               expanded: isExpanded(),
             }}
-            onClick={handleToggle}
           >
+            <Show when={hasChildren()}>
+              <button
+                type="button"
+                class="tree-toggle"
+                aria-expanded={isExpanded()}
+                aria-label={isExpanded() ? "折叠" : "展开"}
+                onClick={handleToggle}
+              >
+                <ToggleIcon />
+              </button>
+            </Show>
+            <Show when={!hasChildren() && showToggleColumn()}>
+              <span
+                class="tree-toggle tree-toggle--spacer"
+                aria-hidden="true"
+              />
+            </Show>
+
             <Show when={currentNode().url}>
               <a
                 href={currentNode().url}
@@ -85,6 +125,7 @@ const TreeNode: Component<{
                 classList={{
                   "active-link": isActive(),
                 }}
+                onClick={handleLabelClick}
               >
                 {currentNode().title}
               </span>
