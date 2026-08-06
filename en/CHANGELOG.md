@@ -7,8 +7,10 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
-## v0.5.12 (2026-08-05)
+## v0.5.12 (2026-08-06)
 
+- **Article links**
+  - Links inside list items (`li`) have no underline by default and show one on hover for cleaner reading
 - **Blog list (dcard/list)**
   - Adapts to list container width: stacked title/date when narrow; one row with truncated title when wide
   - Added `show_summary` to optionally show the post summary under the title
