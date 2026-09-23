@@ -1,5 +1,6 @@
 import { Component, Show } from "solid-js";
 import { buildAjaxPageFingerprint } from "../utils/ajaxLayout";
+import { maybeAwait } from "../utils/engineCompat";
 import { pageNotFound } from "../utils/jsRenderError";
 import Sidebar from "../layout/Sidebar";
 import TopHeader from "../layout/TopHeader";
@@ -34,7 +35,7 @@ export async function loadBookPageData(
   const requestId = pageContext.request_id;
   const post = pageContext.post;
   if (!post) throw pageNotFound("Post not found");
-  const doc = await everkm.post_detail(requestId, { path: post.path });
+  const doc = await maybeAwait(everkm.post_detail(requestId, { path: post.path }));
   if (!doc) throw pageNotFound("Post not found");
 
   const navFile = pageContext.qs?.nav_file as string | undefined;
@@ -43,14 +44,18 @@ export async function loadBookPageData(
   if (navFile) {
     try {
       navDoc =
-        (await everkm.post_detail(requestId, {
-          path: navFile,
-          allow_missing: true,
-        })) ?? null;
+        (await maybeAwait(
+          everkm.post_detail(requestId, {
+            path: navFile,
+            allow_missing: true,
+          }),
+        )) ?? null;
     } catch {
       navDoc = null;
     }
-    pageNav = await everkm.nav_indicator(requestId, { from_file: navFile });
+    pageNav = await maybeAwait(
+      everkm.nav_indicator(requestId, { from_file: navFile }),
+    );
   }
   return { doc, navDoc, pageNav };
 }

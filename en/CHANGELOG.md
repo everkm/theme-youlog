@@ -7,6 +7,11 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.6.1 (2026-09-23)
+
+- **Compatibility**
+  - Works with engines that have not been upgraded yet: post details and chapter navigation render correctly on both newer and older engines, so the theme no longer requires the latest engine
+
 ## v0.6.0 (2026-09-23)
 
 - **Rendering**

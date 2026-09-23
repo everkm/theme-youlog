@@ -38,11 +38,11 @@ declare global {
       args?: PostsDirectoryArgs,
     ): string[];
     post_meta(requestId: string, args: FetchPostArgs): PostItem | null;
-    /** 全量文章（含 content_html）；恒返回 Promise，须 `await`。 */
+    /** 全量文章（含 content_html）；新引擎返回 Promise，旧引擎同步返回。 */
     post_detail(
       requestId: string,
       args: FetchPostArgs,
-    ): Promise<PostItem | null>;
+    ): MaybePromise<PostItem | null>;
     post_neighbors(
       requestId: string,
       args: { id: string } & FetchPostsArgs,
@@ -63,19 +63,19 @@ declare global {
       total: number;
     };
     has_post(requestId: string, args: { path: string }): boolean;
-    /** 恒返回 Promise，须 `await`。 */
+    /** 新引擎返回 Promise，旧引擎同步返回。 */
     nav_indicator(
       requestId: string,
       args: { from_file: string },
-    ): Promise<{ prev?: NavIndicatorItem; next?: NavIndicatorItem }>;
+    ): MaybePromise<{ prev?: NavIndicatorItem; next?: NavIndicatorItem }>;
     nav_path(
       requestId: string,
       args: NavPathArgs,
-    ): Promise<LinkItem[]>;
+    ): MaybePromise<LinkItem[]>;
     nav_tree(
       requestId: string,
       args: NavTreeArgs,
-    ): Promise<{ nodes: NavNode[]; paths: LinkItem[] }>;
+    ): MaybePromise<{ nodes: NavNode[]; paths: LinkItem[] }>;
     media_remote(requestId: string, args: { url: string }): string;
     media_dimension(
       requestId: string,
@@ -167,6 +167,9 @@ declare global {
     height?: number;
     external?: boolean;
   }
+
+  /** 新引擎返回 Promise、旧引擎同步返回值；调用点用 `await maybeAwait(...)` 兼容两者。 */
+  type MaybePromise<T> = T | Promise<T>;
 
   var everkm: Everkm;
 }
