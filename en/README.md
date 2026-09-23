@@ -253,12 +253,12 @@ folders:
       stack: true
   "/blog/":
     template: book
-    # No nav_file: no left-side tree navigation
+    # No explicit nav_file: ancestor `_nav.md` is still auto-discovered when present
 ```
 
 | Parameter | Type | Description |
 |------|------|------|
-| `nav_file` | string | **Optional.** Path to the chapter navigation Markdown file (usually `_nav.md` or `_SUMMARY.md`). When not configured or the file does not exist, tree navigation and previous/next navigation are not displayed |
+| `nav_file` | string | **Optional.** Path to the chapter navigation Markdown file (usually `_nav.md`). When omitted, the publish engine walks ancestor directories for `_nav.md` and injects it; when still missing, tree navigation and previous/next navigation are not displayed |
 | `stack` | boolean | **Optional.** `true` / `1` / `yes` enables top-bottom layout: full-width header on top, navigation tree on the left and content on the right below. Default `false` uses left-right layout (full-height sidebar on the left, header and content on the right) |
 
 ### Layout Mode Comparison

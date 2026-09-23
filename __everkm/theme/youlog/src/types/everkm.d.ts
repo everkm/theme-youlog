@@ -38,7 +38,11 @@ declare global {
       args?: PostsDirectoryArgs,
     ): string[];
     post_meta(requestId: string, args: FetchPostArgs): PostItem | null;
-    post_detail(requestId: string, args: FetchPostArgs): PostItem | null;
+    /** 全量文章（含 content_html）；恒返回 Promise，须 `await`。 */
+    post_detail(
+      requestId: string,
+      args: FetchPostArgs,
+    ): Promise<PostItem | null>;
     post_neighbors(
       requestId: string,
       args: { id: string } & FetchPostsArgs,
@@ -59,21 +63,19 @@ declare global {
       total: number;
     };
     has_post(requestId: string, args: { path: string }): boolean;
+    /** 恒返回 Promise，须 `await`。 */
     nav_indicator(
       requestId: string,
       args: { from_file: string },
-    ): {
-      prev?: NavIndicatorItem;
-      next?: NavIndicatorItem;
-    };
-    nav_path(requestId: string, args: NavPathArgs): LinkItem[];
+    ): Promise<{ prev?: NavIndicatorItem; next?: NavIndicatorItem }>;
+    nav_path(
+      requestId: string,
+      args: NavPathArgs,
+    ): Promise<LinkItem[]>;
     nav_tree(
       requestId: string,
       args: NavTreeArgs,
-    ): {
-      nodes: NavNode[];
-      paths: LinkItem[];
-    };
+    ): Promise<{ nodes: NavNode[]; paths: LinkItem[] }>;
     media_remote(requestId: string, args: { url: string }): string;
     media_dimension(
       requestId: string,

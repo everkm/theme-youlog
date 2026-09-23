@@ -1,20 +1,25 @@
 import { renderToStringAsync } from "solid-js/web";
 import { RootLayout } from "../layout/RootLayout";
-import { BookPage } from "./book";
+import { pageNotFound } from "../utils/jsRenderError";
+import { BookPage, loadBookPageData } from "./book";
 
 async function renderPage(compName: string, props: any) {
-  const html = await renderToStringAsync(() => {
-    switch (compName) {
-      case "book":
-        return (
-          <RootLayout context={props}>
-            <BookPage props={props} />
-          </RootLayout>
-        );
-      default:
-        throw new Error(`Page ${compName} not found`);
+  let body;
+  switch (compName) {
+    case "book": {
+      const data = await loadBookPageData(props);
+      body = (
+        <RootLayout context={props}>
+          <BookPage props={props} data={data} />
+        </RootLayout>
+      );
+      break;
     }
-  });
+    default:
+      throw pageNotFound(`Page ${compName} not found`);
+  }
+
+  const html = await renderToStringAsync(() => body);
   // 在 JSRender 阶段直接注入 CSS 与 JS
   const cssYoulog =
     everkm.assets(props.request_id, { type: "css", section: "youlog" }) || "";

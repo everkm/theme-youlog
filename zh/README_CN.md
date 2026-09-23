@@ -252,12 +252,12 @@ folders:
       stack: true
   "/blog/":
     template: book
-    # 无 nav_file：不显示左侧树形导航
+    # 无显式 nav_file：若祖先目录存在 _nav.md 仍会自动用于侧栏
 ```
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `nav_file` | string | **可选**。章节目录 Markdown 文件路径（通常为 `_nav.md` 或 `_SUMMARY.md`）。未配置或文件不存在时不显示树形导航，也不显示上下页导航 |
+| `nav_file` | string | **可选。** 章节目录 Markdown 文件路径（通常为 `_nav.md`）。未配置时发布引擎会沿目录祖先自动查找 `_nav.md` 并注入；文件不存在或仍未发现时不显示树形导航与上下页导航 |
 | `stack` | boolean | **可选**。`true` / `1` / `yes` 启用上下布局：顶栏全宽 Header，下方左侧导航树 + 右侧正文。默认 `false` 为左右布局（左侧全高侧栏 + 右侧顶栏与正文） |
 
 ### 布局模式对比

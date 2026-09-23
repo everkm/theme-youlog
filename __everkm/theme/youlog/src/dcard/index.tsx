@@ -1,5 +1,6 @@
 import { renderToStringAsync } from "solid-js/web";
 import { DcardList, DcardItems } from "youlog_lib/dcard";
+import { pageNotFound } from "../utils/jsRenderError";
 
 export async function renderDcard(name: string, props: any) {
   const html = await renderToStringAsync(() => {
@@ -9,7 +10,7 @@ export async function renderDcard(name: string, props: any) {
       case "items":
         return <DcardItems page_context={props.page_context} {...props} />;
       default:
-        throw new Error(`Dcard ${name} not found`);
+        throw pageNotFound(`Dcard ${name} not found`);
     }
   });
   return html;

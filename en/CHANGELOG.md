@@ -7,6 +7,13 @@ slug: changelog
 This changelog is for end users. Keep the wording user-friendly and avoid exposing internal technical details.
 
 
+## v0.6.0 (2026-09-23)
+
+- **Rendering**
+  - Unknown pages / components now report “page not found” clearly so directory entry can fall back to the home page or first chapter
+- **Chapter navigation**
+  - When `nav_file` is not set explicitly, an ancestor `_nav.md` is used automatically, so you no longer configure it at every level
+
 ## v0.5.12 (2026-08-07)
 
 - **Article links**

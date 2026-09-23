@@ -6,11 +6,13 @@ interface PrevNextLinksProps {
 }
 
 const PrevNextLinks: Component<PrevNextLinksProps> = (props) => {
+  // 只需 url_path / path / title（均在 PostView 元数据里）；用 post_meta，避免 3× 全量 md→HTML。
+  // 见 everkm-publish stuff/km/260922-Plan-渲染调度死锁根治.md §4.3
   const prevPost = (() => {
     const id = props.qs?.prev;
     if (!id) return undefined;
     try {
-      return everkm.post_detail(props.requestId, { id: String(id) });
+      return everkm.post_meta(props.requestId, { id: String(id) });
     } catch (e) {
       return undefined;
     }
@@ -20,7 +22,7 @@ const PrevNextLinks: Component<PrevNextLinksProps> = (props) => {
     const id = props.qs?.next;
     if (!id) return undefined;
     try {
-      return everkm.post_detail(props.requestId, { id: String(id) });
+      return everkm.post_meta(props.requestId, { id: String(id) });
     } catch (e) {
       return undefined;
     }

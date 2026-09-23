@@ -1,13 +1,21 @@
 import { Component, Show } from "solid-js";
 import { buildAjaxPageFingerprint } from "../utils/ajaxLayout";
+import { pageNotFound } from "../utils/jsRenderError";
 import Sidebar from "../layout/Sidebar";
 import TopHeader from "../layout/TopHeader";
 import ArticleContent from "../layout/ArticleContent";
 import TOC from "../layout/TOC";
 import { YoushaCommentScript } from "../layout/YoushaComment";
 
+export type BookPageData = {
+  doc: PostItem;
+  navDoc: PostItem | null;
+  pageNav: { prev?: NavIndicatorItem; next?: NavIndicatorItem };
+};
+
 interface BookPageProps {
   props: PageContext;
+  data: BookPageData;
 }
 
 function isTruthyQuery(value: unknown): boolean {
@@ -19,45 +27,39 @@ function isTruthyQuery(value: unknown): boolean {
   return false;
 }
 
+/** J-2：在 renderPage 入口预取嵌套 API，组件内同步读 */
+export async function loadBookPageData(
+  pageContext: PageContext,
+): Promise<BookPageData> {
+  const requestId = pageContext.request_id;
+  const post = pageContext.post;
+  if (!post) throw pageNotFound("Post not found");
+  const doc = await everkm.post_detail(requestId, { path: post.path });
+  if (!doc) throw pageNotFound("Post not found");
+
+  const navFile = pageContext.qs?.nav_file as string | undefined;
+  let navDoc: PostItem | null = null;
+  let pageNav: BookPageData["pageNav"] = {};
+  if (navFile) {
+    try {
+      navDoc =
+        (await everkm.post_detail(requestId, {
+          path: navFile,
+          allow_missing: true,
+        })) ?? null;
+    } catch {
+      navDoc = null;
+    }
+    pageNav = await everkm.nav_indicator(requestId, { from_file: navFile });
+  }
+  return { doc, navDoc, pageNav };
+}
+
 const BookPage: Component<BookPageProps> = (props) => {
   const pageContext = props.props;
   const requestId = pageContext.request_id;
-
-  // 获取文档详情
-  const doc = (() => {
-    const post = pageContext.post;
-    if (!post) throw new Error("Post not found");
-    const doc = everkm.post_detail(requestId, {
-      path: post.path,
-    });
-    if (!doc) throw new Error("Post not found");
-    return doc;
-  })();
-
-  const navFile = pageContext.qs?.nav_file as string | undefined;
+  const { doc, navDoc, pageNav } = props.data;
   const stackLayout = isTruthyQuery(pageContext.qs?.stack);
-
-  // 获取导航文档（用于首屏渲染导航 HTML）
-  const navDoc = (() => {
-    if (!navFile) return null;
-    try {
-      const doc = everkm.post_detail(requestId, {
-        path: navFile,
-        allow_missing: true,
-      });
-      if (!doc) return null;
-      return doc;
-    } catch {
-      return null;
-    }
-  })();
-
-  // 获取导航指示器
-  const pageNav = navFile
-    ? everkm.nav_indicator(requestId, {
-        from_file: navFile,
-      })
-    : {};
 
   const configDefaultMissing = Symbol("configDefaultMissing");
   const configValue = (path: string, defaultValue: any = configDefaultMissing) => {
@@ -67,10 +69,8 @@ const BookPage: Component<BookPageProps> = (props) => {
     return everkm.config(requestId, { key: path });
   };
 
-  // 获取 base URL
   const baseUrl = everkm.base_url(requestId);
 
-  // Youlog 相关环境变量
   const youlogPlatform = everkm.env(requestId, {
     name: "YOULOG_PLATFORM",
     default: "",
